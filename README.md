@@ -58,7 +58,7 @@ the display** — including `drm-hmi`.
 
 ## Where this runs
 
-The **Vulkan-HMI** repository packages this into a purpose-built Raspberry Pi 5 Linux image
+The **qt-hmi-buildroot** repository packages this into a purpose-built Raspberry Pi 5 Linux image
 — Buildroot, BusyBox init, Mesa's `v3d` driver, one application started at boot on HDMI —
 and consumes this repository as a git submodule. Everything about the board, the image and
 the packaging is documented there.

@@ -15,7 +15,7 @@ deliberate:
 
 ## This repository is a submodule
 
-It is consumed by the **Vulkan-HMI** image repository, which builds it into a Raspberry Pi 5
+It is consumed by the **qt-hmi-buildroot** image repository, which builds it into a Raspberry Pi 5
 Buildroot image. That has one consequence worth stating plainly: a commit here changes
 nothing for the image until the submodule pointer is committed *there*. A local build in
 that tree picks the edit up immediately and every other checkout will not, which is exactly
@@ -74,8 +74,8 @@ because it gets written anyway:
 
 **One fact, one home.** If two nodes need the same fact, one owns it and the other links.
 That rule crosses the repository boundary too: facts about the image, the board, the
-Buildroot packaging or the init script live in Vulkan-HMI and are referenced from here with
-a `Vulkan-HMI/` path prefix, never copied.
+Buildroot packaging or the init script live in qt-hmi-buildroot and are referenced from here with
+a `qt-hmi-buildroot/` path prefix, never copied.
 
 **Node anatomy.** `# Title`, then a header block, then prose:
 
@@ -85,7 +85,7 @@ a `Vulkan-HMI/` path prefix, never copied.
 ```
 
 `Owns:` lines are repo-relative paths, one per line. Every path written anywhere in `docs/`
-must exist, unless it carries the `Vulkan-HMI/` prefix.
+must exist, unless it carries the `qt-hmi-buildroot/` prefix.
 
 **Size.** A node caps at 120 lines of prose — the `Owns:`/`See:` block does not count
 against it — with `docs/INDEX.md` at 60. The cap is a limit and not a budget:
@@ -147,4 +147,10 @@ scripts/build.sh board --clean
 `scripts/toolchain.cmake.example` to `scripts/toolchain.cmake` and put this machine's cross
 compiler in it once. See [docs/targets.md](docs/targets.md) for the `QT_HOST_PATH` trap.
 
-Qt 6.5 or later, with `Gui`, `Qml` and `Quick`, plus `QtQuick.Shapes` at runtime.
+Qt 6.5 or later, with `Gui`, `Qml` and `Quick`, plus `QtQuick.Shapes` at runtime. Then Poco
+(`Foundation`, `Net`, `NetSSL`, `JSON`), `libpqxx` and `paho-mqtt-cpp`. On Debian:
+
+```sh
+sudo apt install libpoco-dev libpqxx-dev libpaho-mqttpp-dev libpaho-mqtt-dev
+git submodule update --init --recursive        # deps/, built from source
+```

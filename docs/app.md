@@ -2,11 +2,18 @@
 
 > Owns: src/main.cpp
 > Owns: CMakeLists.txt
-> See:  docs/qml.md docs/targets.md
+> See:  docs/qml.md docs/targets.md docs/integrations.md
 
-A `QGuiApplication`, an engine, one QML module compiled into the binary. There is no C++
-scene, no exported type and no backend seam — that is the split with the `drm-hmi`
-repository, and adding one here is a decision, not a refactor.
+A `QGuiApplication`, an engine, one QML module compiled into the binary, and a set of
+network clients started beside it. There is still no C++ scene, no exported type and no
+backend seam — that is the split with the `drm-hmi` repository, and adding one here is a
+decision, not a refactor. Nothing in `src/integrations/` is a `QObject` or reaches the
+engine; what it takes to change that is [docs/integrations.md](docs/integrations.md).
+
+**Order in `main()` is load-bearing.** Logging is up first because reading the settings
+logs; the settings are read before `QGuiApplication` so that `--help` and a malformed value
+answer without a display; and `Integrations` is constructed last and scoped, so that every
+worker thread is joined before `main` returns.
 
 **The engine does not exit on a QML error.** `loadFromModule()` returns `void` and a failed
 load leaves a valid engine with no root object, which then runs the event loop forever. On a

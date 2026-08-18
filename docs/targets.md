@@ -6,7 +6,7 @@
 
 `host` is a window on a desktop, `board` is the cross build the image packages. Both are
 plain CMake; there is no Buildroot vocabulary anywhere in this repository, and the image
-repository owns the packaging — `Vulkan-HMI/docs/build-pipeline.md`.
+repository owns the packaging — `qt-hmi-buildroot/docs/build-pipeline.md`.
 
 **One build directory per target.** A CMake cache records the compiler it was configured
 with. Pointing the second target at the first one's directory does not fail — it silently

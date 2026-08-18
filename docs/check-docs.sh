@@ -29,7 +29,7 @@ skip_path() {
 		# Nodes in the consuming image repository. This repo is a submodule of it,
 		# so those files are never on disk here - the prefix exists to say "other
 		# repository" out loud rather than to be resolved.
-		Vulkan-HMI/*) return 0 ;;
+		qt-hmi-buildroot/*) return 0 ;;
 		# Written by hand from the .example beside it and gitignored, so it is
 		# absent from every clean checkout and present on every working machine.
 		scripts/toolchain.cmake) return 0 ;;
@@ -64,7 +64,7 @@ while IFS=: read -r file line rest; do
 	[ -n "$path" ] || continue
 	skip_path "$path" && continue
 	[ -e "$path" ] || err "$file:$line mentions a path that does not exist: $path"
-done < <(grep -HnoE '(Vulkan-HMI|docs|src|scripts)/[A-Za-z0-9._/-]*' "${LINKED[@]}")
+done < <(grep -HnoE '(qt-hmi-buildroot|docs|src|scripts)/[A-Za-z0-9._/-]*' "${LINKED[@]}")
 
 echo "=== every node is reachable from the index ==="
 for f in "${NODES[@]}"; do

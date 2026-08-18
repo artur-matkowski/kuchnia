@@ -15,7 +15,7 @@ looks like a frame-pacing problem and is not one.
 **Nothing here draws text.** A Qt image with no font installed renders an empty rectangle
 where a string should be and logs nothing, so a boot check written against on-screen text
 reports a failure that belongs to the image and not to the application. Adding text means
-adding a font package on the image side first — `Vulkan-HMI/docs/build-pipeline.md`.
+adding a font package on the image side first — `qt-hmi-buildroot/docs/build-pipeline.md`.
 
 `Window` sets 1280x720. Under `eglfs` that size is ignored and the window takes the whole
 connector; it is the desktop window size, and on both targets the aspect the scene is laid

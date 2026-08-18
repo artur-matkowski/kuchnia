@@ -1,0 +1,6 @@
+[submodule "deps/Module-cpp-config"]
+	path = deps/Module-cpp-config
+	url = https://github.com/artur-matkowski/Module-cpp-config.git
+[submodule "deps/Module-cpp-logger"]
+	path = deps/Module-cpp-logger
+	url = https://github.com/artur-matkowski/Module-cpp-logger.git
