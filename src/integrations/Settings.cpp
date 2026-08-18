@@ -46,10 +46,11 @@ std::vector<ParamInitializer> specs()
 
 		ParamInitializer(STRING, "mqtt-host", "<HOST_REDACTED>", "Broker address"),
 		ParamInitializer(INT,    "mqtt-port", 0,             "Broker port"),
-		ParamInitializer(STRING, "mqtt-user", "bridge",         "Broker account"),
+		ParamInitializer(STRING, "mqtt-user", "qt-hmi",
+			"Broker account the password authenticates, and not the client id"),
 		ParamInitializer(STRING, "mqtt-password", "",           "Broker password"),
 		ParamInitializer(STRING, "mqtt-client-id", "qt-hmi",
-			"Must be unique on the broker; a duplicate makes both clients flap"),
+			"Session name, not an account; unique on the broker or both clients flap"),
 		ParamInitializer(STRING_VECTOR, "mqtt-subscribe", kGateTopics,
 			"Topics subscribed on every connect"),
 		ParamInitializer(STRING, "mqtt-status-topic", "qt-hmi/available",

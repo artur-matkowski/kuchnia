@@ -54,10 +54,11 @@ CMakeLists takes its compiler and sysroot from the caller, so it cross-builds un
 ## Run
 
 ```
-qt-hmi [-platform <qpa>]
+qt-hmi [--configpath <file>] [-platform <qpa>]
 ```
 
-Nothing is configurable yet. On a desktop the default QPA platform is whatever the session
+Parameters come from `/etc/qt-hmi.conf`, then the environment, then the command line, each
+overriding the one before; `--help` lists them. On a desktop the default QPA platform is whatever the session
 provides; on the board it is `eglfs`, which takes the whole connector and needs the display
 to itself. Qt's KMS backend becomes DRM master, so **it cannot run while anything else owns
 the display** — including `drm-hmi`.

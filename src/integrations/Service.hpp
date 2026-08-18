@@ -42,6 +42,11 @@ protected:
 	// caller must return promptly.
 	bool waitFor(int milliseconds);
 
+	// Cuts the current waitFor() short. Safe from any thread, which is the whole point: it
+	// is how a library's callback thread hands work back to this one instead of doing it
+	// where it cannot block. A wake with nobody waiting is remembered, not lost.
+	void wake();
+
 	bool stopping();
 
 	const char* topic() const { return m_topic; }
@@ -56,4 +61,5 @@ private:
 	std::mutex              m_mutex;
 	std::condition_variable m_wakeup;
 	bool                    m_stopping = false;
+	bool                    m_woken = false;
 };

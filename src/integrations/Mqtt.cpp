@@ -19,6 +19,21 @@ bool isGateCommand(const std::string& name)
 	return name == "OpenGate" || name == "CloseGate" || name == "StopGate";
 }
 
+// paho reports every CONNACK rejection as MQTTAsync_strerror's "CONNACK return code", which
+// names neither the code nor the identity the broker judged. rc is the MQTT 3.1.1 CONNACK
+// byte; paho's own failures are negative and keep their own text.
+const char* connackReason(int rc)
+{
+	switch (rc) {
+	case 1:  return "unacceptable protocol version";
+	case 2:  return "identifier rejected";
+	case 3:  return "server unavailable";
+	case 4:  return "bad user name or password";
+	case 5:  return "not authorized";
+	default: return nullptr;
+	}
+}
+
 }  // namespace
 
 Mqtt::Mqtt(const Settings& settings)
@@ -83,21 +98,27 @@ void Mqtt::sendGateCommand()
 
 void Mqtt::onConnected()
 {
-	// Runs on paho's callback thread, on the first connect and on every automatic
-	// reconnect after it - which is what makes the subscriptions and the retained status
-	// survive a broker restart without this class tracking one.
-	try {
-		for (const std::string& subscription : m_settings.mqttSubscribe)
-			m_client->subscribe(subscription, kQos)->wait();
+	// Runs on paho's callback thread, on the first connect and on every automatic reconnect
+	// after it - which is what makes the subscriptions and the retained status survive a
+	// broker restart without this class tracking one.
+	//
+	// This thread is also the one that delivers SUBACK and PUBACK, so a token wait()ed on
+	// here can never be completed: subscribing from this function deadlocks the client
+	// silently and for good, with no error and no traffic. All it may do is ask the service
+	// thread to do the work, where waiting is safe and a failure can still be thrown.
+	m_announce.store(true);
+	wake();
+}
 
-		LOG_INFO(topic()) << "connected, " << m_settings.mqttSubscribe.size()
-		                  << " subscription(s)";
+void Mqtt::announce()
+{
+	for (const std::string& subscription : m_settings.mqttSubscribe)
+		m_client->subscribe(subscription, kQos)->wait();
 
-		publish(m_settings.mqttStatusTopic, "online", true);
-		sendGateCommand();
-	} catch (const std::exception& error) {
-		LOG_ERROR(topic()) << "post-connect setup failed: " << error.what();
-	}
+	LOG_INFO(topic()) << "connected, " << m_settings.mqttSubscribe.size() << " subscription(s)";
+
+	publish(m_settings.mqttStatusTopic, "online", true);
+	sendGateCommand();
 }
 
 void Mqtt::step()
@@ -128,8 +149,24 @@ void Mqtt::step()
 			.will(mqtt::message(m_settings.mqttStatusTopic, "offline", kQos, true))
 			.finalize();
 
-		m_client->connect(options)->wait();
+		try {
+			m_client->connect(options)->wait();
+		} catch (const mqtt::exception& error) {
+			const char* reason = connackReason(error.get_return_code());
+			if (!reason)
+				throw;
+			// The broker weighed these four and refused; a rejection that does not name them
+			// reads as a network fault and is debugged as one.
+			throw std::runtime_error(
+				std::string("connect refused: ") + reason + " - user '" + m_settings.mqttUser +
+				"', client-id '" + m_settings.mqttClientId + "', " +
+				(m_settings.mqttPassword.empty() ? "no password" : "password set") +
+				", will '" + m_settings.mqttStatusTopic + "'");
+		}
 	}
+
+	if (m_announce.exchange(false))
+		announce();
 
 	if (m_settings.mqttHeartbeatMs <= 0) {
 		waitFor(std::max(1000, m_settings.retryMaxMs));

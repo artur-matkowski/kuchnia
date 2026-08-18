@@ -62,8 +62,18 @@ bool Service::waitFor(int milliseconds)
 {
 	std::unique_lock<std::mutex> guard(m_mutex);
 	m_wakeup.wait_for(guard, std::chrono::milliseconds(milliseconds),
-	                  [this] { return m_stopping; });
+	                  [this] { return m_stopping || m_woken; });
+	m_woken = false;
 	return !m_stopping;
+}
+
+void Service::wake()
+{
+	{
+		const std::lock_guard<std::mutex> guard(m_mutex);
+		m_woken = true;
+	}
+	m_wakeup.notify_all();
 }
 
 void Service::run()

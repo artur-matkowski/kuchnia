@@ -20,6 +20,7 @@ PostgreSQL, HTTP and MQTT - that log what they see and touch nothing on screen.
 | [app](docs/app.md) | The process and the QML module: the error that does not exit, the URI written twice |
 | [qml](docs/qml.md) | The scene: rotating about a centroid, and why nothing draws text |
 | [integrations](docs/integrations.md) | The three network clients, the logger that drops lines until told where to write, and the settings that fail quietly |
+| [mqtt](docs/mqtt.md) | The broker client: the callback thread that must not block, and a refusal that names why |
 | [targets](docs/targets.md) | `host` and `board`, one cache each, and the host tools a Qt cross build needs |
 
 ## Where the rest of the answers are

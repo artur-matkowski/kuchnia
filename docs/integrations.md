@@ -10,8 +10,6 @@
 > Owns: src/integrations/Database.cpp
 > Owns: src/integrations/Rest.hpp
 > Owns: src/integrations/Rest.cpp
-> Owns: src/integrations/Mqtt.hpp
-> Owns: src/integrations/Mqtt.cpp
 > Owns: src/integrations/Integrations.hpp
 > Owns: src/integrations/Integrations.cpp
 > See:  docs/app.md qt-hmi-buildroot/docs/image-and-flash.md
@@ -98,31 +96,13 @@ Two consequences worth knowing:
   but by then the derived vtable is gone and the thread is still calling `step()`.
 * `reset()` runs after a failed step. `Database` and `Mqtt` drop their connection there; a
   connection kept across a failure is one that reports the same error forever.
+* `wake()` cuts a `waitFor()` short from any thread, and a wake with nobody waiting is
+  remembered rather than lost — which is what stops a library callback from having to do
+  blocking work on its own thread.
 
 ## MQTT
 
-**Reconnection is paho's, not `Service`'s.** The client is configured with
-`automatic_reconnect`, and the connected handler — which runs on paho's thread, on the first
-connect and every reconnect after — is what re-subscribes and re-publishes the retained
-status. `Service`'s backoff only covers a connect that never succeeded at all.
-
-**`mqtt-client-id` must be unique on the broker.** Two clients sharing one id disconnect
-each other in a loop that reads as a flapping network.
-
-**Nothing under `hc12/tx` may ever be published retained.** The broker persists retained
-messages, so a retained `hc12/tx/OpenGate` is replayed to the HC-12 bridge on every restart
-of *that* service — the gate then opens by itself, forever, until someone clears the topic
-by hand. `publish()` takes the flag explicitly and `sendGateCommand()` passes false.
-
-Gate commands are refused unless `gate-control` is set, and only `OpenGate`, `CloseGate` and
-`StopGate` are accepted; the command is published once, after the first connect. MQTT has no
-prefix wildcard, so the gate topics are named one by one in `kGateTopics` — a signal added
-to `hc12-message-definitions` needs adding there too.
-
-**The desktop and the board build against different paho versions** — 1.5.2 from Debian,
-1.3.2 from Buildroot. Only the subset common to both is used, so a host build is not
-evidence the board's will compile. Point `CMAKE_PREFIX_PATH` at a locally built 1.3.2 to
-check, or build `board`.
+The broker client is its own node: [mqtt](docs/mqtt.md).
 
 ## REST
 
