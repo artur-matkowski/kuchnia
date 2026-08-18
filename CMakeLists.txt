@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.21)
 
 project(qt-qml-hmi VERSION 1.0 LANGUAGES CXX)
 
+# cmake/ holds FindPoco.cmake, which takes precedence over any PocoConfig.cmake the machine
+# happens to have: find_package's basic signature tries MODULE before CONFIG. That is
+# deliberate - one discovery path for both targets, and only one of them ships a config
+# package. See cmake/FindPoco.cmake.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # Gui rather than Widgets: there is no window system on the target and no widget on
 # either. Quick pulls the scene graph; Qml pulls the engine main.cpp drives.
 find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Qml Quick)
@@ -14,6 +20,15 @@ find_package(PahoMqttCpp REQUIRED)
 
 # libpqxx ships no CMake config package on either target; both install a pkg-config file.
 find_package(PkgConfig REQUIRED)
+
+# A sysroot constrains find_library and find_path, but pkg-config keeps its own search path
+# and ignores all of it. Left alone it reads the build machine's .pc files, and a sysroot
+# prefix is then pasted onto their -I and -L - which lands on real directories often enough
+# to configure, link, and produce a binary built against the wrong library's metadata.
+if(CMAKE_CROSSCOMPILING AND CMAKE_SYSROOT)
+	set(ENV{PKG_CONFIG_LIBDIR} "${CMAKE_SYSROOT}/usr/lib/pkgconfig:${CMAKE_SYSROOT}/usr/share/pkgconfig")
+endif()
+
 pkg_check_modules(PQXX REQUIRED IMPORTED_TARGET libpqxx)
 
 qt_standard_project_setup(REQUIRES 6.5)

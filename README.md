@@ -35,7 +35,13 @@ scripts/build.sh board         # the cross build the image packages
 ```
 
 Needs Qt 6.5 or later with the `Gui`, `Qml` and `Quick` modules, and `QtQuick.Shapes` at
-runtime — part of `qtdeclarative`, so present wherever Quick is.
+runtime — part of `qtdeclarative`, so present wherever Quick is. Then Poco (`Foundation`,
+`Net`, `NetSSL`, `JSON`), `libpqxx` and `paho-mqtt-cpp` for the integrations. On Debian:
+
+```sh
+sudo apt install libpoco-dev libpqxx-dev libpaho-mqttpp-dev libpaho-mqtt-dev
+git submodule update --init --recursive        # deps/, built from source
+```
 
 `board` reads `scripts/toolchain.cmake`: copy `scripts/toolchain.cmake.example`, point it at
 this machine's cross toolchain, and note the `QT_HOST_PATH` line — a Qt cross build runs
