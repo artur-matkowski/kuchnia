@@ -133,6 +133,8 @@ Run `docs/check-docs.sh` after touching anything under `docs/`.
      is, reporting the work done before `main` has it; the `main`-bound PR carries the close.
   6) When reviewing a PR, hand findings over as PR comments — do not fix them yourself.
   7) **Only a human merges a PR.**
+  8) Only human review application visuals, anything that requires screenshoting has to be 
+     handover for human review. with some description, what is to be tested
 
 ## Build
 
