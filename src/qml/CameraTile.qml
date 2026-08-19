@@ -197,27 +197,29 @@ Rectangle {
 	VideoOutput {
 		id: output
 		anchors.fill: parent
-		// Stretch, deliberately: the tile is always covered edge to edge and a camera whose
-		// aspect does not match its cell is distorted rather than letterboxed.
-		fillMode: VideoOutput.Stretch
+		// The cells are cut to the streams' own 16:9, so there is normally nothing to fit and
+		// nothing to crop. A camera that is not 16:9 letterboxes rather than being stretched
+		// into a shape it never had - a stretched picture is read as a wrong lens, not as a
+		// layout problem.
+		fillMode: VideoOutput.PreserveAspectFit
 	}
 
 	// Over the picture, not beside it: a tile whose stream died keeps painting its last frame
 	// and the badge is the only thing that says the frame is old.
 	Rectangle {
 		anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-		height: 20
+		height: Theme.fontLabel + 10
 		color: "#c0000000"
 
 		Text {
-			anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+			anchors { left: parent.left; leftMargin: 6; verticalCenter: parent.verticalCenter }
 			text: root.label
 			color: Theme.text
-			font.pixelSize: 11
+			font.pixelSize: Theme.fontLabel
 		}
 
 		StatusBadge {
-			anchors { right: parent.right; rightMargin: 4; verticalCenter: parent.verticalCenter }
+			anchors { right: parent.right; rightMargin: 6; verticalCenter: parent.verticalCenter }
 			health: root._health
 			detail: root._detail
 		}
@@ -228,6 +230,6 @@ Rectangle {
 		visible: root.url.length === 0
 		text: "no camera-url"
 		color: Theme.textDim
-		font.pixelSize: 12
+		font.pixelSize: Theme.fontBody
 	}
 }

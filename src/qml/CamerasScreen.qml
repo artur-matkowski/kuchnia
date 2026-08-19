@@ -2,9 +2,9 @@ import QtQuick
 import QtQuick.Layouts
 import QtHmi
 
-// Five cameras and the readouts, on one 3x2 grid. The sixth cell is where a sixth camera
-// would have gone; at this resolution the tiles come out close enough to square that giving
-// the spare cell to the clock and the tank costs nothing.
+// Five cameras across two rows, and the clock and the tank on a strip under them. The camera
+// cells are cut to 16:9 - the streams' own aspect - and the height that leaves over is what
+// the strip is made of, which is why the readouts are as large as they are.
 //
 // The five tiles are written out rather than driven by a Repeater, and that is the point of
 // this file: a Repeater makes every delegate identical, and every delegate here is animated
@@ -19,18 +19,29 @@ Context {
 	// a State name is a literal and an element with no State for an id is silently unanimated.
 	readonly property string spans: "details-24h,details-72h,details-7d"
 
+	// The height of a camera cell, at the streams' own 16:9. Derived from this screen's width
+	// rather than from the cell's, because a preferred height bound to the width the layout
+	// itself assigns is a loop the layout has to be trusted to settle. The arithmetic is the
+	// GridLayout's own: two margins and two column gaps come off the width, and what is left
+	// divides by three.
+	readonly property real cellHeight: (width - Theme.gap * 4) / 3 * 9 / 16
+
 	GridLayout {
 		anchors.fill: parent
 		anchors.margins: Theme.gap
 		columns: 3
-		rows: 2
+		// Two rows of cameras and the readouts strip across the third.
+		rows: 3
 		columnSpacing: Theme.gap
 		rowSpacing: Theme.gap
 
 		SceneElement {
 			id: cameraOne
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			// Not fillHeight: the cell is cut to the cameras' own aspect and the height that
+			// leaves over goes to the readouts strip below.
+			Layout.fillHeight: false
+			Layout.preferredHeight: screen.cellHeight
 
 			CameraTile {
 				anchors.fill: parent
@@ -78,7 +89,10 @@ Context {
 		SceneElement {
 			id: cameraTwo
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			// Not fillHeight: the cell is cut to the cameras' own aspect and the height that
+			// leaves over goes to the readouts strip below.
+			Layout.fillHeight: false
+			Layout.preferredHeight: screen.cellHeight
 
 			CameraTile {
 				anchors.fill: parent
@@ -132,7 +146,10 @@ Context {
 		SceneElement {
 			id: cameraThree
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			// Not fillHeight: the cell is cut to the cameras' own aspect and the height that
+			// leaves over goes to the readouts strip below.
+			Layout.fillHeight: false
+			Layout.preferredHeight: screen.cellHeight
 
 			CameraTile {
 				anchors.fill: parent
@@ -186,7 +203,10 @@ Context {
 		SceneElement {
 			id: cameraFour
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			// Not fillHeight: the cell is cut to the cameras' own aspect and the height that
+			// leaves over goes to the readouts strip below.
+			Layout.fillHeight: false
+			Layout.preferredHeight: screen.cellHeight
 
 			CameraTile {
 				anchors.fill: parent
@@ -240,7 +260,10 @@ Context {
 		SceneElement {
 			id: cameraFive
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			// Not fillHeight: the cell is cut to the cameras' own aspect and the height that
+			// leaves over goes to the readouts strip below.
+			Layout.fillHeight: false
+			Layout.preferredHeight: screen.cellHeight
 
 			CameraTile {
 				anchors.fill: parent
@@ -291,10 +314,15 @@ Context {
 			]
 		}
 
+		// The sixth cell. Five cameras in a three-column grid leave one, and it stays empty:
+		// the readouts moved to their own strip when the cells were cut to 16:9.
+		Item { Layout.fillWidth: true }
+
 		SceneElement {
 			id: readouts
 			Layout.fillWidth: true
 			Layout.fillHeight: true
+			Layout.columnSpan: 3
 
 			Card {
 				id: readoutCard
@@ -305,25 +333,30 @@ Context {
 				// the hot water panel, which is wide enough to hold it.
 				status: HotWater.status
 
-				Column {
+				RowLayout {
 					anchors { fill: parent; margins: Theme.gap; topMargin: readoutCard.contentTop }
-					spacing: Theme.gap
+					spacing: Theme.gap * 4
 
-					Clock {}
+					Clock { Layout.alignment: Qt.AlignVCenter }
 
-					// No fallback reading. A tank whose panel is not live shows nothing rather
-					// than a plausible number - see docs/state.md.
-					Text {
-						text: HotWater.live ? HotWater.current.toFixed(1) + "°C" : "--"
-						color: HotWater.live ? Theme.hot : Theme.textDim
-						font.pixelSize: 40
-						font.bold: true
-					}
+					Column {
+						Layout.fillWidth: true
+						Layout.alignment: Qt.AlignVCenter
 
-					Text {
-						text: "hot water"
-						color: Theme.textDim
-						font.pixelSize: 13
+						// No fallback reading. A tank whose panel is not live shows nothing
+						// rather than a plausible number - see docs/state.md.
+						Text {
+							text: HotWater.live ? HotWater.current.toFixed(1) + "°C" : "--"
+							color: HotWater.live ? Theme.hot : Theme.textDim
+							font.pixelSize: Theme.fontHero
+							font.bold: true
+						}
+
+						Text {
+							text: "hot water"
+							color: Theme.textDim
+							font.pixelSize: Theme.fontBody
+						}
 					}
 				}
 			}
