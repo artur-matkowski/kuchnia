@@ -22,7 +22,7 @@ bool parseLevel(const std::string& name, debug::LogLevel* out)
 }
 
 constexpr const char* kTopics[] = {applog::App, applog::Cfg, applog::Db,
-                                   applog::Rest, applog::Mqtt};
+                                   applog::Rest, applog::Mqtt, applog::Gui};
 
 }  // namespace
 

@@ -3,6 +3,7 @@
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QString>
 
 #include "app/AppState.hpp"
 #include "integrations/Integrations.hpp"
@@ -10,6 +11,32 @@
 #include "integrations/Settings.hpp"
 
 namespace {
+
+// Everything Qt says goes to stderr by default, and on the board stderr is not the file
+// anybody reads - S99app redirects stdout into /var/log/app.log. A QML binding warning, the
+// media backend's complaints and libav's own lines under them are all invisible there
+// exactly when the screen is wrong. This puts them in the log, with a timestamp and a topic.
+//
+// Qt's ffmpeg backend routes libav's av_log into the qt.multimedia.ffmpeg category, and the
+// cameras deliver yuvj420p - the deprecated full-range JPEG YUV format - so libswscale warns
+// once per scaler context, per camera, per reconnect. It is harmless and it is not
+// actionable: nothing here chooses the decoder's output format. Dropping that one line is
+// the point of the filter, and the filter is deliberately that narrow - a category-wide
+// silence would take real ffmpeg errors with it.
+void routeQtMessages(QtMsgType type, const QMessageLogContext&, const QString& message)
+{
+	if (message.contains(QStringLiteral("deprecated pixel format used")))
+		return;
+
+	const std::string text = message.toStdString();
+	switch (type) {
+	case QtDebugMsg:    LOG_DEBUG(applog::Gui) << text; break;
+	case QtInfoMsg:     LOG_INFO(applog::Gui) << text; break;
+	case QtWarningMsg:  LOG_WARN(applog::Gui) << text; break;
+	case QtCriticalMsg:
+	case QtFatalMsg:    LOG_ERROR(applog::Gui) << text; break;
+	}
+}
 
 // The target ships no fonts and has no fontconfig, so a Text item there draws nothing at all
 // and says nothing about it - every label, axis and reading is simply absent. The bundled
@@ -43,6 +70,10 @@ int main(int argc, char *argv[])
 	// file and a default one being written are both said out loud, and neither has anywhere
 	// to go until the logger has an output buffer.
 	applog::init();
+
+	// After init(), because a line written before it is dropped without a word, and before
+	// QGuiApplication, which is the first thing that has anything to say.
+	qInstallMessageHandler(routeQtMessages);
 
 	Settings settings;
 	std::string message;

@@ -25,6 +25,11 @@ inline constexpr const char* Db   = "DB";
 inline constexpr const char* Rest = "REST";
 inline constexpr const char* Mqtt = "MQTT";
 
+// Everything Qt itself says - the scene graph, QML warnings, the media backend and libav
+// under it. main.cpp installs the handler that routes them here; without it they go to
+// stderr, which on the board is not the file anybody reads.
+inline constexpr const char* Gui  = "QT";
+
 // Points the logger at stdout and registers every topic. Until this runs the logger holds a
 // null output buffer and drops every line written through it, reporting nothing at all - not
 // even to say that a logger exists.
