@@ -10,13 +10,23 @@ import QtQuick
 QtObject {
 	id: nav
 
-	// The ids. Each one is written in three places - here, as a Context's `contextId`, and as
-	// a State name on every element that animates - and nothing checks that they agree. An id
-	// that is misspelled in the third place is not an error: the element simply keeps its base
-	// pose and is never animated.
-	readonly property var contexts: ["cameras", "details"]
+	// The ids. Each one is written in three places - here, as one of a Context's `contextIds`,
+	// and as a State name on every element that animates - and nothing checks that they agree.
+	// An id that is misspelled in the third place is not an error: the element simply keeps
+	// its base pose and is never animated.
+	//
+	// The three details ids are one screen seen over three forecast spans. They differ in
+	// nothing else, which is why every element outside the weather charts gives all three the
+	// same pose: crossing between them must not move a single box.
+	readonly property var contexts: ["cameras", "details-24h", "details-72h", "details-7d"]
 
 	property string current: contexts[0]
+
+	// The context being left, for as long as the machine is in flight. `Context.live` needs it:
+	// with three details contexts a span change restarts the settle timer, and a `live` that
+	// only asked "is anything in flight?" would bring the cameras' streams up for the length of
+	// an animation they take no part in.
+	property string leaving: contexts[0]
 
 	// How long the machine considers itself in flight. It gates nothing visual - each element
 	// owns its own duration - only the point at which an OFF context may tear its video down.
@@ -38,13 +48,14 @@ QtObject {
 		if (id === nav.current)
 			return
 		// BEFORE the assignment, and that order is the whole of it. `current` is what makes a
-		// Context stop being `on`, and `live` is `on || transitioning` - assign first and
-		// there is one evaluation pass in which neither holds, so every camera tears its
-		// session down and the screen animates out five black tiles.
+		// Context stop being `on`, and `live` is `on || in a transition it is part of` - assign
+		// first and there is one evaluation pass in which neither holds, so every camera tears
+		// its session down and the screen animates out five black tiles.
 		//
 		// Restarting mid-flight is otherwise deliberate: a state change while a transition is
 		// running retargets every animation from wherever it currently is, so a key pressed
 		// twice never snaps and never queues.
+		nav.leaving = nav.current
 		settle.restart()
 		nav.current = id
 	}

@@ -10,6 +10,12 @@
 Exactly one context is ON; the arrow keys cycle. Nothing draws a tab bar and nothing is
 meant to: the only evidence a context exists is what it puts on the screen.
 
+Four ids, and only two screens. `details-24h`, `details-72h` and `details-7d` are one screen
+seen over three forecast spans, which is why `Context.contextIds` is a list. Every element
+outside the weather charts gives all three the same pose, and that is the requirement rather
+than a shortcut: crossing between the spans must not move a box by a pixel, so the only thing
+animated in those six pairs is the width of the chart window.
+
 Every context is instantiated once, at startup, and stays instantiated. That is not a
 performance choice - a transition animates elements of both screens at the same time, so
 both have to exist at the same time.
@@ -20,8 +26,11 @@ On the element, never centrally. `SceneElement` carries no animation of its own;
 declares one `State` per context id and one `Transition` per **ordered** pair. Two
 consequences, and both are the point:
 
-* `cameras -> details` and `details -> cameras` are separate entries and are free to look
+* `cameras -> details-24h` and the way back are separate entries and are free to look
   nothing alike. A `Transition` with `from` and `to` is not reversible.
+* A pair that treats several ids alike names them on one side -
+  `to: "details-24h,details-72h,details-7d"` - which is still every ordered pair, written
+  once. Each screen keeps that list in one property so the ids are spelled once per file.
 * Within one pair every element has its own duration, easing and `PauseAnimation` delay, so
   the outgoing and incoming screens overlap and stagger rather than moving as two blocks.
 
@@ -40,13 +49,20 @@ neither snaps nor queues.
   an OFF context that the animation is over. Shorter, and a camera is disconnected part-way
   through its own exit - a stream that dies exactly when you look away from it.
 * **`Nav.goTo` restarts the settle timer *before* assigning `current`, and the order is the
-  whole of it.** `current` is what makes a `Context` stop being `on`, and `live` is
-  `on || transitioning`; assign first and there is one evaluation pass in which neither
-  holds, which tears every camera down and animates out five black tiles.
+  whole of it.** `current` is what makes a `Context` stop being `on`, and `live` needs the
+  transition; assign first and there is one evaluation pass in which neither holds, which
+  tears every camera down and animates out five black tiles.
+* **`live` asks which transition is running, not whether one is.** A span change restarts
+  the same settle timer, so a `live` of `on || Nav.transitioning` would bring the cameras'
+  sessions up for the length of an animation they take no part in - off screen, unseen, once
+  per key press. `Nav.leaving` is what the screen tests itself against.
+* **A `PropertyChanges` that must survive leaving its state needs `restoreEntryValues:
+  false`.** The forecast span is one: restored, a week-wide chart snaps back to a day while
+  it is still flying off the screen.
 
 ## The ids are one fact in three places
 
-A context id is written in `Nav.contexts`, as a `Context`'s `contextId`, and as a `State`
+A context id is written in `Nav.contexts`, in a `Context`'s `contextIds`, and as a `State`
 name on every element that animates - and nothing checks that they agree. Misspelt in the
 first two it is a warning from `goTo`; misspelt in the third it is silent.
 

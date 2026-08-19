@@ -66,6 +66,26 @@ is the wrong thing to reach for on an image with no software fallback at all.
 steady renders as a steady line rather than as sensor noise magnified across the whole
 height.
 
+## The chart's window is what the forecast spans animate
+
+`windowStart`/`windowEnd` left at zero means "the whole series", which is what the hot water
+history wants. The weather panel drives them instead, and animating `windowEnd` is the whole
+of the compression between the three forecast contexts - see [contexts](docs/contexts.md).
+
+**The vertical range follows the window, not the series.** A day scaled against a week's
+extremes is a line that barely moves. Because the range is recomputed as the window animates,
+it eases with it rather than stepping when the transition lands.
+
+A window containing fewer than two points draws `no data`, not an empty frame with axes: a
+range past the end of the forecast must not look like a range with nothing happening in it.
+
+The day/night bands come from `Weather.daylight` and are mapped through the same window as
+the line, so the two cannot disagree. A query that did not ask for the daily block yields no
+bands and no warning, exactly as [rest](docs/rest.md) describes for every other field.
+
+The axis label format follows the width of the window. Fixed at `HH:mm`, a week reads as a
+day; fixed at the weekday, a week reads as the same weekday twice.
+
 ## The clock ticks off a timer
 
 `Date()` is not a property, so a binding on it is evaluated once and never again — a clock

@@ -14,6 +14,10 @@ QtObject {
 	readonly property color hot:        "#ff7a45"
 	readonly property color cool:       "#4ad0ff"
 
+	// The daylight wash behind a forecast chart. Low alpha on purpose: night is the bare
+	// surface and day is lit, so the bands never compete with the line drawn over them.
+	readonly property color daylight:   "#16ffc76b"
+
 	readonly property color live:       "#3ecf6b"
 	readonly property color connecting: "#e0b341"
 	readonly property color failed:     "#ff4f5e"

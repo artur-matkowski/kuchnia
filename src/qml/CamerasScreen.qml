@@ -12,7 +12,12 @@ import QtHmi
 Context {
 	id: screen
 
-	contextId: "cameras"
+	contextIds: ["cameras"]
+
+	// The three details ids as one Transition side. This screen leaves for all three alike and
+	// comes back from all three alike; the States below still name them one at a time, because
+	// a State name is a literal and an element with no State for an id is silently unanimated.
+	readonly property string spans: "details-24h,details-72h,details-7d"
 
 	GridLayout {
 		anchors.fill: parent
@@ -37,14 +42,22 @@ Context {
 			states: [
 				State { name: "cameras" },
 				State {
-					name: "details"
+					name: "details-24h"
+					PropertyChanges { target: cameraOne; scale: 3.0; opacity: 0 }
+				},
+				State {
+					name: "details-72h"
+					PropertyChanges { target: cameraOne; scale: 3.0; opacity: 0 }
+				},
+				State {
+					name: "details-7d"
 					PropertyChanges { target: cameraOne; scale: 3.0; opacity: 0 }
 				}
 			]
 
 			transitions: [
 				Transition {
-					from: "cameras"; to: "details"
+					from: "cameras"; to: screen.spans
 					NumberAnimation {
 						properties: "scale,opacity"
 						duration: 550
@@ -52,7 +65,7 @@ Context {
 					}
 				},
 				Transition {
-					from: "details"; to: "cameras"
+					from: screen.spans; to: "cameras"
 					NumberAnimation {
 						properties: "scale,opacity"
 						duration: 450
@@ -77,14 +90,22 @@ Context {
 			states: [
 				State { name: "cameras" },
 				State {
-					name: "details"
+					name: "details-24h"
+					PropertyChanges { target: cameraTwo; offsetY: -820; opacity: 0 }
+				},
+				State {
+					name: "details-72h"
+					PropertyChanges { target: cameraTwo; offsetY: -820; opacity: 0 }
+				},
+				State {
+					name: "details-7d"
 					PropertyChanges { target: cameraTwo; offsetY: -820; opacity: 0 }
 				}
 			]
 
 			transitions: [
 				Transition {
-					from: "cameras"; to: "details"
+					from: "cameras"; to: screen.spans
 					SequentialAnimation {
 						PauseAnimation { duration: 60 }
 						NumberAnimation {
@@ -95,7 +116,7 @@ Context {
 					}
 				},
 				Transition {
-					from: "details"; to: "cameras"
+					from: screen.spans; to: "cameras"
 					SequentialAnimation {
 						PauseAnimation { duration: 160 }
 						NumberAnimation {
@@ -123,14 +144,22 @@ Context {
 			states: [
 				State { name: "cameras" },
 				State {
-					name: "details"
+					name: "details-24h"
+					PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
+				},
+				State {
+					name: "details-72h"
+					PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
+				},
+				State {
+					name: "details-7d"
 					PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
 				}
 			]
 
 			transitions: [
 				Transition {
-					from: "cameras"; to: "details"
+					from: "cameras"; to: screen.spans
 					SequentialAnimation {
 						PauseAnimation { duration: 60 }
 						NumberAnimation {
@@ -141,7 +170,7 @@ Context {
 					}
 				},
 				Transition {
-					from: "details"; to: "cameras"
+					from: screen.spans; to: "cameras"
 					SequentialAnimation {
 						PauseAnimation { duration: 160 }
 						NumberAnimation {
@@ -169,14 +198,22 @@ Context {
 			states: [
 				State { name: "cameras" },
 				State {
-					name: "details"
+					name: "details-24h"
+					PropertyChanges { target: cameraFour; offsetX: -1400; opacity: 0 }
+				},
+				State {
+					name: "details-72h"
+					PropertyChanges { target: cameraFour; offsetX: -1400; opacity: 0 }
+				},
+				State {
+					name: "details-7d"
 					PropertyChanges { target: cameraFour; offsetX: -1400; opacity: 0 }
 				}
 			]
 
 			transitions: [
 				Transition {
-					from: "cameras"; to: "details"
+					from: "cameras"; to: screen.spans
 					SequentialAnimation {
 						PauseAnimation { duration: 120 }
 						NumberAnimation {
@@ -187,7 +224,7 @@ Context {
 					}
 				},
 				Transition {
-					from: "details"; to: "cameras"
+					from: screen.spans; to: "cameras"
 					SequentialAnimation {
 						PauseAnimation { duration: 80 }
 						NumberAnimation {
@@ -215,14 +252,22 @@ Context {
 			states: [
 				State { name: "cameras" },
 				State {
-					name: "details"
+					name: "details-24h"
+					PropertyChanges { target: cameraFive; offsetX: 1400; opacity: 0 }
+				},
+				State {
+					name: "details-72h"
+					PropertyChanges { target: cameraFive; offsetX: 1400; opacity: 0 }
+				},
+				State {
+					name: "details-7d"
 					PropertyChanges { target: cameraFive; offsetX: 1400; opacity: 0 }
 				}
 			]
 
 			transitions: [
 				Transition {
-					from: "cameras"; to: "details"
+					from: "cameras"; to: screen.spans
 					SequentialAnimation {
 						PauseAnimation { duration: 120 }
 						NumberAnimation {
@@ -233,7 +278,7 @@ Context {
 					}
 				},
 				Transition {
-					from: "details"; to: "cameras"
+					from: screen.spans; to: "cameras"
 					SequentialAnimation {
 						PauseAnimation { duration: 80 }
 						NumberAnimation {
@@ -286,14 +331,22 @@ Context {
 			states: [
 				State { name: "cameras" },
 				State {
-					name: "details"
+					name: "details-24h"
+					PropertyChanges { target: readouts; scale: 0.85; opacity: 0 }
+				},
+				State {
+					name: "details-72h"
+					PropertyChanges { target: readouts; scale: 0.85; opacity: 0 }
+				},
+				State {
+					name: "details-7d"
 					PropertyChanges { target: readouts; scale: 0.85; opacity: 0 }
 				}
 			]
 
 			transitions: [
 				Transition {
-					from: "cameras"; to: "details"
+					from: "cameras"; to: screen.spans
 					NumberAnimation {
 						properties: "scale,opacity"
 						duration: 320
@@ -301,7 +354,7 @@ Context {
 					}
 				},
 				Transition {
-					from: "details"; to: "cameras"
+					from: screen.spans; to: "cameras"
 					SequentialAnimation {
 						PauseAnimation { duration: 240 }
 						NumberAnimation {
