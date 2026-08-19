@@ -120,19 +120,28 @@ WeatherUpdate parseForecast(const char* topic, const std::string& body)
 		throw std::runtime_error("no current.temperature_2m in the response - check rest-url");
 
 	WeatherUpdate update;
-	update.temperature = number(current, "temperature_2m");
-	update.humidity    = number(current, "relative_humidity_2m");
-	update.weatherCode = static_cast<int>(number(current, "weather_code"));
+	update.temperature   = number(current, "temperature_2m");
+	update.humidity      = number(current, "relative_humidity_2m");
+	update.weatherCode   = static_cast<int>(number(current, "weather_code"));
+	update.windSpeed     = number(current, "wind_speed_10m");
+	update.windDirection = number(current, "wind_direction_10m");
+	update.cloudCover    = number(current, "cloud_cover");
+	update.rain          = number(current, "rain");
+	update.snowfall      = number(current, "snowfall");
 
 	const Poco::JSON::Object::Ptr block = root->getObject("hourly");
-	update.temperatureForecast   = hourly(block, "temperature_2m");
-	update.precipitationForecast = hourly(block, "precipitation_probability");
-	update.daylight              = daylight(root->getObject("daily"));
+	update.temperatureForecast         = hourly(block, "temperature_2m");
+	update.precipitationForecast       = hourly(block, "precipitation_probability");
+	update.precipitationAmountForecast = hourly(block, "precipitation");
+	update.cloudCoverForecast          = hourly(block, "cloud_cover");
+	update.daylight                    = daylight(root->getObject("daily"));
 
 	LOG_INFO(topic) << "temperature " << update.temperature << " C, humidity "
-	                << update.humidity << " %, code " << update.weatherCode << ", "
-	                << update.temperatureForecast.size() << " forecast point(s), "
-	                << update.daylight.size() << " daylight band(s)";
+	                << update.humidity << " %, code " << update.weatherCode << ", wind "
+	                << update.windSpeed << " km/h from " << update.windDirection << " deg, cloud "
+	                << update.cloudCover << " %, " << update.temperatureForecast.size()
+	                << " forecast point(s), " << update.cloudCoverForecast.size()
+	                << " cloud point(s), " << update.daylight.size() << " daylight band(s)";
 	return update;
 }
 

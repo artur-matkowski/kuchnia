@@ -44,8 +44,9 @@ std::vector<ParamInitializer> specs()
 		ParamInitializer(STRING, "rest-url",
 			"https://api.open-meteo.com/v1/forecast"
 			"?latitude=<COORD_REDACTED>&longitude=<COORD_REDACTED>"
-			"&current=temperature_2m,relative_humidity_2m,weather_code"
-			"&hourly=temperature_2m,precipitation_probability"
+			"&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,"
+			"wind_direction_10m,cloud_cover,rain,snowfall"
+			"&hourly=temperature_2m,precipitation_probability,precipitation,cloud_cover"
 			"&daily=sunrise,sunset&forecast_days=8",
 			"Absolute URL fetched on every poll; http and https both work"),
 		ParamInitializer(INT,    "rest-interval-ms", 300000,   "Milliseconds between fetches"),

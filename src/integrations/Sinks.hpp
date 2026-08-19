@@ -37,11 +37,24 @@ struct HotWaterUpdate {
 };
 
 struct WeatherUpdate {
-	double temperature = 0.0;  // degrees Celsius
-	double humidity    = 0.0;  // percent
-	int    weatherCode = 0;    // WMO code
+	double temperature   = 0.0;  // degrees Celsius
+	double humidity      = 0.0;  // percent
+	int    weatherCode   = 0;    // WMO code
+	double windSpeed     = 0.0;  // km/h
+	double windDirection = 0.0;  // degrees, meteorological: the direction it blows FROM
+	double cloudCover    = 0.0;  // percent
+	double rain          = 0.0;  // millimetres in the last hour
+	double snowfall      = 0.0;  // centimetres in the last hour
+
 	Series temperatureForecast;
-	Series precipitationForecast;  // percent probability
+
+	// Two precipitation series in two units, and only the names keep them apart: one is the
+	// chance of rain and is pinned to 0-100, the other is how much falls. Charted against the
+	// wrong scale either reads as an entirely plausible forecast of the other thing.
+	Series precipitationForecast;        // percent probability
+	Series precipitationAmountForecast;  // millimetres per hour, rain and snow together
+
+	Series cloudCoverForecast;  // percent
 
 	// Empty when the query did not ask for the daily block: the charts then draw no bands,
 	// which is the same silent omission every other field here has.

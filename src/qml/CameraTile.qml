@@ -197,11 +197,12 @@ Rectangle {
 	VideoOutput {
 		id: output
 		anchors.fill: parent
-		// The cells are cut to the streams' own 16:9, so there is normally nothing to fit and
-		// nothing to crop. A camera that is not 16:9 letterboxes rather than being stretched
-		// into a shape it never had - a stretched picture is read as a wrong lens, not as a
-		// layout problem.
-		fillMode: VideoOutput.PreserveAspectFit
+		// The cells are cut to the streams' own 16:9, so a 16:9 camera is neither stretched nor
+		// cropped. One that is not fills the cell anyway: a black bar down one tile of five is
+		// read as a tile that has stopped working, and the whole frame distorted is read as a
+		// wrong lens - which is the cheaper mistake, because it is the tile that still shows
+		// everything the camera can see.
+		fillMode: VideoOutput.Stretch
 	}
 
 	// Over the picture, not beside it: a tile whose stream died keeps painting its last frame

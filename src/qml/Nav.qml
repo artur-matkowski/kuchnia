@@ -15,10 +15,16 @@ QtObject {
 	// An id that is misspelled in the third place is not an error: the element simply keeps
 	// its base pose and is never animated.
 	//
-	// The three details ids are one screen seen over three forecast spans. They differ in
-	// nothing else, which is why every element outside the weather charts gives all three the
-	// same pose: crossing between them must not move a single box.
-	readonly property var contexts: ["cameras", "details-24h", "details-72h", "details-7d"]
+	// Two of the three screens are three ids each - one screen seen over three forecast spans.
+	// The three differ in nothing but the width of the forecast window, which is why every
+	// element outside that window gives all three the same pose: crossing between them must
+	// not move a single box.
+	//
+	// The order is the cycle the arrow keys walk, and the weather ids come after the details
+	// ids for a reason: the step between the two screens is the one that carries three cards
+	// across rather than fading them, and it reads as a step only if it is a step.
+	readonly property var contexts: ["cameras", "details-24h", "details-72h", "details-7d",
+	                                 "weather-24h", "weather-72h", "weather-7d"]
 
 	property string current: contexts[0]
 

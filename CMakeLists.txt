@@ -86,9 +86,12 @@ set(QT_HMI_QML
 	src/qml/Card.qml
 	src/qml/CameraTile.qml
 	src/qml/CamerasScreen.qml
+	src/qml/Cells.qml
+	src/qml/ChartCard.qml
 	src/qml/Clock.qml
 	src/qml/Context.qml
 	src/qml/DetailsScreen.qml
+	src/qml/ForecastSpan.qml
 	src/qml/GatePanel.qml
 	src/qml/Gauge.qml
 	src/qml/HotWaterPanel.qml
@@ -99,8 +102,11 @@ set(QT_HMI_QML
 	src/qml/SceneElement.qml
 	src/qml/SegmentedBar.qml
 	src/qml/StatusBadge.qml
+	src/qml/TemperatureCard.qml
 	src/qml/Theme.qml
-	src/qml/WeatherPanel.qml
+	src/qml/WeatherLayer.qml
+	src/qml/WeatherScreen.qml
+	src/qml/WindCard.qml
 )
 
 # Each QML file keeps its path relative to this file inside the module unless aliased,
@@ -112,11 +118,12 @@ foreach(qml IN LISTS QT_HMI_QML)
 	set_source_files_properties("${qml}" PROPERTIES QT_RESOURCE_ALIAS "${name}")
 endforeach()
 
-# Theme.qml and Nav.qml carry `pragma Singleton`, which is only half of what a singleton
-# needs: without this the generated qmldir does not declare it, and every `Theme.` and `Nav.`
-# in the scene resolves to undefined - an unstyled screen that does not answer the arrow keys,
-# rather than an error.
-set_source_files_properties(src/qml/Theme.qml src/qml/Nav.qml
+# These four carry `pragma Singleton`, which is only half of what a singleton needs: without
+# this the generated qmldir does not declare it, and every `Theme.`, `Nav.`, `Cells.` and
+# `ForecastSpan.` in the scene resolves to undefined - an unstyled screen with every panel at
+# the origin, which does not answer the arrow keys, rather than an error.
+set_source_files_properties(src/qml/Theme.qml src/qml/Nav.qml src/qml/ForecastSpan.qml
+	src/qml/Cells.qml
 	PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # URI QtHmi is the string main.cpp passes to loadFromModule() and the one AppState registers

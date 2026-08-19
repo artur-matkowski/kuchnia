@@ -88,7 +88,11 @@ Item {
 		if (!isNaN(fixedHigh))
 			high = fixedHigh
 
-		low = Math.min(low, high - minimumSpan)
+		// minimumSpan opens the range away from whichever end was fixed. A chart pinned to
+		// zero and given a forecast of no rain at all would otherwise answer with an axis of
+		// negative millimetres - which is not a wrong-looking chart, it is a plausible one.
+		if (isNaN(fixedLow))
+			low = Math.min(low, high - minimumSpan)
 		return { count: count, low: low, high: Math.max(high, low + minimumSpan) }
 	}
 

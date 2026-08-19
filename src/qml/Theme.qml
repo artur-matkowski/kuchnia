@@ -30,4 +30,9 @@ QtObject {
 	readonly property int fontBody:    22   // button labels, station names, gate state
 	readonly property int fontReading: 44   // a number that is the point of its panel
 	readonly property int fontHero:    64   // the two numbers read from across the room
+
+	// The height of a row carrying one big reading instead of a chart. Both screens that show
+	// the weather use it, and the migration between them depends on them agreeing: a card that
+	// changes height on the way over reads as a card that was rebuilt rather than moved.
+	readonly property int readingRow:  Math.round(fontHero * 1.7)
 }

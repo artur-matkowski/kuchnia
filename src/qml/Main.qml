@@ -35,6 +35,16 @@ Window {
 		// Every context is instantiated once and stays instantiated: a transition animates
 		// elements of both screens at the same time, so both have to exist at the same time.
 		CamerasScreen {}
-		DetailsScreen {}
+		DetailsScreen { id: details }
+		WeatherScreen { id: weather }
+
+		// The three weather cards, which belong to both of the screens above and therefore to
+		// neither: they migrate between them rather than being drawn twice. Handing them both
+		// sets of slots is the one piece of wiring this file does - a card cannot ask a screen
+		// it is not inside where its box is.
+		WeatherLayer {
+			detailsBoxes: details.weatherBoxes
+			weatherBoxes: weather.weatherBoxes
+		}
 	}
 }
