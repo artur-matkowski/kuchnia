@@ -20,6 +20,19 @@ under the `QtHmi` URI. The network clients under `src/integrations/` know nothin
 of it: they call the plain `std::function`s in `Sinks.hpp`, and `AppState` is where those
 become Qt properties.
 
+## The gate says which commands are worth sending
+
+`Gate` exposes `canOpen`, `canClose` and `canStop` beside `state`, and the scene binds the
+segments of its control bar to them rather than spelling the signal names again in QML. Each
+is a deny-list: a gate that is already opening gains nothing from another `OpenGate`, and a
+button that can be pressed to no effect reads as a gate that ignored it. `canStop` is denied
+only by the three states in which nothing is moving, so a *stuck* gate — still driving its
+motor — can always be stopped.
+
+**An unknown state enables all three.** The empty state before the first retained message,
+and any signal the bridge has learned since, are not guessed at. The names live in two
+places — here and `mqtt-subscribe` in `Settings.cpp` — and nothing checks that they agree.
+
 ## The invariant
 
 **Every sink callback runs on a worker thread, and every one of them does nothing but

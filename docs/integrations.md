@@ -48,7 +48,9 @@ It bypasses the lock, so it suits only a library that logs from one thread —
 `Module-cpp-config` qualifies, being finished before any service starts.
 
 An unregistered topic makes the logger complain to `cerr` **per line**. Topics live in
-`kTopics` in `Log.cpp` and in the constants atop `Log.hpp`; adding one means both.
+`kTopics` in `Log.cpp` and in the constants atop `Log.hpp`; adding one means both. `QT` is
+one of them and is written to only by the message handler `main.cpp` installs — see
+[app](docs/app.md).
 
 ## Two headers that pollute the global namespace
 

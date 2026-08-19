@@ -70,5 +70,10 @@ first two it is a warning from `goTo`; misspelt in the third it is silent.
 
 `CamerasScreen` writes its five tiles out rather than driving a `Repeater`, because a
 `Repeater` makes every delegate identical and every tile here is animated differently. A
-sixth `camera-url` is configured and not drawn. The sixth cell of the 3x2 grid holds the
-clock and the tank instead.
+sixth `camera-url` is configured and not drawn, and the sixth cell of the grid stays empty.
+
+The camera rows are cut to the streams' 16:9 rather than filling the screen, and the height
+that leaves over is the strip along the bottom that carries the clock and the tank. The cell
+height is derived from the *screen's* width and not from the cell's: a `Layout.preferredHeight`
+bound to the width the same layout assigns is a loop, and the layout settling it is not
+something to depend on.

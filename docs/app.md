@@ -9,6 +9,15 @@ a set of network clients started beside it. The seam between the clients and the
 [state](docs/state.md); how the clients themselves work is
 [integrations](docs/integrations.md).
 
+**Everything Qt says is routed into `applog`.** `qInstallMessageHandler` goes in immediately
+after `applog::init()` and before `QGuiApplication`, under the `QT` topic. Without it QML
+binding warnings, the media backend's complaints and libav's lines under them go to stderr,
+which on the board is not the file anybody reads — invisible exactly when the screen is
+wrong. The handler drops one line, `deprecated pixel format used`: the cameras deliver
+`yuvj420p` and libswscale says so once per scaler context, per camera, per reconnect, and
+nothing here chooses the decoder's output format. The filter is that narrow on purpose —
+silencing the category would take real ffmpeg errors with it.
+
 **Order in `main()` is load-bearing, and so is declaration order.** Logging is up first
 because reading the settings logs; the settings are read before `QGuiApplication` so that
 `--help` and a malformed value answer without a display. Then, in this order:

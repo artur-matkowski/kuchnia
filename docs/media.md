@@ -8,11 +8,12 @@
 > Owns: src/app/Radio.cpp
 > See:  docs/scene.md docs/state.md docs/contexts.md qt-hmi-buildroot/docs/build-pipeline.md
 
-Five RTSP tiles from `camera-url` and one internet radio from `radio-url`, all through
+Five RTSP tiles from `camera-url` and one internet radio from `radio-m3u`, all through
 QtMultimedia. The tiles reach the cameras directly; nothing sits in between.
 
-`VideoOutput` stretches rather than fits. A tile is always covered edge to edge, and a
-camera whose aspect does not match its cell is distorted rather than letterboxed.
+`VideoOutput` preserves aspect. The cells are cut to the streams' own 16:9, so there is
+normally nothing to fit; a camera that is not 16:9 letterboxes rather than being stretched
+into a shape it never had.
 
 ## One audio sink, and it belongs to the radio
 
@@ -62,6 +63,20 @@ answers with 405 and a tile that never comes back.
 is evaluated during creation and `Component.onCompleted` runs after it, so wiring both opens
 every stream twice.
 
+## The station list is a file
+
+Stations come from the extended M3U at `radio-m3u`, parsed in `Radio::load()`: the text after
+the last comma of an `#EXTINF` line is the name, the next line that is neither blank nor a
+directive is the URL. A path that cannot be read, and a file with no entries, are both an
+error in the log and a radio with no stations. Shipping that file to the board is
+`qt-hmi-buildroot`'s job; nothing here creates it.
+
+**Qt exposes no now-playing title.** The stations do broadcast one — ICY `StreamTitle` is in
+the stream and `ffprobe` prints it — but Qt's ffmpeg backend maps it onto no key the scene
+can read: a playing MP3 station offers `Duration`, `FileFormat`, `AudioCodec` and
+`AudioBitRate` and nothing else. `RadioPanel`'s status line stays bound and empty, rather
+than carrying a placeholder for something the stream never told us.
+
 ## The remembered station
 
 `RadioPanel` persists the station index through QML's `Settings`, which is `QSettings`, which
@@ -72,8 +87,8 @@ not survive a restart and nothing else breaks.
 `Radio.index` and the persisted value are wired one direction each way rather than bound
 together: a two-way binding fights itself the first time a button moves the station.
 
-`Radio` clamps the index to the list, so a remembered station from a longer list cannot leave
-the panel pointed at a URL that no longer exists.
+`Radio` clamps the index to the list, so a remembered station from a longer playlist cannot
+leave the panel pointed at a URL that no longer exists.
 
 ## A stream cannot be paused, so leaving a screen is expensive
 
