@@ -37,8 +37,20 @@ Three different things happen when a stream goes away, and only one of them is a
   picture for as long as the process runs.
 
 The third is the one that matters and the `watchdog` timer is the only thing that catches
-it: while playing, `position` must advance between ticks or the stream is called stalled.
-Delete that timer and a camera switched off mid-stream reads as live indefinitely.
+it. Liveness is counted in frames delivered to `VideoOutput.videoSink`, and nothing else is
+a substitute: on a live stream whose container declares no duration — every camera here —
+`position` never leaves 0 and `playbackState` is `PlayingState` from the moment `play()`
+returns. A watchdog reading either of those calls a perfectly healthy camera stalled and
+tears it down on a timer, forever, and the tiles stay black because nothing survives long
+enough to paint.
+
+Two budgets, because connecting and running fail on different timescales. A stream that has
+delivered a frame must keep delivering one every `stallTimeoutMs`. A stream that has not
+delivered its first frame yet gets `connectTimeoutMs`, which is much longer: an RTSP session
+that has to fall back from UDP to TCP takes seconds to hand over a picture. The watchdog also
+stands down while `retry` is pending — it ticks faster than the retry it is waiting for, and
+re-arming that timer on every tick pushes its deadline out of reach and the reconnect never
+happens.
 
 Reconnecting is `source = ""` followed by the URL again. A `stop()`/`play()` pair on the same
 source makes the backend seek instead, which on a live stream is an RTSP `PAUSE` the server
@@ -60,6 +72,26 @@ together: a two-way binding fights itself the first time a button moves the stat
 
 `Radio` clamps the index to the list, so a remembered station from a longer list cannot leave
 the panel pointed at a URL that no longer exists.
+
+## RTSP does not play under Qt 6.8's ffmpeg backend
+
+Against the `go2rtc` server these cameras sit behind, `QMediaPlayer` opens the stream, reports
+`hasVideo`, builds an h264 decoder — and then delivers not one frame. `mediaStatus` stops at
+`BufferingMedia`, `position` stays 0, and no packet is ever read off the socket. It is not the
+tiles: a twenty-line `QMediaPlayer` + `QVideoSink` program with no QML in it does exactly the
+same, while the same program plays a local MP4 and a live MPEG-TS over UDP normally. `ffprobe`
+and `ffmpeg` read the same RTSP URLs over the same libraries without trouble, so the library is
+not the problem either — the backend's use of it is.
+
+Nothing at the `QMediaPlayer` API reaches it: disabling the audio track, deferring `play()`
+until `LoadedMedia`, `QT_FFMPEG_PROTOCOL_WHITELIST`, forcing software decode, and go2rtc's
+`?video=h264` all leave it at zero frames. A camera reaches these tiles over a protocol the
+backend actually feeds — go2rtc's HTTP MP4 endpoint, or MPEG-TS — or through a decoder this
+repository owns. `camera-url` is a plain URL list precisely so the first is a config change.
+
+`method SETUP failed: 461 Unsupported transport` on startup is *not* that failure and not any
+failure: the server refuses UDP, ffmpeg retries over TCP by itself and succeeds. The line is
+permanent, one per camera, and Qt exposes no way to ask for TCP up front.
 
 ## What the image has to carry
 
