@@ -10,9 +10,10 @@ The weight is meant to sit in the application — what it shows and what it does
 a rendering architecture. The repository next to it, `drm-hmi`, is where that architecture
 lives; when a problem here wants a renderer seam, it belongs there instead.
 
-The scene is a dashboard of the house: a clock, five RTSP cameras, the gate's state and its
-controls, the hot water tank now and over the last day, the weather forecast, and an internet
-radio. Behind it are three clients of the <REDACTED> - PostgreSQL, HTTP and MQTT - each on its
+The scene is a dashboard of the house across two screens the arrow keys cycle between: five
+RTSP cameras beside a clock and the hot water tank on one, and the gate's state and its
+controls, the tank over the last day, the weather forecast and an internet radio on the
+other. Behind it are three clients of the <REDACTED> - PostgreSQL, HTTP and MQTT - each on its
 own thread, reaching the scene through one seam and never touching Qt themselves.
 
 ## Nodes
@@ -21,6 +22,7 @@ own thread, reaching the scene through one seam and never touching Qt themselves
 |---|---|
 | [app](docs/app.md) | The process and the QML module: the error that does not exit, the order that must not move, the font in the binary |
 | [state](docs/state.md) | The seam: how a worker thread's data becomes a QML property without corrupting one |
+| [contexts](docs/contexts.md) | The screens the arrow keys cycle, and where an element's animation is written |
 | [scene](docs/scene.md) | The panels and the charts, and the QML names that are already taken |
 | [media](docs/media.md) | The cameras and the radio: the mute that a mixer cannot see, and the dead stream that reports nothing |
 | [integrations](docs/integrations.md) | The three network clients, the logger that drops lines until told where to write, and the settings that fail quietly |

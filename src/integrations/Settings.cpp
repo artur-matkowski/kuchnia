@@ -71,6 +71,9 @@ std::vector<ParamInitializer> specs()
 
 		ParamInitializer(STRING_VECTOR, "camera-url", std::vector<std::string>(),
 			"RTSP stream per camera tile, comma separated; audio from these is always muted"),
+		ParamInitializer(INT, "camera-hold-ms", 60000,
+			"How long a camera keeps its stream after its context leaves the screen; "
+			"negative never disconnects"),
 
 		ParamInitializer(STRING_VECTOR, "radio-url", std::vector<std::string>(),
 			"Station stream URLs, comma separated"),
@@ -149,6 +152,7 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 	get("gate-target", &out->gateTarget);
 
 	get("camera-url", &out->cameraUrls);
+	get("camera-hold-ms", &out->cameraHoldMs);
 	get("radio-url", &out->radioUrls);
 	get("radio-name", &out->radioNames);
 

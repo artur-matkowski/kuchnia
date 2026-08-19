@@ -28,7 +28,7 @@ QStringList toStringList(const std::vector<std::string>& values)
 
 AppState::AppState(const Settings& settings, QObject* parent)
 	: QObject(parent)
-	, m_cameras(new Cameras(toStringList(settings.cameraUrls), this))
+	, m_cameras(new Cameras(toStringList(settings.cameraUrls), settings.cameraHoldMs, this))
 	, m_gate(new Gate(this))
 	, m_hotWater(new HotWater(this))
 	, m_radio(new Radio(toStringList(settings.radioUrls), toStringList(settings.radioNames), this))

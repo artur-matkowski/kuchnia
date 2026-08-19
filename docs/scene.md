@@ -11,15 +11,17 @@
 > Owns: src/qml/GatePanel.qml
 > Owns: src/qml/HotWaterPanel.qml
 > Owns: src/qml/WeatherPanel.qml
-> See:  docs/state.md docs/media.md docs/app.md
+> See:  docs/state.md docs/media.md docs/app.md docs/contexts.md
 
-A clock, a row of camera tiles, and panels for the gate, the radio, the hot water tank and
-the weather. The arrangement in `Main.qml` exists so that every pipe can be seen carrying
-data at once; it is not a design and nothing depends on it.
+The panels the screens are assembled from - the clock, the gauge, the charts, the gate and
+the radio - and the frame they all sit in. Which panel is on which screen, and how it gets
+there, is [contexts](docs/contexts.md).
 
-`Window` sets 1280x720. Under `eglfs` that size is ignored and the window takes the whole
-connector; it is the desktop window size, and on both targets the aspect the scene is laid
-out against.
+`Main.qml` is only the shell: the geometry, the focus and the arrow keys. It owns no layout.
+
+`Window` is pinned to 1366x768, the panel the scene is composed against 1:1, so a desktop
+window shows what the board will show rather than an approximation of it. Under `eglfs` the
+size is ignored entirely and the window takes the whole connector.
 
 ## Three names that are already taken
 
@@ -30,9 +32,14 @@ QML accepts a redeclared property silently and then behaves oddly somewhere else
 * **`enabled`** exists on every `Item`. `Button` does not redeclare it — a `MouseArea` inside
   a disabled `Item` stops accepting events on its own.
 * **`Layout.fillHeight` defaults to `true` for a nested layout** and to `false` only for a
-  plain `Item`. Left alone, the rows in `Main.qml` each take the whole column and the panels
-  at the bottom are laid out one pixel high, which reads as a rendering fault rather than a
-  layout one. Both non-filling rows say so explicitly.
+  plain `Item`. Left alone, one row takes the whole column and everything below it is laid
+  out one pixel high, which reads as a rendering fault rather than a layout one.
+
+## The status detail has no width
+
+`StatusBadge`'s text elides, and elide needs a width nothing gives it. In a wide panel that
+never shows; in a narrow one a connection error prints straight across the card's own title.
+The narrow card on the camera screen passes `status` without `statusDetail` for that reason.
 
 ## Card has no default property
 

@@ -37,6 +37,7 @@ struct Settings {
 	int         gateTarget = 0;
 
 	std::vector<std::string> cameraUrls;
+	int                      cameraHoldMs = 0;
 
 	// Parallel arrays: radioNames[i] labels radioUrls[i]. loadSettings refuses a pair of
 	// unequal length rather than leaving the scene to index past the end of one of them.

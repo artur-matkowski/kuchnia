@@ -6,11 +6,13 @@
 > Owns: src/app/Cameras.cpp
 > Owns: src/app/Radio.hpp
 > Owns: src/app/Radio.cpp
-> See:  docs/scene.md docs/state.md qt-hmi-buildroot/docs/build-pipeline.md
+> See:  docs/scene.md docs/state.md docs/contexts.md qt-hmi-buildroot/docs/build-pipeline.md
 
 Five RTSP tiles from `camera-url` and one internet radio from `radio-url`, all through
-QtMultimedia. One `Repeater` over the URL list, so the tile count is whatever the config
-says and nothing anywhere assumes five.
+QtMultimedia. The tiles reach the cameras directly; nothing sits in between.
+
+`VideoOutput` stretches rather than fits. A tile is always covered edge to edge, and a
+camera whose aspect does not match its cell is distorted rather than letterboxed.
 
 ## One audio sink, and it belongs to the radio
 
@@ -56,9 +58,9 @@ Reconnecting is `source = ""` followed by the URL again. A `stop()`/`play()` pai
 source makes the backend seek instead, which on a live stream is an RTSP `PAUSE` the server
 answers with 405 and a tile that never comes back.
 
-`Component.onCompleted` connects, and `onUrlChanged` deliberately does not: inside a
-`Repeater` the `url` binding is evaluated during creation and `Component.onCompleted` runs
-after it, so wiring both opens every stream twice.
+`Component.onCompleted` connects, and `onUrlChanged` deliberately does not: the `url` binding
+is evaluated during creation and `Component.onCompleted` runs after it, so wiring both opens
+every stream twice.
 
 ## The remembered station
 
@@ -73,25 +75,29 @@ together: a two-way binding fights itself the first time a button moves the stat
 `Radio` clamps the index to the list, so a remembered station from a longer list cannot leave
 the panel pointed at a URL that no longer exists.
 
-## RTSP does not play under Qt 6.8's ffmpeg backend
+## A stream cannot be paused, so leaving a screen is expensive
 
-Against the `go2rtc` server these cameras sit behind, `QMediaPlayer` opens the stream, reports
-`hasVideo`, builds an h264 decoder — and then delivers not one frame. `mediaStatus` stops at
-`BufferingMedia`, `position` stays 0, and no packet is ever read off the socket. It is not the
-tiles: a twenty-line `QMediaPlayer` + `QVideoSink` program with no QML in it does exactly the
-same, while the same program plays a local MP4 and a live MPEG-TS over UDP normally. `ffprobe`
-and `ffmpeg` read the same RTSP URLs over the same libraries without trouble, so the library is
-not the problem either — the backend's use of it is.
+A tile that goes off screen has only one way to stop decoding: tear the session down and open
+a fresh one on the way back. `pause()` is not an option — on a live stream it is an RTSP
+`PAUSE`, which these cameras answer with 405, and the tile never comes back.
 
-Nothing at the `QMediaPlayer` API reaches it: disabling the audio track, deferring `play()`
-until `LoadedMedia`, `QT_FFMPEG_PROTOCOL_WHITELIST`, forcing software decode, and go2rtc's
-`?video=h264` all leave it at zero frames. A camera reaches these tiles over a protocol the
-backend actually feeds — go2rtc's HTTP MP4 endpoint, or MPEG-TS — or through a decoder this
-repository owns. `camera-url` is a plain URL list precisely so the first is a config change.
+Reopening one of these cameras takes **five to six seconds**, measured. That is the number
+`camera-hold-ms` is weighed against: a tile keeps its stream for that long after its context
+leaves the screen, so a glance at the other screen costs nothing and only a real stay pays
+the reconnect. **Negative never disconnects.** Zero disconnects as soon as the transition
+settles, which is the setting that makes every return cost six seconds of black tiles.
 
-`method SETUP failed: 461 Unsupported transport` on startup is *not* that failure and not any
-failure: the server refuses UDP, ffmpeg retries over TCP by itself and succeeds. The line is
-permanent, one per camera, and Qt exposes no way to ask for TCP up front.
+Two things a tile must not do while it is torn down, and neither announces itself:
+
+* **`_retryLater()` returns early when `_down`.** Clearing the source is itself reported as
+  `EndOfMedia`, so without that guard the teardown arms a retry that reopens the stream off
+  screen — the decoder this was meant to stop, running anyway.
+* **The watchdog stops with it.** A tile that was asked to stop is otherwise reported stalled,
+  and the backoff climbs while nothing is looking at it.
+
+`method SETUP failed: 461 Unsupported transport` on startup is not a failure at all: the
+camera refuses UDP, ffmpeg retries over TCP by itself and succeeds. The line is permanent,
+one per camera, and Qt exposes no way to ask for TCP up front.
 
 ## What the image has to carry
 

@@ -85,13 +85,18 @@ set(QT_HMI_QML
 	src/qml/Button.qml
 	src/qml/Card.qml
 	src/qml/CameraTile.qml
+	src/qml/CamerasScreen.qml
 	src/qml/Clock.qml
+	src/qml/Context.qml
+	src/qml/DetailsScreen.qml
 	src/qml/GatePanel.qml
 	src/qml/Gauge.qml
 	src/qml/HotWaterPanel.qml
 	src/qml/LineChart.qml
 	src/qml/Main.qml
+	src/qml/Nav.qml
 	src/qml/RadioPanel.qml
+	src/qml/SceneElement.qml
 	src/qml/StatusBadge.qml
 	src/qml/Theme.qml
 	src/qml/WeatherPanel.qml
@@ -106,10 +111,12 @@ foreach(qml IN LISTS QT_HMI_QML)
 	set_source_files_properties("${qml}" PROPERTIES QT_RESOURCE_ALIAS "${name}")
 endforeach()
 
-# Theme.qml carries `pragma Singleton`, which is only half of what a singleton needs: without
-# this the generated qmldir does not declare it, and every `Theme.` in the scene resolves to
-# undefined - an unstyled screen rather than an error.
-set_source_files_properties(src/qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+# Theme.qml and Nav.qml carry `pragma Singleton`, which is only half of what a singleton
+# needs: without this the generated qmldir does not declare it, and every `Theme.` and `Nav.`
+# in the scene resolves to undefined - an unstyled screen that does not answer the arrow keys,
+# rather than an error.
+set_source_files_properties(src/qml/Theme.qml src/qml/Nav.qml
+	PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # URI QtHmi is the string main.cpp passes to loadFromModule() and the one AppState registers
 # its singletons under; they are one fact in three places and nothing checks that they agree -

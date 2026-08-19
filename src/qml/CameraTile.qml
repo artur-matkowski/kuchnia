@@ -1,5 +1,6 @@
 import QtQuick
 import QtMultimedia
+import QtHmi
 
 // One RTSP stream.
 //
@@ -23,6 +24,19 @@ Rectangle {
 
 	property string url: ""
 	property string label: ""
+
+	// Whether this tile is wanted on screen. Going false does not disconnect immediately -
+	// see holdMs.
+	property bool active: true
+
+	// How long the stream survives after active goes false, and NEGATIVE never disconnects.
+	//
+	// It is not a pause. A live RTSP session cannot be paused - the PAUSE is answered with 405
+	// and the tile never comes back - so the only way to stop decoding is to tear the session
+	// down and open a fresh one, which these cameras answer in five to six seconds. That is
+	// the number the hold is weighed against: short enough and every glance at another context
+	// costs six seconds of black tiles on the way back.
+	property int holdMs: Cameras.holdMs
 	property int minimumRetryMs: 1000
 	property int maximumRetryMs: 30000
 
@@ -39,6 +53,7 @@ Rectangle {
 	property string _detail: ""
 	property int _frames: 0
 	property double _lastProgressMs: 0
+	property bool _down: false
 
 	color: "black"
 	border.color: Theme.border
@@ -61,6 +76,8 @@ Rectangle {
 		if (root.url.length === 0)
 			return
 		retry.stop()
+		hold.stop()
+		root._down = false
 		root._frames = 0
 		root._lastProgressMs = Date.now()
 		root._setHealth("connecting", "")
@@ -72,6 +89,11 @@ Rectangle {
 	}
 
 	function _retryLater() {
+		// A torn-down tile schedules nothing. Clearing the source is itself reported as
+		// EndOfMedia, so without this the teardown arms a retry that reopens the stream while
+		// the context is off screen - the decoder this was meant to stop, running anyway.
+		if (root._down)
+			return
 		retry.interval = root._retryMs
 		root._retryMs = Math.min(root._retryMs * 2, root.maximumRetryMs)
 		retry.restart()
@@ -117,7 +139,9 @@ Rectangle {
 	Timer {
 		id: watchdog
 		interval: 1000
-		running: root.url.length > 0
+		// Not while torn down, or a tile that was asked to stop is reported stalled and
+		// starts the retry backoff climbing while nothing is looking at it.
+		running: root.url.length > 0 && !root._down
 		repeat: true
 		onTriggered: {
 			// A pending reconnect owns the tile. Without this the watchdog re-arms the retry
@@ -133,9 +157,36 @@ Rectangle {
 		}
 	}
 
+	onActiveChanged: {
+		if (root.active) {
+			hold.stop()
+			// Only reconnect if the hold actually expired. Coming back inside it means the
+			// stream never stopped, which is the whole point of the hold.
+			if (root._down)
+				root._connect()
+			return
+		}
+		if (root.holdMs < 0)
+			return
+		hold.restart()
+	}
+
+	Timer {
+		id: hold
+		interval: Math.max(root.holdMs, 0)
+		repeat: false
+		onTriggered: {
+			retry.stop()
+			root._down = true
+			player.source = ""
+			root._frames = 0
+			root._setHealth("connecting", "off screen")
+		}
+	}
+
 	// onUrlChanged is not also wired up: inside a Repeater the url binding is evaluated during
 	// creation and this runs after it, so the two together open every stream twice.
-	Component.onCompleted: _connect()
+	Component.onCompleted: if (root.active) _connect()
 
 	Timer {
 		id: retry
@@ -146,7 +197,9 @@ Rectangle {
 	VideoOutput {
 		id: output
 		anchors.fill: parent
-		fillMode: VideoOutput.PreserveAspectFit
+		// Stretch, deliberately: the tile is always covered edge to edge and a camera whose
+		// aspect does not match its cell is distorted rather than letterboxed.
+		fillMode: VideoOutput.Stretch
 	}
 
 	// Over the picture, not beside it: a tile whose stream died keeps painting its last frame
