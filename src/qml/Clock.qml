@@ -18,13 +18,13 @@ Column {
 	Text {
 		text: Qt.formatDateTime(root.now, "HH:mm:ss")
 		color: Theme.text
-		font.pixelSize: 44
+		font.pixelSize: Theme.fontHero
 		font.bold: true
 	}
 
 	Text {
 		text: Qt.formatDateTime(root.now, "dddd, d MMMM yyyy")
 		color: Theme.textDim
-		font.pixelSize: 13
+		font.pixelSize: Theme.fontBody
 	}
 }

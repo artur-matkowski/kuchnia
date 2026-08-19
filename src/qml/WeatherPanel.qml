@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import QtHmi
 
 Card {
@@ -29,35 +30,56 @@ Card {
 	status: Weather.status
 	statusDetail: Weather.statusDetail
 
-	Column {
+	ColumnLayout {
 		anchors { fill: parent; margins: Theme.gap; topMargin: root.contentTop }
 		spacing: Theme.gap
 
-		Text {
-			id: reading
-			text: Weather.live
-			      ? Weather.temperature.toFixed(1) + "°C   " + Weather.humidity.toFixed(0) + "%   wmo " + Weather.weatherCode
-			      : "--"
-			color: Weather.live ? Theme.text : Theme.textDim
-			font.pixelSize: 20
-			font.bold: true
+		// The temperature outside is the one number on this panel read from across the room,
+		// so it is on its own scale and everything beside it is a detail.
+		RowLayout {
+			Layout.fillWidth: true
+			// Explicit, because it defaults to true for a nested layout: left alone this row
+			// takes the whole column and both charts are laid out one pixel high.
+			Layout.fillHeight: false
+			spacing: Theme.gap
+
+			Text {
+				text: Weather.live ? Weather.temperature.toFixed(1) + "°C" : "--"
+				color: Weather.live ? Theme.text : Theme.textDim
+				font.pixelSize: Theme.fontHero
+				font.bold: true
+			}
+
+			Text {
+				Layout.fillWidth: true
+				Layout.alignment: Qt.AlignBottom
+				visible: Weather.live
+				text: Weather.humidity.toFixed(0) + "%   wmo " + Weather.weatherCode
+				color: Theme.textDim
+				font.pixelSize: Theme.fontBody
+				elide: Text.ElideRight
+			}
 		}
 
 		LineChart {
-			width: parent.width
-			height: (parent.height - parent.spacing * 2 - reading.height) / 2
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 			series: Weather.temperatureForecast
 			bands: Weather.daylight
 			windowStart: root.now
 			windowEnd: root.now + root.spanMs
 			stroke: Theme.cool
 			unit: "°"
+			decimals: 0
 			minimumSpan: 5
 		}
 
+		// Pinned to the whole scale. A probability chart that rescales itself puts 40% at the
+		// top of the frame, which reads as a downpour from any distance at which the axis
+		// label cannot be read.
 		LineChart {
-			width: parent.width
-			height: (parent.height - parent.spacing * 2 - reading.height) / 2
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 			series: Weather.precipitationForecast
 			bands: Weather.daylight
 			windowStart: root.now
@@ -65,7 +87,8 @@ Card {
 			stroke: Theme.accent
 			unit: "%"
 			decimals: 0
-			minimumSpan: 10
+			fixedLow: 0
+			fixedHigh: 100
 		}
 	}
 }

@@ -23,4 +23,11 @@ QtObject {
 	readonly property color failed:     "#ff4f5e"
 
 	readonly property int gap: 8
+
+	// The type scale. Every size in the scene comes from here, because the panel is read from
+	// two to three metres away and a literal pixel size written at a desk is always too small.
+	readonly property int fontLabel:   16   // axis ends, captions, the status badge
+	readonly property int fontBody:    22   // button labels, station names, gate state
+	readonly property int fontReading: 44   // a number that is the point of its panel
+	readonly property int fontHero:    64   // the two numbers read from across the room
 }

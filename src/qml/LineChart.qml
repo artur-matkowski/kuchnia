@@ -33,6 +33,17 @@ Item {
 	// does not render as noise magnified across the whole height.
 	property real minimumSpan: 1.0
 
+	// A vertical range the data does not get a vote on. NaN, the default, means the range is
+	// taken from the points inside the window as it always was. A percentage that rescales
+	// itself is read wrong from across the room: 40% at the top of the frame looks like a
+	// downpour, and the only thing saying otherwise is a label too small to read from there.
+	property real fixedLow: NaN
+	property real fixedHigh: NaN
+
+	// Wide enough for the widest label the range can produce, so the line never starts under
+	// its own axis.
+	readonly property real _gutter: Theme.fontLabel * 3.2
+
 	readonly property bool hasData: series !== null && series.points !== undefined
 	                                && series.points.length > 1
 
@@ -69,6 +80,14 @@ Item {
 		if (count === 0)
 			return empty
 
+		// count stays the number of points inside the window even when the range is fixed:
+		// it is what hasVisible - and therefore "no data" - is decided on, and a fixed range
+		// must not turn an empty window into a frame with axes and nothing in it.
+		if (!isNaN(fixedLow))
+			low = fixedLow
+		if (!isNaN(fixedHigh))
+			high = fixedHigh
+
 		low = Math.min(low, high - minimumSpan)
 		return { count: count, low: low, high: Math.max(high, low + minimumSpan) }
 	}
@@ -104,7 +123,9 @@ Item {
 	// the same weekday twice.
 	function _time(milliseconds) {
 		const hours = (xHigh - xLow) / 3600000
-		const format = hours > 96 ? "ddd d MMM" : (hours > 36 ? "ddd HH:mm" : "HH:mm")
+		// A day is the interesting case: HH:mm at both ends of a 24 hour window prints the same
+		// time twice, which reads as a chart that is not moving.
+		const format = hours > 96 ? "ddd d MMM" : (hours > 12 ? "ddd HH:mm" : "HH:mm")
 		return Qt.formatDateTime(new Date(milliseconds), format)
 	}
 
@@ -113,30 +134,37 @@ Item {
 		visible: !root.hasVisible
 		text: "no data"
 		color: Theme.textDim
-		font.pixelSize: 12
+		font.pixelSize: Theme.fontBody
 	}
 
-	Column {
+	// The two ends of the vertical range, anchored to the corners rather than spaced apart
+	// inside a Column: a spacer sized against the font is one type-scale change away from
+	// pushing the lower label out of the frame.
+	Item {
 		anchors { left: parent.left; top: parent.top; bottom: axis.top }
-		width: 36
+		width: root._gutter
 		visible: root.hasVisible
 
 		Text {
+			anchors { left: parent.left; top: parent.top }
 			text: root.yHigh.toFixed(root.decimals) + root.unit
-			color: Theme.textDim
-			font.pixelSize: 10
+			color: Theme.text
+			font.pixelSize: Theme.fontLabel
+			font.bold: true
 		}
-		Item { width: 1; height: parent.height - 24 }
 		Text {
+			anchors { left: parent.left; bottom: parent.bottom }
 			text: root.yLow.toFixed(root.decimals) + root.unit
-			color: Theme.textDim
-			font.pixelSize: 10
+			color: Theme.text
+			font.pixelSize: Theme.fontLabel
+			font.bold: true
 		}
 	}
 
 	Item {
 		id: plot
-		anchors { left: parent.left; leftMargin: 40; right: parent.right; top: parent.top; bottom: axis.top }
+		anchors { left: parent.left; leftMargin: root._gutter + Theme.gap
+		          right: parent.right; top: parent.top; bottom: axis.top }
 		clip: true
 
 		Repeater {
@@ -159,7 +187,7 @@ Item {
 			// the CPU, which matters on an image with no software fallback at all.
 			ShapePath {
 				strokeColor: root.stroke
-				strokeWidth: 2
+				strokeWidth: 3
 				fillColor: "transparent"
 				capStyle: ShapePath.RoundCap
 				joinStyle: ShapePath.RoundJoin
@@ -171,21 +199,21 @@ Item {
 	Item {
 		id: axis
 		anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-		height: 14
+		height: Theme.fontLabel + 6
 		visible: root.hasVisible
 
 		Text {
 			anchors.left: parent.left
-			anchors.leftMargin: 40
+			anchors.leftMargin: root._gutter + Theme.gap
 			text: root.hasVisible ? root._time(root.xLow) : ""
 			color: Theme.textDim
-			font.pixelSize: 10
+			font.pixelSize: Theme.fontLabel
 		}
 		Text {
 			anchors.right: parent.right
 			text: root.hasVisible ? root._time(root.xHigh) : ""
 			color: Theme.textDim
-			font.pixelSize: 10
+			font.pixelSize: Theme.fontLabel
 		}
 	}
 }

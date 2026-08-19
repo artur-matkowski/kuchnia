@@ -27,12 +27,14 @@ Rectangle {
 		anchors { left: parent.left; top: parent.top; margins: Theme.gap }
 		text: root.title
 		color: Theme.text
-		font.pixelSize: 13
+		font.pixelSize: Theme.fontLabel
 		font.bold: true
 	}
 
 	StatusBadge {
 		anchors { right: parent.right; top: parent.top; margins: Theme.gap }
+		// Whatever the title leaves. Unbounded, a connection error runs across the title.
+		maximumWidth: root.width - heading.width - Theme.gap * 3
 		visible: root.status.length > 0
 		health: root.status
 		detail: root.statusDetail

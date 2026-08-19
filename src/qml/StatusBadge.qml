@@ -14,6 +14,11 @@ Row {
 	property string health: "connecting"
 	property string detail: ""
 
+	// What the badge may not grow past, negative meaning "as wide as it likes". The text
+	// elides, and elide needs a width: in a narrow card an unbounded detail prints straight
+	// across the card's own title, which is the one line that says which panel it is.
+	property real maximumWidth: -1
+
 	spacing: 4
 
 	readonly property color tint: health === "live"       ? Theme.live
@@ -21,9 +26,9 @@ Row {
 	                                                      : Theme.failed
 
 	Rectangle {
-		width: 8
-		height: 8
-		radius: 4
+		width: 10
+		height: 10
+		radius: 5
 		color: root.tint
 		anchors.verticalCenter: parent.verticalCenter
 	}
@@ -31,7 +36,10 @@ Row {
 	Text {
 		text: root.detail.length > 0 ? root.health + " - " + root.detail : root.health
 		color: root.tint
-		font.pixelSize: 11
+		font.pixelSize: Theme.fontLabel
+		width: root.maximumWidth < 0 ? implicitWidth
+		                             : Math.min(implicitWidth, root.maximumWidth - 14)
+		horizontalAlignment: Text.AlignRight
 		elide: Text.ElideRight
 		anchors.verticalCenter: parent.verticalCenter
 	}

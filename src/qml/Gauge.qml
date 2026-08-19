@@ -20,6 +20,7 @@ Item {
 		(value - minimum) / Math.max(1e-6, maximum - minimum)))
 
 	readonly property real _radius: Math.min(width, height) * 0.42
+	readonly property real _thickness: Math.max(10, root._radius * 0.16)
 	readonly property real _startAngle: 140
 	readonly property real _sweep: 260
 
@@ -28,7 +29,7 @@ Item {
 
 		ShapePath {
 			strokeColor: Theme.border
-			strokeWidth: 10
+			strokeWidth: root._thickness
 			fillColor: "transparent"
 			capStyle: ShapePath.RoundCap
 			PathAngleArc {
@@ -43,7 +44,7 @@ Item {
 
 		ShapePath {
 			strokeColor: root.arc
-			strokeWidth: 10
+			strokeWidth: root._thickness
 			fillColor: "transparent"
 			capStyle: ShapePath.RoundCap
 			PathAngleArc {
@@ -65,14 +66,14 @@ Item {
 			anchors.horizontalCenter: parent.horizontalCenter
 			text: root.valid ? root.value.toFixed(1) + root.unit : "--"
 			color: root.valid ? Theme.text : Theme.textDim
-			font.pixelSize: Math.max(14, root._radius * 0.5)
+			font.pixelSize: Math.max(Theme.fontReading, root._radius * 0.55)
 			font.bold: true
 		}
 		Text {
 			anchors.horizontalCenter: parent.horizontalCenter
 			text: root.minimum.toFixed(0) + root.unit + " - " + root.maximum.toFixed(0) + root.unit
 			color: Theme.textDim
-			font.pixelSize: 10
+			font.pixelSize: Theme.fontLabel
 		}
 	}
 }
