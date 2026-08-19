@@ -9,5 +9,6 @@ void Weather::update(const WeatherUpdate& update)
 
 	m_temperatureForecast   = ChartSeries::from(update.temperatureForecast);
 	m_precipitationForecast = ChartSeries::from(update.precipitationForecast);
+	m_daylight              = DaylightBand::listFrom(update.daylight);
 	emit forecastChanged();
 }

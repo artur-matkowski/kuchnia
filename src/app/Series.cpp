@@ -22,3 +22,16 @@ ChartSeries ChartSeries::from(const Series& samples)
 	}
 	return out;
 }
+
+QVariantList DaylightBand::listFrom(const std::vector<Daylight>& bands)
+{
+	QVariantList out;
+	out.reserve(static_cast<int>(bands.size()));
+	for (const Daylight& band : bands) {
+		DaylightBand entry;
+		entry.from = band.from * 1000.0;
+		entry.to   = band.to * 1000.0;
+		out.append(QVariant::fromValue(entry));
+	}
+	return out;
+}

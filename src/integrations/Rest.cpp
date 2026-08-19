@@ -6,6 +6,7 @@
 #include <memory>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 #include <Poco/JSON/Array.h>
 #include <Poco/StreamCopier.h>
@@ -82,6 +83,33 @@ Series hourly(const Poco::JSON::Object::Ptr& block, const char* key)
 	return series;
 }
 
+// daily.sunrise zipped against daily.sunset. Both are ISO stamps with no zone, like the
+// hourly ones, and are read as UTC for the same reason. A day where either end is null - a
+// polar summer, which open-meteo pads rather than shortens - is skipped whole, because half
+// a band is a band that ends at 1970.
+std::vector<Daylight> daylight(const Poco::JSON::Object::Ptr& block)
+{
+	std::vector<Daylight> bands;
+	if (!block || !block->isArray("sunrise") || !block->isArray("sunset"))
+		return bands;
+
+	const Poco::JSON::Array::Ptr sunrise = block->getArray("sunrise");
+	const Poco::JSON::Array::Ptr sunset = block->getArray("sunset");
+	const std::size_t count = std::min(sunrise->size(), sunset->size());
+
+	bands.reserve(count);
+	for (std::size_t i = 0; i < count; ++i) {
+		const unsigned at = static_cast<unsigned>(i);
+		if (sunrise->isNull(at) || sunset->isNull(at))
+			continue;
+		const Daylight band = {epochOf(sunrise->getElement<std::string>(at)),
+		                       epochOf(sunset->getElement<std::string>(at))};
+		if (band.from > 0.0 && band.to > band.from)
+			bands.push_back(band);
+	}
+	return bands;
+}
+
 WeatherUpdate parseForecast(const char* topic, const std::string& body)
 {
 	Poco::JSON::Parser parser;
@@ -99,10 +127,12 @@ WeatherUpdate parseForecast(const char* topic, const std::string& body)
 	const Poco::JSON::Object::Ptr block = root->getObject("hourly");
 	update.temperatureForecast   = hourly(block, "temperature_2m");
 	update.precipitationForecast = hourly(block, "precipitation_probability");
+	update.daylight              = daylight(root->getObject("daily"));
 
 	LOG_INFO(topic) << "temperature " << update.temperature << " C, humidity "
 	                << update.humidity << " %, code " << update.weatherCode << ", "
-	                << update.temperatureForecast.size() << " forecast point(s)";
+	                << update.temperatureForecast.size() << " forecast point(s), "
+	                << update.daylight.size() << " daylight band(s)";
 	return update;
 }
 

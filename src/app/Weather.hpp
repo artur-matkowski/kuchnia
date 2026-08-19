@@ -15,6 +15,7 @@ class Weather : public Panel {
 	Q_PROPERTY(int weatherCode READ weatherCode NOTIFY currentChanged)
 	Q_PROPERTY(ChartSeries temperatureForecast READ temperatureForecast NOTIFY forecastChanged)
 	Q_PROPERTY(ChartSeries precipitationForecast READ precipitationForecast NOTIFY forecastChanged)
+	Q_PROPERTY(QVariantList daylight READ daylight NOTIFY forecastChanged)
 
 public:
 	using Panel::Panel;
@@ -24,6 +25,7 @@ public:
 	int         weatherCode() const { return m_weatherCode; }
 	ChartSeries temperatureForecast() const { return m_temperatureForecast; }
 	ChartSeries precipitationForecast() const { return m_precipitationForecast; }
+	QVariantList daylight() const { return m_daylight; }
 
 	// GUI thread only.
 	void update(const WeatherUpdate& update);
@@ -38,4 +40,5 @@ private:
 	int         m_weatherCode = 0;
 	ChartSeries m_temperatureForecast;
 	ChartSeries m_precipitationForecast;
+	QVariantList m_daylight;
 };

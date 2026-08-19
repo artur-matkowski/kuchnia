@@ -24,6 +24,13 @@ struct Sample {
 
 using Series = std::vector<Sample>;
 
+// A stretch of daylight, sunrise to sunset, in seconds since the epoch like Sample. The
+// conversion to the milliseconds QML wants happens at the seam in src/app/, once.
+struct Daylight {
+	double from = 0.0;
+	double to   = 0.0;
+};
+
 struct HotWaterUpdate {
 	double current = 0.0;  // degrees Celsius
 	Series history;
@@ -35,6 +42,10 @@ struct WeatherUpdate {
 	int    weatherCode = 0;    // WMO code
 	Series temperatureForecast;
 	Series precipitationForecast;  // percent probability
+
+	// Empty when the query did not ask for the daily block: the charts then draw no bands,
+	// which is the same silent omission every other field here has.
+	std::vector<Daylight> daylight;
 };
 
 // What a panel shows instead of pretending it has data. A service is Failed from the moment

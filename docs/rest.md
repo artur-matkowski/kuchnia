@@ -16,10 +16,20 @@ rejects rather than prompts, because an unattended board has nobody to ask.
 query string is therefore a valid response with a missing key, not an error — the panel that
 wanted it simply stays empty. Dropping a field from `rest-url` silently removes a chart.
 
-Its hourly timestamps carry no zone and the query asks for none, so they are UTC and are
-parsed with `timegm`. `mktime` would read them as local time and slide the whole forecast by
-this machine's offset: a chart that looks entirely plausible and is drawn hours from where it
-belongs.
+Its timestamps carry no zone and the query asks for none, so they are UTC and are parsed
+with `timegm`. `mktime` would read them as local time and slide the whole forecast by this
+machine's offset: a chart that looks entirely plausible and is drawn hours from where it
+belongs. **A `timezone` parameter must never be added to `rest-url`** - it makes open-meteo
+answer in local time in the same zone-less format, which slides everything by the same
+invisible amount from the other direction.
+
+`forecast_days=8` and not 7: the scene's window starts at *now* and runs forward, so a
+seven-day span needs an eighth day to reach into. Shortened, the last hours of the widest
+context are simply empty.
+
+The `daily` block is read for `sunrise` and `sunset`, one pair per day, and becomes the
+charts' day/night bands. A day where either end is null - which is how open-meteo reports a
+sun that does not set - is dropped whole, because half a band is a band that ends in 1970.
 
 `initializeTls()` and `shutdownTls()` are static and process-wide, called by `Integrations`
 around the whole set of services rather than per request.

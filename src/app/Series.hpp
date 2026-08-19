@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QVariantList>
 
+#include <vector>
+
 #include "integrations/Sinks.hpp"
 
 // A time series on its way into QML, plus the bounds a chart needs to scale it. Read from
@@ -33,4 +35,19 @@ public:
 	static ChartSeries from(const Series& samples);
 };
 
+// One daylight band on its way into QML, in the same milliseconds ChartSeries uses so a
+// chart can map both against one window: LineChart.qml reads band.from and band.to.
+class DaylightBand {
+	Q_GADGET
+	Q_PROPERTY(double from MEMBER from CONSTANT)
+	Q_PROPERTY(double to MEMBER to CONSTANT)
+
+public:
+	double from = 0.0;
+	double to   = 0.0;
+
+	static QVariantList listFrom(const std::vector<Daylight>& bands);
+};
+
 Q_DECLARE_METATYPE(ChartSeries)
+Q_DECLARE_METATYPE(DaylightBand)
