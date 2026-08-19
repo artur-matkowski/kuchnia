@@ -97,6 +97,7 @@ set(QT_HMI_QML
 	src/qml/Nav.qml
 	src/qml/RadioPanel.qml
 	src/qml/SceneElement.qml
+	src/qml/SegmentedBar.qml
 	src/qml/StatusBadge.qml
 	src/qml/Theme.qml
 	src/qml/WeatherPanel.qml

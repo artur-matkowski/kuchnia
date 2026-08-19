@@ -12,11 +12,11 @@ Rectangle {
 
 	signal clicked()
 
-	implicitWidth: label.implicitWidth + 24
-	implicitHeight: 30
-	width: implicitWidth
-	height: implicitHeight
-	radius: 3
+	// Implicit sizes only, and no width/height of its own: in a layout the layout sizes it,
+	// and a button that assigns its own size is a button that never fills the box it is in.
+	implicitWidth: label.implicitWidth + Theme.fontBody * 2
+	implicitHeight: Theme.fontBody * 2
+	radius: 4
 	color: !enabled ? Theme.surface : area.pressed ? Theme.accent : Theme.border
 	border.color: enabled ? Theme.accent : Theme.border
 	border.width: 1
@@ -27,7 +27,7 @@ Rectangle {
 		anchors.centerIn: parent
 		text: root.text
 		color: Theme.text
-		font.pixelSize: 12
+		font.pixelSize: Theme.fontBody
 	}
 
 	MouseArea {

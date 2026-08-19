@@ -1,5 +1,6 @@
 import QtCore
 import QtQuick
+import QtQuick.Layouts
 import QtMultimedia
 import QtHmi
 
@@ -40,41 +41,56 @@ Card {
 	property bool _wanted: false
 	property string _detail: ""
 
+	// What the station says it is playing. The stations do send it - ICY StreamTitle is in the
+	// stream and ffprobe reads it - but Qt's ffmpeg backend maps it onto no metadata key this
+	// can read: a playing MP3 station offers Duration, FileFormat, AudioCodec and AudioBitRate
+	// and nothing else. So this is empty in practice, and it stays empty rather than being
+	// filled with a placeholder - see docs/media.md.
+	readonly property string _nowPlaying:
+		player.metaData ? (player.metaData.stringValue(MediaMetaData.Title) || "") : ""
+
 	status: player.playbackState === MediaPlayer.PlayingState ? "live"
 	      : _detail.length > 0 ? "failed"
 	      : _wanted ? "connecting" : ""
 	statusDetail: _detail
 
-	Column {
+	ColumnLayout {
 		anchors { fill: parent; margins: Theme.gap; topMargin: root.contentTop }
 		spacing: Theme.gap
 
 		Text {
-			text: Radio.count === 0 ? "no radio-url configured"
+			Layout.fillWidth: true
+			text: Radio.count === 0 ? "no stations in " + Radio.playlist
 			                        : (Radio.index + 1) + "/" + Radio.count + "  " + Radio.name
 			color: Radio.count === 0 ? Theme.textDim : Theme.text
-			font.pixelSize: 14
-			width: parent.width
+			font.pixelSize: Theme.fontReading
+			font.bold: true
 			elide: Text.ElideRight
 		}
 
 		Text {
-			text: Radio.url
+			Layout.fillWidth: true
+			text: root._nowPlaying
 			color: Theme.textDim
-			font.pixelSize: 10
-			width: parent.width
-			elide: Text.ElideMiddle
+			font.pixelSize: Theme.fontBody
+			elide: Text.ElideRight
 		}
 
-		Row {
+		RowLayout {
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 			spacing: Theme.gap
 
 			Button {
+				Layout.fillWidth: true
+				Layout.fillHeight: true
 				text: "Prev"
 				enabled: Radio.count > 1
 				onClicked: Radio.previous()
 			}
 			Button {
+				Layout.fillWidth: true
+				Layout.fillHeight: true
 				text: root._wanted ? "Stop" : "Play"
 				enabled: Radio.count > 0
 				onClicked: {
@@ -87,6 +103,8 @@ Card {
 				}
 			}
 			Button {
+				Layout.fillWidth: true
+				Layout.fillHeight: true
 				text: "Next"
 				enabled: Radio.count > 1
 				onClicked: Radio.next()
