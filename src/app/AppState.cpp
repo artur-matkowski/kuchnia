@@ -31,7 +31,7 @@ AppState::AppState(const Settings& settings, QObject* parent)
 	, m_cameras(new Cameras(toStringList(settings.cameraUrls), settings.cameraHoldMs, this))
 	, m_gate(new Gate(this))
 	, m_hotWater(new HotWater(this))
-	, m_radio(new Radio(toStringList(settings.radioUrls), toStringList(settings.radioNames), this))
+	, m_radio(new Radio(QString::fromStdString(settings.radioM3u), this))
 	, m_weather(new Weather(this))
 {
 	m_gate->setControlEnabled(settings.gateControl);

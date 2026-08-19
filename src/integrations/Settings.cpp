@@ -77,10 +77,8 @@ std::vector<ParamInitializer> specs()
 			"How long a camera keeps its stream after its context leaves the screen; "
 			"negative never disconnects"),
 
-		ParamInitializer(STRING_VECTOR, "radio-url", std::vector<std::string>(),
-			"Station stream URLs, comma separated"),
-		ParamInitializer(STRING_VECTOR, "radio-name", std::vector<std::string>(),
-			"Station labels, comma separated and in the same order as radio-url"),
+		ParamInitializer(STRING, "radio-m3u", "/etc/radio.m3u",
+			"Extended M3U playlist the radio stations are read from"),
 
 		ParamInitializer(INT, "retry-min-ms", 1000,  "First delay after a failed attempt"),
 		ParamInitializer(INT, "retry-max-ms", 30000, "Ceiling the backoff doubles up to"),
@@ -155,22 +153,10 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 
 	get("camera-url", &out->cameraUrls);
 	get("camera-hold-ms", &out->cameraHoldMs);
-	get("radio-url", &out->radioUrls);
-	get("radio-name", &out->radioNames);
+	get("radio-m3u", &out->radioM3u);
 
 	get("retry-min-ms", &out->retryMinMs);
 	get("retry-max-ms", &out->retryMaxMs);
-
-	// A short radio-name is not a cosmetic problem: the scene indexes both arrays with one
-	// station number, and a name that is simply absent reads on screen as a station that
-	// exists and is nameless.
-	if (!out->radioNames.empty() && out->radioNames.size() != out->radioUrls.size()) {
-		*message = "radio-name has " + std::to_string(out->radioNames.size()) +
-		           " entries and radio-url has " + std::to_string(out->radioUrls.size()) +
-		           "; they are one list read with one index. Note that both split on commas, "
-		           "so a station name containing one becomes two names.";
-		return SettingsResult::Failed;
-	}
 
 	return SettingsResult::Ok;
 }

@@ -39,10 +39,8 @@ struct Settings {
 	std::vector<std::string> cameraUrls;
 	int                      cameraHoldMs = 0;
 
-	// Parallel arrays: radioNames[i] labels radioUrls[i]. loadSettings refuses a pair of
-	// unequal length rather than leaving the scene to index past the end of one of them.
-	std::vector<std::string> radioUrls;
-	std::vector<std::string> radioNames;
+	// The playlist the stations are read from. Nothing here parses it - see src/app/Radio.cpp.
+	std::string radioM3u;
 
 	int retryMinMs = 0;
 	int retryMaxMs = 0;
