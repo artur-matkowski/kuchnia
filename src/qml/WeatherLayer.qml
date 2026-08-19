@@ -12,7 +12,7 @@ import QtHmi
 // Both screens name their boxes `temperature`, `temperatureChart` and `rainChance`. Nothing
 // checks that they do: a screen that spells one differently is a card that stays where it was,
 // with no warning anywhere.
-Item {
+CardFrame {
 	id: layer
 
 	// The two screens' boxes, wired by Main.qml - a card cannot ask a screen it is not inside
@@ -23,10 +23,22 @@ Item {
 	readonly property string spans: "details-24h,details-72h,details-7d"
 	readonly property string weather: "weather-24h,weather-72h,weather-7d"
 
-	anchors.fill: parent
+	// The two contexts these cards are not on at all. Settings leaves them exactly the way the
+	// cameras do.
+	readonly property string offIds: "cameras,settings"
+
+	// Whichever of their two screens the chooser was opened from is the card they stay in, so
+	// that screen zooms out around them and they never cross the scene to reach a miniature.
+	// Carousel.anchorCard is latched at that moment; the copies take the other card.
+	card: Carousel.anchorCard
+
+	// And they are in flight whenever EITHER of the two screens they belong to is the one being
+	// opened or left: the three cards migrate between those two layouts, so a step between the
+	// carousel and the weather screen moves them as surely as a step to the compact one does.
+	focused: Carousel.focused === "details" || Carousel.focused === "weather"
 
 	// Above both contexts, which own z 0 and 1. A card in flight belongs to neither screen.
-	z: 2
+	baseZ: 2
 
 	SceneElement {
 		id: temperature
@@ -57,6 +69,18 @@ Item {
 			State {
 				name: "weather-7d"
 				PropertyChanges { target: temperature; box: layer.weatherBoxes.temperature }
+			},
+			State {
+				name: "settings"
+				PropertyChanges { target: temperature; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "carousel"
+				PropertyChanges {
+					target: temperature
+					box: Carousel.anchorCard === "weather"
+						? layer.weatherBoxes.temperature : layer.detailsBoxes.temperature
+				}
 			}
 		]
 
@@ -80,7 +104,7 @@ Item {
 			// cameras context names none of its own: leaving the weather screen for it would
 			// otherwise snap the card back into its details box before it had faded.
 			Transition {
-				from: "cameras"; to: layer.spans + "," + layer.weather
+				from: layer.offIds; to: layer.spans + "," + layer.weather
 				SequentialAnimation {
 					PauseAnimation { duration: 200 }
 					ParallelAnimation {
@@ -90,10 +114,33 @@ Item {
 				}
 			},
 			Transition {
-				from: layer.spans + "," + layer.weather; to: "cameras"
+				from: layer.spans + "," + layer.weather; to: layer.offIds
 				ParallelAnimation {
 					PropertyAnimation { properties: "box"; duration: 380; easing.type: Easing.InCubic }
 					NumberAnimation { properties: "offsetX,opacity"; duration: 380; easing.type: Easing.InCubic }
+				}
+			},
+			// These three are the one element in the scene the carousel really moves: the
+			// compact miniature is where they stand, and both screens they belong to are cards
+			// of their own, so a step between the carousel and either of them is a migration
+			// between two layouts and not just a change of pose - hence `focused`.
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				PropertyAnimation {
+					properties: "box,scale,opacity,offsetX,offsetY"
+					duration: layer.focused ? 540 : 0
+					easing.type: Easing.InOutCubic
+				}
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				SequentialAnimation {
+					PauseAnimation { duration: layer.focused ? 0 : 500 }
+					PropertyAnimation {
+						properties: "box,scale,opacity,offsetX,offsetY"
+						duration: layer.focused ? 520 : 0
+						easing.type: Easing.InOutCubic
+					}
 				}
 			}
 		]
@@ -104,15 +151,7 @@ Item {
 
 		box: layer.detailsBoxes.temperatureChart
 
-		ChartCard {
-			anchors.fill: parent
-			title: ForecastSpan.label ? "Forecast · " + ForecastSpan.label : "Forecast"
-			series: Weather.temperatureForecast
-			stroke: Theme.cool
-			unit: "°"
-			decimals: 0
-			minimumSpan: 5
-		}
+		ForecastCard { anchors.fill: parent }
 
 		states: [
 			State {
@@ -133,6 +172,18 @@ Item {
 			State {
 				name: "weather-7d"
 				PropertyChanges { target: temperatureChart; box: layer.weatherBoxes.temperatureChart }
+			},
+			State {
+				name: "settings"
+				PropertyChanges { target: temperatureChart; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "carousel"
+				PropertyChanges {
+					target: temperatureChart
+					box: Carousel.anchorCard === "weather"
+						? layer.weatherBoxes.temperatureChart : layer.detailsBoxes.temperatureChart
+				}
 			}
 		]
 
@@ -152,7 +203,7 @@ Item {
 				}
 			},
 			Transition {
-				from: "cameras"; to: layer.spans + "," + layer.weather
+				from: layer.offIds; to: layer.spans + "," + layer.weather
 				SequentialAnimation {
 					PauseAnimation { duration: 260 }
 					ParallelAnimation {
@@ -162,10 +213,33 @@ Item {
 				}
 			},
 			Transition {
-				from: layer.spans + "," + layer.weather; to: "cameras"
+				from: layer.spans + "," + layer.weather; to: layer.offIds
 				ParallelAnimation {
 					PropertyAnimation { properties: "box"; duration: 360; easing.type: Easing.InCubic }
 					NumberAnimation { properties: "offsetX,opacity"; duration: 360; easing.type: Easing.InCubic }
+				}
+			},
+			// These three are the one element in the scene the carousel really moves: the
+			// compact miniature is where they stand, and both screens they belong to are cards
+			// of their own, so a step between the carousel and either of them is a migration
+			// between two layouts and not just a change of pose - hence `focused`.
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				PropertyAnimation {
+					properties: "box,scale,opacity,offsetX,offsetY"
+					duration: layer.focused ? 540 : 0
+					easing.type: Easing.InOutCubic
+				}
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				SequentialAnimation {
+					PauseAnimation { duration: layer.focused ? 0 : 500 }
+					PropertyAnimation {
+						properties: "box,scale,opacity,offsetX,offsetY"
+						duration: layer.focused ? 520 : 0
+						easing.type: Easing.InOutCubic
+					}
 				}
 			}
 		]
@@ -176,19 +250,7 @@ Item {
 
 		box: layer.detailsBoxes.rainChance
 
-		// Pinned to the whole scale. A probability chart that rescales itself puts 40% at the
-		// top of the frame, which reads as a downpour from any distance at which the axis label
-		// cannot be read.
-		ChartCard {
-			anchors.fill: parent
-			title: "Rain chance"
-			series: Weather.precipitationForecast
-			stroke: Theme.accent
-			unit: "%"
-			decimals: 0
-			fixedLow: 0
-			fixedHigh: 100
-		}
+		RainChanceCard { anchors.fill: parent }
 
 		states: [
 			State {
@@ -209,6 +271,18 @@ Item {
 			State {
 				name: "weather-7d"
 				PropertyChanges { target: rainChance; box: layer.weatherBoxes.rainChance }
+			},
+			State {
+				name: "settings"
+				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "carousel"
+				PropertyChanges {
+					target: rainChance
+					box: Carousel.anchorCard === "weather"
+						? layer.weatherBoxes.rainChance : layer.detailsBoxes.rainChance
+				}
 			}
 		]
 
@@ -225,7 +299,7 @@ Item {
 				PropertyAnimation { properties: "box"; duration: 560; easing.type: Easing.InOutCubic }
 			},
 			Transition {
-				from: "cameras"; to: layer.spans + "," + layer.weather
+				from: layer.offIds; to: layer.spans + "," + layer.weather
 				SequentialAnimation {
 					PauseAnimation { duration: 320 }
 					ParallelAnimation {
@@ -235,10 +309,33 @@ Item {
 				}
 			},
 			Transition {
-				from: layer.spans + "," + layer.weather; to: "cameras"
+				from: layer.spans + "," + layer.weather; to: layer.offIds
 				ParallelAnimation {
 					PropertyAnimation { properties: "box"; duration: 340; easing.type: Easing.InCubic }
 					NumberAnimation { properties: "offsetX,opacity"; duration: 340; easing.type: Easing.InCubic }
+				}
+			},
+			// These three are the one element in the scene the carousel really moves: the
+			// compact miniature is where they stand, and both screens they belong to are cards
+			// of their own, so a step between the carousel and either of them is a migration
+			// between two layouts and not just a change of pose - hence `focused`.
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				PropertyAnimation {
+					properties: "box,scale,opacity,offsetX,offsetY"
+					duration: layer.focused ? 540 : 0
+					easing.type: Easing.InOutCubic
+				}
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				SequentialAnimation {
+					PauseAnimation { duration: layer.focused ? 0 : 500 }
+					PropertyAnimation {
+						properties: "box,scale,opacity,offsetX,offsetY"
+						duration: layer.focused ? 520 : 0
+						easing.type: Easing.InOutCubic
+					}
 				}
 			}
 		]

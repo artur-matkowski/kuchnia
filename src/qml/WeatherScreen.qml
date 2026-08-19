@@ -8,11 +8,12 @@ import QtHmi
 Context {
 	id: screen
 
-	contextIds: ["weather-24h", "weather-72h", "weather-7d"]
+	contextIds: ["weather-24h", "weather-72h", "weather-7d", "carousel"]
+	card: "weather"
 
 	// Every id that is not this screen. The three cards on the right are off screen in all of
 	// them and travel the same way in and out of each.
-	readonly property string away: "cameras,details-24h,details-72h,details-7d"
+	readonly property string away: "cameras,details-24h,details-72h,details-7d,settings"
 	readonly property string spans: "weather-24h,weather-72h,weather-7d"
 
 	// Everything inside the margin: two columns, a row for the readings and two for the charts.
@@ -47,7 +48,9 @@ Context {
 			State { name: "details-7d"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
 			State { name: "weather-24h" },
 			State { name: "weather-72h" },
-			State { name: "weather-7d" }
+			State { name: "weather-7d" },
+			State { name: "settings"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
+			State { name: "carousel" }
 		]
 
 		transitions: [
@@ -68,6 +71,21 @@ Context {
 					properties: "offsetX,opacity"
 					duration: 340
 					easing.type: Easing.InQuad
+				}
+			},
+			// The carousel moves the whole screen and not its parts - see CardFrame.qml. These
+			// two only put the element into its home pose, at no duration: on the way in the
+			// screen is parked off the edge when they fire, and on the way out the pause holds
+			// them until it is off the edge again.
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				PropertyAnimation { properties: "box,scale,opacity,offsetX,offsetY"; duration: 0 }
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				SequentialAnimation {
+					PauseAnimation { duration: 500 }
+					PropertyAnimation { properties: "box,scale,opacity,offsetX,offsetY"; duration: 0 }
 				}
 			}
 		]
@@ -96,7 +114,9 @@ Context {
 			State { name: "details-7d"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
 			State { name: "weather-24h" },
 			State { name: "weather-72h" },
-			State { name: "weather-7d" }
+			State { name: "weather-7d" },
+			State { name: "settings"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
+			State { name: "carousel" }
 		]
 
 		transitions: [
@@ -117,6 +137,21 @@ Context {
 					properties: "offsetX,opacity"
 					duration: 300
 					easing.type: Easing.InQuad
+				}
+			},
+			// The carousel moves the whole screen and not its parts - see CardFrame.qml. These
+			// two only put the element into its home pose, at no duration: on the way in the
+			// screen is parked off the edge when they fire, and on the way out the pause holds
+			// them until it is off the edge again.
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				PropertyAnimation { properties: "box,scale,opacity,offsetX,offsetY"; duration: 0 }
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				SequentialAnimation {
+					PauseAnimation { duration: 500 }
+					PropertyAnimation { properties: "box,scale,opacity,offsetX,offsetY"; duration: 0 }
 				}
 			}
 		]
@@ -151,7 +186,9 @@ Context {
 			State { name: "details-7d"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
 			State { name: "weather-24h" },
 			State { name: "weather-72h" },
-			State { name: "weather-7d" }
+			State { name: "weather-7d" },
+			State { name: "settings"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
+			State { name: "carousel" }
 		]
 
 		transitions: [
@@ -172,6 +209,21 @@ Context {
 					properties: "offsetX,opacity"
 					duration: 300
 					easing.type: Easing.InQuad
+				}
+			},
+			// The carousel moves the whole screen and not its parts - see CardFrame.qml. These
+			// two only put the element into its home pose, at no duration: on the way in the
+			// screen is parked off the edge when they fire, and on the way out the pause holds
+			// them until it is off the edge again.
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				PropertyAnimation { properties: "box,scale,opacity,offsetX,offsetY"; duration: 0 }
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				SequentialAnimation {
+					PauseAnimation { duration: 500 }
+					PropertyAnimation { properties: "box,scale,opacity,offsetX,offsetY"; duration: 0 }
 				}
 			}
 		]

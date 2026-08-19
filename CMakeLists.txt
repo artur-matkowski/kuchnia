@@ -84,13 +84,17 @@ qt_add_executable(qt-hmi
 set(QT_HMI_QML
 	src/qml/Button.qml
 	src/qml/Card.qml
+	src/qml/CardFrame.qml
 	src/qml/CameraTile.qml
 	src/qml/CamerasScreen.qml
+	src/qml/Carousel.qml
+	src/qml/CarouselWeather.qml
 	src/qml/Cells.qml
 	src/qml/ChartCard.qml
 	src/qml/Clock.qml
 	src/qml/Context.qml
 	src/qml/DetailsScreen.qml
+	src/qml/ForecastCard.qml
 	src/qml/ForecastSpan.qml
 	src/qml/GatePanel.qml
 	src/qml/Gauge.qml
@@ -99,8 +103,10 @@ set(QT_HMI_QML
 	src/qml/Main.qml
 	src/qml/Nav.qml
 	src/qml/RadioPanel.qml
+	src/qml/RainChanceCard.qml
 	src/qml/SceneElement.qml
 	src/qml/SegmentedBar.qml
+	src/qml/SettingsScreen.qml
 	src/qml/StatusBadge.qml
 	src/qml/TemperatureCard.qml
 	src/qml/Theme.qml
@@ -118,12 +124,12 @@ foreach(qml IN LISTS QT_HMI_QML)
 	set_source_files_properties("${qml}" PROPERTIES QT_RESOURCE_ALIAS "${name}")
 endforeach()
 
-# These four carry `pragma Singleton`, which is only half of what a singleton needs: without
-# this the generated qmldir does not declare it, and every `Theme.`, `Nav.`, `Cells.` and
-# `ForecastSpan.` in the scene resolves to undefined - an unstyled screen with every panel at
-# the origin, which does not answer the arrow keys, rather than an error.
+# These five carry `pragma Singleton`, which is only half of what a singleton needs: without
+# this the generated qmldir does not declare it, and every `Theme.`, `Nav.`, `Cells.`,
+# `ForecastSpan.` and `Carousel.` in the scene resolves to undefined - an unstyled screen with
+# every panel at the origin, which does not answer the arrow keys, rather than an error.
 set_source_files_properties(src/qml/Theme.qml src/qml/Nav.qml src/qml/ForecastSpan.qml
-	src/qml/Cells.qml
+	src/qml/Cells.qml src/qml/Carousel.qml
 	PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # URI QtHmi is the string main.cpp passes to loadFromModule() and the one AppState registers

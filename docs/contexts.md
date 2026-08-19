@@ -5,12 +5,23 @@
 > Owns: src/qml/SceneElement.qml
 > Owns: src/qml/CamerasScreen.qml
 > Owns: src/qml/DetailsScreen.qml
-> See:  docs/scene.md docs/media.md
+> Owns: src/qml/WeatherScreen.qml
+> Owns: src/qml/WeatherLayer.qml
+> Owns: src/qml/ForecastSpan.qml
+> Owns: src/qml/Cells.qml
+> See:  docs/scene.md docs/media.md docs/carousel.md
 
-Exactly one context is ON; the arrow keys cycle. Nothing draws a tab bar and nothing is
-meant to: the only evidence a context exists is what it puts on the screen.
+Exactly one context is ON; the left and right arrows cycle. Nothing draws a tab bar and
+nothing is meant to: the only evidence a context exists is what it puts on the screen. The one
+context where that is not true is [the carousel](docs/carousel.md), where all four screens are
+on at once as miniatures and every screen therefore names `carousel` among its `contextIds`.
 
-Four ids, and only two screens. `details-24h`, `details-72h` and `details-7d` are one screen
+`Nav.cycle` is the ring the arrow keys walk and `Nav.contexts` is everything `goTo` accepts.
+The two differ by `settings` and `carousel`, which are off the ring: `next()`/`previous()`
+answer -1 for a context that is not on it and do nothing, which is what makes the arrows inert
+in settings rather than jumping somewhere arbitrary.
+
+Nine ids, and five screens. `details-24h`, `details-72h` and `details-7d` are one screen
 seen over three forecast spans, which is why `Context.contextIds` is a list. Every element
 outside the weather charts gives all three the same pose, and that is the requirement rather
 than a shortcut: crossing between the spans must not move a box by a pixel, so the only thing

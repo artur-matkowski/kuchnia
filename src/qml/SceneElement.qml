@@ -6,6 +6,11 @@ import QtQuick
 // `Transition` per ORDERED pair, which is what lets the hot water gauge slide left while a
 // camera zooms at the viewer and the one beside it drops off the bottom.
 //
+// The carousel is the one context where an element has nothing of its own to do: there the
+// whole screen is shrunk and slid into a card by the CardFrame it sits in, and an element that
+// animated itself as well would come apart from the screen it belongs to. Its `carousel` State
+// is therefore empty - the home pose - and its two carousel Transitions only snap it there.
+//
 // Two silent failures:
 //
 // A use that declares no State for some context id keeps its base pose there - both contexts
