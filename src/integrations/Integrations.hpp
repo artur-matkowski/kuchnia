@@ -1,8 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "Settings.hpp"
+#include "Sinks.hpp"
 
 class Database;
 class Mqtt;
@@ -15,8 +17,12 @@ class Rest;
 // reference to the settings, which therefore have to outlive it.
 class Integrations {
 public:
-	explicit Integrations(const Settings& settings);
+	Integrations(const Settings& settings, Sinks sinks);
 	~Integrations();
+
+	// The scene's one way in. Forwarded to the broker client, which queues it for its own
+	// thread; nothing here publishes on the caller's.
+	void sendGateCommand(const std::string& command);
 
 	Integrations(const Integrations&) = delete;
 	Integrations& operator=(const Integrations&) = delete;

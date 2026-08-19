@@ -1,8 +1,13 @@
 #include "Rest.hpp"
 
+#include <algorithm>
+#include <cstdio>
+#include <ctime>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
+#include <Poco/JSON/Array.h>
 #include <Poco/StreamCopier.h>
 #include <Poco/URI.h>
 #include <Poco/JSON/Object.h>
@@ -32,21 +37,73 @@ std::unique_ptr<Poco::Net::HTTPClientSession> openSession(const Poco::URI& uri)
 	throw std::runtime_error("rest-url scheme '" + scheme + "' is neither http nor https");
 }
 
-void reportForecast(const char* topic, const std::string& body)
+double number(const Poco::JSON::Object::Ptr& object, const char* key)
+{
+	if (!object || !object->has(key) || object->isNull(key))
+		return 0.0;
+	return object->getValue<double>(key);
+}
+
+// open-meteo timestamps are "2026-08-19T05:00" with no zone, and the query asks for no
+// timezone, so they are UTC. timegm rather than mktime: mktime would read them as local time
+// and slide the whole forecast by the machine's offset - a chart that looks entirely
+// plausible and is drawn hours away from where it belongs.
+double epochOf(const std::string& iso)
+{
+	std::tm parts = {};
+	if (sscanf(iso.c_str(), "%d-%d-%dT%d:%d", &parts.tm_year, &parts.tm_mon, &parts.tm_mday,
+	           &parts.tm_hour, &parts.tm_min) != 5)
+		return 0.0;
+	parts.tm_year -= 1900;
+	parts.tm_mon -= 1;
+	return static_cast<double>(timegm(&parts));
+}
+
+// One hourly.<key> array zipped against hourly.time. open-meteo pads a series it has no data
+// for with nulls rather than shortening it, so a null is skipped and not read as a zero.
+Series hourly(const Poco::JSON::Object::Ptr& block, const char* key)
+{
+	Series series;
+	if (!block || !block->isArray("time") || !block->isArray(key))
+		return series;
+
+	const Poco::JSON::Array::Ptr times = block->getArray("time");
+	const Poco::JSON::Array::Ptr values = block->getArray(key);
+	const std::size_t count = std::min(times->size(), values->size());
+
+	series.reserve(count);
+	for (std::size_t i = 0; i < count; ++i) {
+		if (values->isNull(static_cast<unsigned>(i)))
+			continue;
+		const double at = epochOf(times->getElement<std::string>(static_cast<unsigned>(i)));
+		if (at > 0.0)
+			series.push_back({at, values->getElement<double>(static_cast<unsigned>(i))});
+	}
+	return series;
+}
+
+WeatherUpdate parseForecast(const char* topic, const std::string& body)
 {
 	Poco::JSON::Parser parser;
 	const Poco::JSON::Object::Ptr root = parser.parse(body).extract<Poco::JSON::Object::Ptr>();
 	const Poco::JSON::Object::Ptr current = root->getObject("current");
 
-	if (!current || !current->has("temperature_2m")) {
-		LOG_WARN(topic) << "no current.temperature_2m in the response";
-		return;
-	}
+	if (!current || !current->has("temperature_2m"))
+		throw std::runtime_error("no current.temperature_2m in the response - check rest-url");
 
-	applog::Line line(debug::LogLevel::Info, topic);
-	line << "temperature " << current->getValue<double>("temperature_2m");
-	if (current->has("time"))
-		line << " at " << current->getValue<std::string>("time");
+	WeatherUpdate update;
+	update.temperature = number(current, "temperature_2m");
+	update.humidity    = number(current, "relative_humidity_2m");
+	update.weatherCode = static_cast<int>(number(current, "weather_code"));
+
+	const Poco::JSON::Object::Ptr block = root->getObject("hourly");
+	update.temperatureForecast   = hourly(block, "temperature_2m");
+	update.precipitationForecast = hourly(block, "precipitation_probability");
+
+	LOG_INFO(topic) << "temperature " << update.temperature << " C, humidity "
+	                << update.humidity << " %, code " << update.weatherCode << ", "
+	                << update.temperatureForecast.size() << " forecast point(s)";
+	return update;
 }
 
 }  // namespace
@@ -71,9 +128,10 @@ void Rest::shutdownTls()
 	Poco::Net::uninitializeSSL();
 }
 
-Rest::Rest(const Settings& settings)
+Rest::Rest(const Settings& settings, Sinks sinks)
 	: Service(applog::Rest, settings.retryMinMs, settings.retryMaxMs)
 	, m_settings(settings)
+	, m_sinks(std::move(sinks))
 {
 }
 
@@ -107,7 +165,11 @@ void Rest::step()
 		                         std::to_string(response.getStatus()) + " " + response.getReason());
 
 	LOG_INFO(topic()) << "GET " << uri.getHost() << path << " -> 200, " << body.size() << " bytes";
-	reportForecast(topic(), body);
+
+	const WeatherUpdate update = parseForecast(topic(), body);
+	reportHealth(Health::Live);
+	if (m_sinks.weather)
+		m_sinks.weather(update);
 
 	waitFor(m_settings.restIntervalMs);
 }

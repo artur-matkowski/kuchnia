@@ -34,6 +34,17 @@ Service::~Service()
 	stop();
 }
 
+void Service::setHealthSink(std::function<void(const char*, Health, const std::string&)> sink)
+{
+	m_health = std::move(sink);
+}
+
+void Service::reportHealth(Health health, const std::string& detail)
+{
+	if (m_health)
+		m_health(m_topic, health, detail);
+}
+
 void Service::start()
 {
 	if (m_thread.joinable())
@@ -86,9 +97,12 @@ void Service::run()
 			backoff = m_retryMinMs;
 			continue;
 		} catch (const std::exception& error) {
-			LOG_ERROR(m_topic) << trimmed(error.what()) << " - retrying in " << backoff << " ms";
+			const std::string reason = trimmed(error.what());
+			LOG_ERROR(m_topic) << reason << " - retrying in " << backoff << " ms";
+			reportHealth(Health::Failed, reason);
 		} catch (...) {
 			LOG_ERROR(m_topic) << "unknown failure - retrying in " << backoff << " ms";
+			reportHealth(Health::Failed, "unknown failure");
 		}
 
 		reset();

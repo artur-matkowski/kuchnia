@@ -2,15 +2,17 @@
 
 #include "Service.hpp"
 #include "Settings.hpp"
+#include "Sinks.hpp"
 
-// Fetches one configured URL on an interval through Poco, and reports what came back.
+// Fetches rest-url on an interval through Poco and parses it as open-meteo's forecast shape.
 //
-// rest-url points at the <REDACTED>'s open-meteo cache by default, so the response is parsed as
-// open-meteo's forecast shape when it has one. Any other JSON is still fetched and reported;
-// only the temperature line goes missing.
+// Every field is optional on the way in: open-meteo answers 200 with the fields it was asked
+// for and silently omits the rest, so a typo in the query string produces a valid response
+// with a missing key rather than an error. A key that is absent leaves its part of the
+// update at zero and its series empty, and the panel says so.
 class Rest : public Service {
 public:
-	explicit Rest(const Settings& settings);
+	Rest(const Settings& settings, Sinks sinks);
 	~Rest() override;
 
 	// Poco's SSL layer is process-wide and has to be up before the first HTTPS session and
@@ -24,4 +26,5 @@ protected:
 
 private:
 	const Settings& m_settings;
+	Sinks           m_sinks;
 };

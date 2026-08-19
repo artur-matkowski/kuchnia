@@ -10,16 +10,22 @@ The weight is meant to sit in the application — what it shows and what it does
 a rendering architecture. The repository next to it, `drm-hmi`, is where that architecture
 lives; when a problem here wants a renderer seam, it belongs there instead.
 
-Today the scene is one spinning triangle, and beside it three clients of the <REDACTED> -
-PostgreSQL, HTTP and MQTT - that log what they see and touch nothing on screen.
+The scene is a dashboard of the house: a clock, five RTSP cameras, the gate's state and its
+controls, the hot water tank now and over the last day, the weather forecast, and an internet
+radio. Behind it are three clients of the <REDACTED> - PostgreSQL, HTTP and MQTT - each on its
+own thread, reaching the scene through one seam and never touching Qt themselves.
 
 ## Nodes
 
 | Node | Covers |
 |---|---|
-| [app](docs/app.md) | The process and the QML module: the error that does not exit, the URI written twice |
-| [qml](docs/qml.md) | The scene: rotating about a centroid, and why nothing draws text |
+| [app](docs/app.md) | The process and the QML module: the error that does not exit, the order that must not move, the font in the binary |
+| [state](docs/state.md) | The seam: how a worker thread's data becomes a QML property without corrupting one |
+| [scene](docs/scene.md) | The panels and the charts, and the QML names that are already taken |
+| [media](docs/media.md) | The cameras and the radio: the mute that a mixer cannot see, and the dead stream that reports nothing |
 | [integrations](docs/integrations.md) | The three network clients, the logger that drops lines until told where to write, and the settings that fail quietly |
+| [database](docs/database.md) | The archive client: centidegrees, and a table with no index on its timestamp |
+| [rest](docs/rest.md) | The HTTP client: a forecast field that goes missing without an error |
 | [mqtt](docs/mqtt.md) | The broker client: the callback thread that must not block, and a refusal that names why |
 | [targets](docs/targets.md) | `host` and `board`, one cache each, and the host tools a Qt cross build needs |
 

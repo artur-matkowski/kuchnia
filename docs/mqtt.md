@@ -13,9 +13,22 @@ stops dead with no error, no traffic and no log line, looking exactly like a bro
 went quiet. `onConnected()` therefore only flags the work and calls `wake()`; `step()` runs
 it on the service thread, where a failure still propagates to `Service` and is retried.
 
+**A gate command from the scene is queued, never published where it was raised.**
+`requestGateCommand()` takes a lock, appends, and calls `wake()`; `step()` drains the queue
+outside the lock. `publish()` waits for the broker's PUBACK, and the caller is the thread
+painting the screen — publishing there freezes the scene for as long as the LAN takes, and
+holding the lock across it stalls the next button press as well.
+
+`gate-command` in the config is a separate, one-shot path for bringing the bridge up by hand.
+The scene's buttons are not limited to one.
+
 **Reconnection is paho's, not `Service`'s.** The client is configured with
 `automatic_reconnect`, and the connected handler — which runs on the first connect and every
 reconnect after — is what re-establishes the subscriptions and the retained status. `Service`'s backoff only covers a connect that never succeeded at all.
+
+That has a consequence for the status the scene shows: a broker that goes away after a
+successful connect never makes `step()` throw, so `Service` never reports it. The connection
+lost handler is the only place it can be seen.
 
 **A refused connect names the identity it was refused for.** paho renders every CONNACK
 rejection as `CONNACK return code`, which says neither the meaning of the code nor what was

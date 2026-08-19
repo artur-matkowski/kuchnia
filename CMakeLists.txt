@@ -10,7 +10,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Gui rather than Widgets: there is no window system on the target and no widget on
 # either. Quick pulls the scene graph; Qml pulls the engine main.cpp drives.
-find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Qml Quick)
+#
+# Multimedia links, but the QML import comes from a plugin loaded at runtime, and so does the
+# backend that decodes anything - a build that links fine still plays nothing on an image
+# missing either. See docs/media.md.
+find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Multimedia Qml Quick)
 
 # NetSSL is not optional: rest-url defaults to an https endpoint, and Poco resolves the
 # scheme at runtime - a build without it fetches http fine and throws on the first https
@@ -60,6 +64,14 @@ set_target_properties(qt-hmi-modules PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 qt_add_executable(qt-hmi
 	src/main.cpp
+	src/app/AppState.cpp
+	src/app/Cameras.cpp
+	src/app/Gate.cpp
+	src/app/HotWater.cpp
+	src/app/Panel.cpp
+	src/app/Radio.cpp
+	src/app/Series.cpp
+	src/app/Weather.cpp
 	src/integrations/Database.cpp
 	src/integrations/Integrations.cpp
 	src/integrations/Log.cpp
@@ -70,8 +82,19 @@ qt_add_executable(qt-hmi
 )
 
 set(QT_HMI_QML
+	src/qml/Button.qml
+	src/qml/Card.qml
+	src/qml/CameraTile.qml
+	src/qml/Clock.qml
+	src/qml/GatePanel.qml
+	src/qml/Gauge.qml
+	src/qml/HotWaterPanel.qml
+	src/qml/LineChart.qml
 	src/qml/Main.qml
-	src/qml/SpinningTriangle.qml
+	src/qml/RadioPanel.qml
+	src/qml/StatusBadge.qml
+	src/qml/Theme.qml
+	src/qml/WeatherPanel.qml
 )
 
 # Each QML file keeps its path relative to this file inside the module unless aliased,
@@ -83,17 +106,39 @@ foreach(qml IN LISTS QT_HMI_QML)
 	set_source_files_properties("${qml}" PROPERTIES QT_RESOURCE_ALIAS "${name}")
 endforeach()
 
-# URI QtHmi is the string main.cpp passes to loadFromModule(); they are one fact in two
-# files and nothing checks that they agree - a mismatch is a runtime "module is not
-# installed", not a build failure.
+# Theme.qml carries `pragma Singleton`, which is only half of what a singleton needs: without
+# this the generated qmldir does not declare it, and every `Theme.` in the scene resolves to
+# undefined - an unstyled screen rather than an error.
+set_source_files_properties(src/qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
+# URI QtHmi is the string main.cpp passes to loadFromModule() and the one AppState registers
+# its singletons under; they are one fact in three places and nothing checks that they agree -
+# a mismatch is a runtime "module is not installed" or "is not a type", not a build failure.
 qt_add_qml_module(qt-hmi
 	URI QtHmi
 	VERSION 1.0
 	QML_FILES ${QT_HMI_QML}
 )
 
+# A plain resource rather than the QML module's RESOURCES, which would put these under
+# :/qt/qml/QtHmi/. main.cpp opens :/fonts/LiberationSans-Regular.ttf by that name, and
+# addApplicationFont() reports a path that does not exist exactly as it reports a corrupt
+# font: -1, and a screen with no text on it.
+qt_add_resources(qt-hmi "fonts"
+	PREFIX "/fonts"
+	BASE assets/fonts
+	FILES
+		assets/fonts/LiberationSans-Regular.ttf
+		assets/fonts/LiberationSans-Bold.ttf
+)
+
+# src/ on the path, so an include reads the same wherever it is written: src/app/ and
+# src/integrations/ include each other by their repo-relative names rather than by "../".
+target_include_directories(qt-hmi PRIVATE src)
+
 target_link_libraries(qt-hmi PRIVATE
 	Qt6::Gui
+	Qt6::Multimedia
 	Qt6::Qml
 	Qt6::Quick
 	qt-hmi-modules

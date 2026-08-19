@@ -6,17 +6,17 @@
 > Owns: src/integrations/Settings.cpp
 > Owns: src/integrations/Service.hpp
 > Owns: src/integrations/Service.cpp
-> Owns: src/integrations/Database.hpp
-> Owns: src/integrations/Database.cpp
-> Owns: src/integrations/Rest.hpp
-> Owns: src/integrations/Rest.cpp
 > Owns: src/integrations/Integrations.hpp
 > Owns: src/integrations/Integrations.cpp
-> See:  docs/app.md qt-hmi-buildroot/docs/image-and-flash.md
+> See:  docs/app.md docs/state.md docs/database.md docs/rest.md docs/mqtt.md qt-hmi-buildroot/docs/image-and-flash.md
 
 Three clients of things on the LAN — PostgreSQL through libpqxx, HTTP through Poco, MQTT
 through paho — each on its own thread, each configured by `Settings` and each reporting
-through `applog`. Nothing in the scene reads any of them; log lines are their whole output.
+through `applog`.
+
+**Nothing here may touch Qt.** What the scene reads leaves through the plain callbacks in
+`Sinks.hpp`; getting onto the GUI thread is the receiver's problem, and
+[state](docs/state.md) is where that happens — once, for all of them.
 
 The two internal modules under `deps/` are submodules built from source. They are ordinary
 git submodules of this repository, so a fresh checkout needs
@@ -72,7 +72,11 @@ variable and orphans whatever was exporting the old one.
 * **An unknown `--parameter` on the command line is skipped without a word.** A typo in the
   arguments the init script passes changes nothing and reports nothing. The parameter list
   in `specs()` and the arguments in `qt-hmi-buildroot`'s `S99app` are one fact in two
-  repositories.
+  repositories. So is the config file itself: `qt-hmi-buildroot`'s rootfs overlay ships
+  `/etc/qt-hmi.conf`, and a key added or removed here has to be changed there too.
+* **`radio-url` and `radio-name` are one list read with one index.** `loadSettings()` refuses
+  a pair of unequal length rather than letting the scene index past the end of one of them.
+  Both split on commas, so a station name containing one becomes two names.
 * **A non-numeric value where an `INT` is expected throws**, from any of the three sources.
   `loadSettings()` catches it and names the failure; without that catch it is a `terminate()`
   during startup that says nothing about which parameter was wrong.
@@ -98,7 +102,14 @@ Two consequences worth knowing:
   connection kept across a failure is one that reports the same error forever.
 * `wake()` cuts a `waitFor()` short from any thread, and a wake with nobody waiting is
   remembered rather than lost — which is what stops a library callback from having to do
-  blocking work on its own thread.
+  blocking work on its own thread. It is also how the scene gets a gate command onto the
+  broker client's thread.
+* `setHealthSink()` is written without a lock, on the assumption that no worker thread exists
+  yet to read it. Call it before `start()`.
+
+## The database
+
+The archive client is its own node: [database](docs/database.md).
 
 ## MQTT
 
@@ -106,7 +117,4 @@ The broker client is its own node: [mqtt](docs/mqtt.md).
 
 ## REST
 
-Poco's TLS layer is process-wide and is brought up by `Integrations` before any service and
-taken down after all of them. `rest-url` defaults to an https endpoint whose certificate is
-verified against the system trust store, so the target needs a CA bundle; the handler
-rejects rather than prompts, because an unattended board has nobody to ask.
+The HTTP client is its own node: [rest](docs/rest.md).

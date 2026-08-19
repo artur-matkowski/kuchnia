@@ -1,0 +1,9 @@
+Liberation Sans, from the Liberation fonts, is licensed under the SIL Open Font License
+version 1.1. The OFL permits embedding the font in software and redistributing it with that
+software; it forbids selling the font on its own.
+
+The full licence text ships with the upstream package and is reproduced at
+https://openfontlicense.org/.
+
+These two faces are compiled into the qt-hmi binary because the target image has no fonts and
+no fontconfig - see src/main.cpp and docs/app.md.

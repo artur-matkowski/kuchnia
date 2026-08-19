@@ -17,8 +17,8 @@ struct Settings {
 	std::string dbName;
 	std::string dbUser;
 	std::string dbPassword;
-	std::string dbQuery;
 	int         dbIntervalMs = 0;
+	int         dbHistoryHours = 0;
 
 	std::string restUrl;
 	int         restIntervalMs = 0;
@@ -35,6 +35,13 @@ struct Settings {
 	bool        gateControl = false;
 	std::string gateCommand;
 	int         gateTarget = 0;
+
+	std::vector<std::string> cameraUrls;
+
+	// Parallel arrays: radioNames[i] labels radioUrls[i]. loadSettings refuses a pair of
+	// unequal length rather than leaving the scene to index past the end of one of them.
+	std::vector<std::string> radioUrls;
+	std::vector<std::string> radioNames;
 
 	int retryMinMs = 0;
 	int retryMaxMs = 0;

@@ -1,8 +1,12 @@
 #pragma once
 
 #include <condition_variable>
+#include <functional>
 #include <mutex>
+#include <string>
 #include <thread>
+
+#include "Sinks.hpp"
 
 // One background worker with an exponential backoff.
 //
@@ -12,8 +16,9 @@
 // service loops, and anything thrown inside a step is caught, logged against the service's
 // topic, and retried with the delay doubled up to a ceiling.
 //
-// The loop runs on its own thread and never touches Qt. Nothing here is a QObject and
-// nothing signals the GUI thread, because no part of the scene reads any of it yet.
+// The loop runs on its own thread and never touches Qt. Nothing here is a QObject; what the
+// scene reads leaves through the plain callbacks in Sinks.hpp, and getting onto the GUI
+// thread is the receiver's problem - see src/app/AppState.cpp.
 class Service {
 public:
 	Service(const char* topic, int retryMinMs, int retryMaxMs);
@@ -21,6 +26,10 @@ public:
 
 	Service(const Service&) = delete;
 	Service& operator=(const Service&) = delete;
+
+	// Both take effect on the next loop and must therefore be called before start(): they are
+	// written without a lock, on the assumption that no worker thread exists yet to read them.
+	void setHealthSink(std::function<void(const char*, Health, const std::string&)> sink);
 
 	void start();
 	// Idempotent, and safe to call from the destructor of a derived class - which is where
@@ -49,6 +58,11 @@ protected:
 
 	bool stopping();
 
+	// A step reports Live itself, once it actually holds data - the base class cannot, because
+	// step() returns only after its own waitFor() and by then the reading is a poll old.
+	// Failed is reported here, from the catch.
+	void reportHealth(Health health, const std::string& detail = std::string());
+
 	const char* topic() const { return m_topic; }
 
 private:
@@ -57,6 +71,7 @@ private:
 	const char*             m_topic;
 	int                     m_retryMinMs;
 	int                     m_retryMaxMs;
+	std::function<void(const char*, Health, const std::string&)> m_health;
 	std::thread             m_thread;
 	std::mutex              m_mutex;
 	std::condition_variable m_wakeup;

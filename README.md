@@ -3,9 +3,11 @@
 A Qt Quick application that draws straight onto a display through `eglfs` on KMS, with no
 X11, no Wayland, no compositor and no software rasteriser behind it.
 
-Today it is one equilateral triangle, spinning about its centroid. That is the starting
-point, not the goal: this repository is where the *application* is built — screens, state,
-interaction — and Qt Quick is what draws it.
+It shows a house: a clock, five RTSP cameras, the gate's state and its controls, the hot
+water tank now and over the last day, the weather forecast, and an internet radio. Behind it
+are three clients of the <REDACTED> — PostgreSQL, HTTP and MQTT — each on its own thread. This
+repository is where the *application* is built — screens, state, interaction — and Qt Quick
+is what draws it.
 
 ## The split
 

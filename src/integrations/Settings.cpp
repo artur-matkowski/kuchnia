@@ -33,14 +33,18 @@ std::vector<ParamInitializer> specs()
 		ParamInitializer(STRING, "db-name", "house_db",    "PostgreSQL database"),
 		ParamInitializer(STRING, "db-user", "admin",           "PostgreSQL role"),
 		ParamInitializer(STRING, "db-password", "",            "PostgreSQL password"),
-		ParamInitializer(STRING, "db-query",
-			"SELECT timestamp, idSender FROM \"GateClosed\" ORDER BY timestamp DESC LIMIT 5",
-			"Statement run on every poll; its result set is logged column by column"),
 		ParamInitializer(INT,    "db-interval-ms", 30000,      "Milliseconds between polls"),
+		ParamInitializer(INT,    "db-history-hours", 24,
+			"Width of the hot water history window"),
 
+		// The scene draws current.* and both hourly.* arrays. Dropping a field from this query
+		// does not fail the request - open-meteo simply omits it, and the panel that wanted it
+		// stays empty.
 		ParamInitializer(STRING, "rest-url",
 			"https://api.open-meteo.com/v1/forecast"
-			"?latitude=<COORD_REDACTED>&longitude=<COORD_REDACTED>&current=temperature_2m",
+			"?latitude=<COORD_REDACTED>&longitude=<COORD_REDACTED>"
+			"&current=temperature_2m,relative_humidity_2m,weather_code"
+			"&hourly=temperature_2m,precipitation_probability&forecast_days=2",
 			"Absolute URL fetched on every poll; http and https both work"),
 		ParamInitializer(INT,    "rest-interval-ms", 300000,   "Milliseconds between fetches"),
 
@@ -64,6 +68,14 @@ std::vector<ParamInitializer> specs()
 			"One of OpenGate, CloseGate or StopGate, published once after the first connect"),
 		ParamInitializer(INT,    "gate-target", 4,
 			"HC-12 node id the gate command addresses"),
+
+		ParamInitializer(STRING_VECTOR, "camera-url", std::vector<std::string>(),
+			"RTSP stream per camera tile, comma separated; audio from these is always muted"),
+
+		ParamInitializer(STRING_VECTOR, "radio-url", std::vector<std::string>(),
+			"Station stream URLs, comma separated"),
+		ParamInitializer(STRING_VECTOR, "radio-name", std::vector<std::string>(),
+			"Station labels, comma separated and in the same order as radio-url"),
 
 		ParamInitializer(INT, "retry-min-ms", 1000,  "First delay after a failed attempt"),
 		ParamInitializer(INT, "retry-max-ms", 30000, "Ceiling the backoff doubles up to"),
@@ -117,8 +129,8 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 	get("db-name", &out->dbName);
 	get("db-user", &out->dbUser);
 	get("db-password", &out->dbPassword);
-	get("db-query", &out->dbQuery);
 	get("db-interval-ms", &out->dbIntervalMs);
+	get("db-history-hours", &out->dbHistoryHours);
 
 	get("rest-url", &out->restUrl);
 	get("rest-interval-ms", &out->restIntervalMs);
@@ -136,8 +148,23 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 	get("gate-command", &out->gateCommand);
 	get("gate-target", &out->gateTarget);
 
+	get("camera-url", &out->cameraUrls);
+	get("radio-url", &out->radioUrls);
+	get("radio-name", &out->radioNames);
+
 	get("retry-min-ms", &out->retryMinMs);
 	get("retry-max-ms", &out->retryMaxMs);
+
+	// A short radio-name is not a cosmetic problem: the scene indexes both arrays with one
+	// station number, and a name that is simply absent reads on screen as a station that
+	// exists and is nameless.
+	if (!out->radioNames.empty() && out->radioNames.size() != out->radioUrls.size()) {
+		*message = "radio-name has " + std::to_string(out->radioNames.size()) +
+		           " entries and radio-url has " + std::to_string(out->radioUrls.size()) +
+		           "; they are one list read with one index. Note that both split on commas, "
+		           "so a station name containing one becomes two names.";
+		return SettingsResult::Failed;
+	}
 
 	return SettingsResult::Ok;
 }

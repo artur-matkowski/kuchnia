@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <stdexcept>
+#include <utility>
 
 #include <mqtt/async_client.h>
 
@@ -34,11 +35,20 @@ const char* connackReason(int rc)
 	}
 }
 
+// hc12/rx/GateOpened -> GateOpened. The bridge republishes one topic per signal because MQTT
+// has no prefix wildcard, so the state the scene shows is simply the last suffix that arrived.
+std::string signalOf(const std::string& topic)
+{
+	const std::size_t slash = topic.rfind('/');
+	return slash == std::string::npos ? topic : topic.substr(slash + 1);
+}
+
 }  // namespace
 
-Mqtt::Mqtt(const Settings& settings)
+Mqtt::Mqtt(const Settings& settings, Sinks sinks)
 	: Service(applog::Mqtt, settings.retryMinMs, settings.retryMaxMs)
 	, m_settings(settings)
+	, m_sinks(std::move(sinks))
 {
 }
 
@@ -61,6 +71,7 @@ Mqtt::~Mqtt()
 void Mqtt::reset()
 {
 	m_client.reset();
+	m_announce.store(false);
 }
 
 void Mqtt::publish(const std::string& topicName, const std::string& payload, bool retained)
@@ -68,32 +79,52 @@ void Mqtt::publish(const std::string& topicName, const std::string& payload, boo
 	m_client->publish(mqtt::make_message(topicName, payload, kQos, retained))->wait();
 }
 
-void Mqtt::sendGateCommand()
+void Mqtt::sendGateCommand(const std::string& command)
 {
-	if (m_settings.gateCommand.empty())
+	if (command.empty())
 		return;
 
 	if (!m_settings.gateControl) {
-		LOG_ERROR(topic()) << "gate-command '" << m_settings.gateCommand
+		LOG_ERROR(topic()) << "gate command '" << command
 		                   << "' ignored: gate-control is not set";
 		return;
 	}
-	if (!isGateCommand(m_settings.gateCommand)) {
-		LOG_ERROR(topic()) << "gate-command '" << m_settings.gateCommand
+	if (!isGateCommand(command)) {
+		LOG_ERROR(topic()) << "gate command '" << command
 		                   << "' is not OpenGate, CloseGate or StopGate";
 		return;
 	}
-	if (m_gateCommandSent.exchange(true))
-		return;
 
 	// Never retained. The broker persists retained messages, so a retained hc12/tx/OpenGate
 	// is replayed to the bridge on every one of its restarts - the gate would then open by
 	// itself, forever, until somebody cleared the topic by hand.
-	const std::string commandTopic = "hc12/tx/" + m_settings.gateCommand;
+	const std::string commandTopic = "hc12/tx/" + command;
 	const std::string payload = "{\"idTarget\":" + std::to_string(m_settings.gateTarget) + "}";
 	publish(commandTopic, payload, false);
 
 	LOG_WARN(topic()) << "published " << commandTopic << " " << payload;
+}
+
+void Mqtt::requestGateCommand(const std::string& command)
+{
+	{
+		const std::lock_guard<std::mutex> guard(m_commandMutex);
+		m_commands.push_back(command);
+	}
+	wake();
+}
+
+void Mqtt::drainCommands()
+{
+	std::vector<std::string> pending;
+	{
+		const std::lock_guard<std::mutex> guard(m_commandMutex);
+		pending.swap(m_commands);
+	}
+	// Outside the lock: publish() blocks on the broker, and holding the lock across it would
+	// stall whatever pressed the button for as long as the LAN takes.
+	for (const std::string& command : pending)
+		sendGateCommand(command);
 }
 
 void Mqtt::onConnected()
@@ -118,7 +149,12 @@ void Mqtt::announce()
 	LOG_INFO(topic()) << "connected, " << m_settings.mqttSubscribe.size() << " subscription(s)";
 
 	publish(m_settings.mqttStatusTopic, "online", true);
-	sendGateCommand();
+	reportHealth(Health::Live);
+
+	// gate-command is a one-shot for bringing the bridge up by hand; the scene's buttons go
+	// through requestGateCommand() instead and are not limited to one.
+	if (!m_startupCommandSent.exchange(true))
+		sendGateCommand(m_settings.gateCommand);
 }
 
 void Mqtt::step()
@@ -133,9 +169,17 @@ void Mqtt::step()
 		m_client->set_connection_lost_handler([this](const std::string& cause) {
 			LOG_WARN(topic()) << "connection lost"
 			                  << (cause.empty() ? std::string() : ": " + cause);
+			// paho reconnects on its own and announce() reports Live again, so this is the
+			// only place a broker that went away can be seen: Service's backoff never runs
+			// for it, because step() never threw.
+			reportHealth(Health::Failed, cause.empty() ? "connection lost" : cause);
 		});
 		m_client->set_message_callback([this](mqtt::const_message_ptr message) {
 			LOG_INFO(topic()) << message->get_topic() << " " << message->to_string();
+			// paho's callback thread. The sink only queues, which is the one thing that is
+			// safe to do here - see onConnected() for what happens when it is not.
+			if (m_sinks.gateState)
+				m_sinks.gateState(signalOf(message->get_topic()));
 		});
 
 		const auto options = mqtt::connect_options_builder()
@@ -168,12 +212,15 @@ void Mqtt::step()
 	if (m_announce.exchange(false))
 		announce();
 
+	drainCommands();
+
 	if (m_settings.mqttHeartbeatMs <= 0) {
 		waitFor(std::max(1000, m_settings.retryMaxMs));
 		return;
 	}
 
 	waitFor(m_settings.mqttHeartbeatMs);
+	drainCommands();
 	if (!stopping() && m_client->is_connected())
 		publish(m_settings.mqttStatusTopic, "online", true);
 }
