@@ -17,6 +17,9 @@ class Gate : public Panel {
 	Q_OBJECT
 	Q_PROPERTY(QString state READ state NOTIFY stateChanged)
 	Q_PROPERTY(bool controlEnabled READ controlEnabled CONSTANT)
+	Q_PROPERTY(bool canOpen READ canOpen NOTIFY stateChanged)
+	Q_PROPERTY(bool canClose READ canClose NOTIFY stateChanged)
+	Q_PROPERTY(bool canStop READ canStop NOTIFY stateChanged)
 
 public:
 	using Panel::Panel;
@@ -27,6 +30,17 @@ public:
 	// is not there cannot be told apart from one that was never built.
 	bool controlEnabled() const { return m_controlEnabled; }
 	void setControlEnabled(bool enabled) { m_controlEnabled = enabled; }
+
+	// Which of the three commands is worth sending in the state the gate is in. A gate that is
+	// already opening has nothing to gain from another OpenGate, and a button that can be
+	// pressed to no effect is read as a gate that ignored it.
+	//
+	// An unknown state - the empty one before the first retained message, or a signal the
+	// bridge has learned since - enables all three. Guessing from a name nothing here
+	// recognises would be exactly the plausible-looking default the working agreement forbids.
+	bool canOpen() const;
+	bool canClose() const;
+	bool canStop() const;
 
 	// Hands commands to the broker client. Set once, before the scene loads.
 	void setCommandSink(std::function<void(const std::string&)> sink);

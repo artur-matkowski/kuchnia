@@ -15,6 +15,27 @@ void Gate::setState(const QString& state)
 	emit stateChanged();
 }
 
+// The signal names are the HC-12 bridge's own; the subscription list in Settings.cpp carries
+// the same set, and a signal added there needs adding here or its state enables all three
+// commands.
+bool Gate::canOpen() const
+{
+	return m_controlEnabled && m_state != "GateOpened" && m_state != "GateOpening";
+}
+
+bool Gate::canClose() const
+{
+	return m_controlEnabled && m_state != "GateClosed" && m_state != "GateClosing";
+}
+
+// Denied only by the three states in which nothing is moving, so a stuck gate - which is
+// still driving its motor - can always be stopped.
+bool Gate::canStop() const
+{
+	return m_controlEnabled && m_state != "GateOpened" && m_state != "GateClosed"
+	    && m_state != "GateStopped";
+}
+
 // stop() would shadow nothing here, but the QML side reads better as halt() next to open()
 // and close(), and the bridge's own name for it is StopGate either way.
 void Gate::open()  { send("OpenGate"); }
