@@ -21,11 +21,7 @@ The two differ by `settings` and `carousel`, which are off the ring: `next()`/`p
 answer -1 for a context that is not on it and do nothing, which is what makes the arrows inert
 in settings rather than jumping somewhere arbitrary.
 
-Nine ids, and five screens. `details-24h`, `details-72h` and `details-7d` are one screen
-seen over three forecast spans, which is why `Context.contextIds` is a list. Every element
-outside the weather charts gives all three the same pose, and that is the requirement rather
-than a shortcut: crossing between the spans must not move a box by a pixel, so the only thing
-animated in those six pairs is the width of the chart window.
+Nine ids, and five screens. `details-24h` and `details-72h` are one screen seen over two forecast spans, which is why `Context.contextIds` is a list. Every element outside the weather charts gives all three the same pose, and that is the requirement rather than a shortcut: crossing between the spans must not move a box by a pixel, so the only thing animated in those six pairs is the width of the chart window.
 
 Every context is instantiated once, at startup, and stays instantiated. That is not a
 performance choice - a transition animates elements of both screens at the same time, so

@@ -24,8 +24,8 @@ QtObject {
 	// The weather ids come after the details ids for a reason: the step between the two
 	// screens is the one that carries three cards across rather than fading them, and it reads
 	// as a step only if it is a step.
-	readonly property var cycle: ["cameras", "details-24h", "details-72h", "details-7d",
-	                              "weather-24h", "weather-72h", "weather-7d"]
+	readonly property var cycle: ["cameras", "details-24h", "details-72h",
+	                              "weather-72h", "weather-7d"]
 
 	// Every id `goTo` accepts. `settings` and `carousel` are off the ring on purpose: the
 	// carousel is the only way into settings and the only way out of it, and the carousel

@@ -49,8 +49,6 @@ Item {
 		State { name: "cameras" },
 		State { name: "details-24h"; PropertyChanges { target: span; ms: 24 * 3600 * 1000; restoreEntryValues: false } },
 		State { name: "details-72h"; PropertyChanges { target: span; ms: 72 * 3600 * 1000; restoreEntryValues: false } },
-		State { name: "details-7d";  PropertyChanges { target: span; ms: 168 * 3600 * 1000; restoreEntryValues: false } },
-		State { name: "weather-24h"; PropertyChanges { target: span; ms: 24 * 3600 * 1000; restoreEntryValues: false } },
 		State { name: "weather-72h"; PropertyChanges { target: span; ms: 72 * 3600 * 1000; restoreEntryValues: false } },
 		State { name: "weather-7d";  PropertyChanges { target: span; ms: 168 * 3600 * 1000; restoreEntryValues: false } }
 	]
@@ -65,28 +63,20 @@ Item {
 	// flying in is an animation nobody sees.
 	transitions: [
 		Transition {
-			from: "details-24h,weather-24h"; to: "details-72h,weather-72h"
+			from: "details-24h"; to: "details-72h"
 			NumberAnimation { properties: "ms"; duration: 560; easing.type: Easing.OutCubic }
 		},
 		Transition {
-			from: "details-24h,weather-24h"; to: "details-7d,weather-7d"
-			NumberAnimation { properties: "ms"; duration: 720; easing.type: Easing.OutCubic }
+			from: "details-72h"; to: "details-24h"
+			NumberAnimation { properties: "ms"; duration: 520; easing.type: Easing.InOutCubic }
 		},
 		Transition {
-			from: "details-72h,weather-72h"; to: "details-7d,weather-7d"
+			from: "weather-72h"; to: "weather-7d"
 			NumberAnimation { properties: "ms"; duration: 560; easing.type: Easing.OutCubic }
 		},
 		Transition {
-			from: "details-72h,weather-72h"; to: "details-24h,weather-24h"
+			from: "weather-7d"; to: "weather-72h"
 			NumberAnimation { properties: "ms"; duration: 520; easing.type: Easing.InOutCubic }
-		},
-		Transition {
-			from: "details-7d,weather-7d"; to: "details-72h,weather-72h"
-			NumberAnimation { properties: "ms"; duration: 520; easing.type: Easing.InOutCubic }
-		},
-		Transition {
-			from: "details-7d,weather-7d"; to: "details-24h,weather-24h"
-			NumberAnimation { properties: "ms"; duration: 680; easing.type: Easing.InOutCubic }
 		}
 	]
 }

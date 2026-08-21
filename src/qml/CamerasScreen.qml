@@ -19,7 +19,7 @@ Context {
 	// alike and comes back from all six alike; the States below still name them one at a time,
 	// because a State name is a literal and an element with no State for an id is silently
 	// unanimated - both screens then draw on top of each other.
-	readonly property string away: "details-24h,details-72h,details-7d,weather-24h,weather-72h,weather-7d,settings"
+	readonly property string away: "details-24h,details-72h,weather-72h,weather-7d,settings"
 
 	// Everything inside the margin. Every box on this screen is cut out of it.
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
@@ -58,14 +58,6 @@ Context {
 			},
 			State {
 				name: "details-72h"
-				PropertyChanges { target: cameraOne; scale: 3.0; opacity: 0 }
-			},
-			State {
-				name: "details-7d"
-				PropertyChanges { target: cameraOne; scale: 3.0; opacity: 0 }
-			},
-			State {
-				name: "weather-24h"
 				PropertyChanges { target: cameraOne; scale: 3.0; opacity: 0 }
 			},
 			State {
@@ -140,11 +132,7 @@ Context {
 				PropertyChanges { target: cameraTwo; offsetY: -820; opacity: 0 }
 			},
 			State {
-				name: "details-7d"
-				PropertyChanges { target: cameraTwo; offsetY: -820; opacity: 0 }
-			},
-			State {
-				name: "weather-24h"
+				name: "weather-72h"
 				PropertyChanges { target: cameraTwo; offsetY: -820; opacity: 0 }
 			},
 			State {
@@ -225,14 +213,6 @@ Context {
 				PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
 			},
 			State {
-				name: "details-7d"
-				PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
-			},
-			State {
-				name: "weather-24h"
-				PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
-			},
-			State {
 				name: "weather-72h"
 				PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
 			},
@@ -310,11 +290,7 @@ Context {
 				PropertyChanges { target: cameraFour; offsetX: -1400; opacity: 0 }
 			},
 			State {
-				name: "details-7d"
-				PropertyChanges { target: cameraFour; offsetX: -1400; opacity: 0 }
-			},
-			State {
-				name: "weather-24h"
+				name: "details-72h"
 				PropertyChanges { target: cameraFour; offsetX: -1400; opacity: 0 }
 			},
 			State {
@@ -392,14 +368,6 @@ Context {
 			},
 			State {
 				name: "details-72h"
-				PropertyChanges { target: cameraFive; offsetX: 1400; opacity: 0 }
-			},
-			State {
-				name: "details-7d"
-				PropertyChanges { target: cameraFive; offsetX: 1400; opacity: 0 }
-			},
-			State {
-				name: "weather-24h"
 				PropertyChanges { target: cameraFive; offsetX: 1400; opacity: 0 }
 			},
 			State {
@@ -507,14 +475,6 @@ Context {
 			},
 			State {
 				name: "details-72h"
-				PropertyChanges { target: readouts; scale: 0.85; opacity: 0 }
-			},
-			State {
-				name: "details-7d"
-				PropertyChanges { target: readouts; scale: 0.85; opacity: 0 }
-			},
-			State {
-				name: "weather-24h"
 				PropertyChanges { target: readouts; scale: 0.85; opacity: 0 }
 			},
 			State {

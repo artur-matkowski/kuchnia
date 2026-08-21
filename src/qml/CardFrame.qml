@@ -51,8 +51,6 @@ Item {
 		State { name: "cameras" },
 		State { name: "details-24h" },
 		State { name: "details-72h" },
-		State { name: "details-7d" },
-		State { name: "weather-24h" },
 		State { name: "weather-72h" },
 		State { name: "weather-7d" },
 		State { name: "settings" },

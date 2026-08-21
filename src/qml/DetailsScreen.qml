@@ -15,16 +15,16 @@ import QtQuick
 Context {
 	id: screen
 
-	contextIds: ["details-24h", "details-72h", "details-7d", "carousel"]
+	contextIds: ["details-24h", "details-72h", "carousel"]
 	card: "details"
 
 	// The three ids as one Transition side. The States below still name them one at a time -
 	// a State name is a literal - but a pair that treats the three alike says so once.
-	readonly property string spans: "details-24h,details-72h,details-7d"
+	readonly property string spans: "details-24h,details-72h"
 
 	// Every id that is not this screen. The panels below are off screen in all four and leave
 	// for the weather context exactly as they leave for the cameras.
-	readonly property string away: "cameras,weather-24h,weather-72h,weather-7d,settings"
+	readonly property string away: "cameras,weather-72h,weather-7d,settings"
 
 	// Everything inside the margin, divided in four.
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
@@ -58,11 +58,6 @@ Context {
 			},
 			State { name: "details-24h" },
 			State { name: "details-72h" },
-			State { name: "details-7d" },
-			State {
-				name: "weather-24h"
-				PropertyChanges { target: gate; offsetY: -820; opacity: 0 }
-			},
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: gate; offsetY: -820; opacity: 0 }
@@ -129,11 +124,6 @@ Context {
 			},
 			State { name: "details-24h" },
 			State { name: "details-72h" },
-			State { name: "details-7d" },
-			State {
-				name: "weather-24h"
-				PropertyChanges { target: hotWater; scale: 0.8; opacity: 0 }
-			},
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: hotWater; scale: 0.8; opacity: 0 }
@@ -200,11 +190,6 @@ Context {
 			},
 			State { name: "details-24h" },
 			State { name: "details-72h" },
-			State { name: "details-7d" },
-			State {
-				name: "weather-24h"
-				PropertyChanges { target: radio; offsetY: 820; opacity: 0 }
-			},
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: radio; offsetY: 820; opacity: 0 }

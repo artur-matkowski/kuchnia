@@ -15,7 +15,7 @@ Context {
 
 	// Every id that is not this screen and is not the carousel. The three cards leave for all
 	// of them alike.
-	readonly property string away: "cameras,details-24h,details-72h,details-7d,weather-24h,weather-72h,weather-7d"
+	readonly property string away: "cameras,details-24h,details-72h,weather-72h,weather-7d"
 
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
 	                                        width - Theme.gap * 2, height - Theme.gap * 2)
@@ -80,8 +80,6 @@ Context {
 			State { name: "cameras"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
 			State { name: "details-24h"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
 			State { name: "details-72h"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
-			State { name: "details-7d"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
-			State { name: "weather-24h"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
 			State { name: "settings" },
@@ -141,8 +139,6 @@ Context {
 			State { name: "cameras"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "details-24h"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "details-72h"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
-			State { name: "details-7d"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
-			State { name: "weather-24h"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "settings" },
@@ -202,8 +198,6 @@ Context {
 			State { name: "cameras"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "details-24h"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "details-72h"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
-			State { name: "details-7d"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
-			State { name: "weather-24h"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "settings" },

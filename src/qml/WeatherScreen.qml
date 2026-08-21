@@ -8,13 +8,13 @@ import QtHmi
 Context {
 	id: screen
 
-	contextIds: ["weather-24h", "weather-72h", "weather-7d", "carousel"]
+	contextIds: ["weather-72h", "weather-7d", "carousel"]
 	card: "weather"
 
 	// Every id that is not this screen. The three cards on the right are off screen in all of
 	// them and travel the same way in and out of each.
-	readonly property string away: "cameras,details-24h,details-72h,details-7d,settings"
-	readonly property string spans: "weather-24h,weather-72h,weather-7d"
+	readonly property string away: "cameras,details-24h,details-72h,settings"
+	readonly property string spans: "weather-72h,weather-7d"
 
 	// Everything inside the margin: two columns, a row for the readings and two for the charts.
 	// The left column is the same division the details screen makes of its weather quadrant,
@@ -45,8 +45,6 @@ Context {
 			State { name: "cameras"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
 			State { name: "details-24h"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
 			State { name: "details-72h"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
-			State { name: "details-7d"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
-			State { name: "weather-24h" },
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
@@ -111,8 +109,6 @@ Context {
 			State { name: "cameras"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
 			State { name: "details-24h"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
 			State { name: "details-72h"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
-			State { name: "details-7d"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
-			State { name: "weather-24h" },
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
@@ -183,8 +179,6 @@ Context {
 			State { name: "cameras"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
 			State { name: "details-24h"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
 			State { name: "details-72h"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
-			State { name: "details-7d"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
-			State { name: "weather-24h" },
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },

@@ -20,8 +20,8 @@ CardFrame {
 	property var detailsBoxes: null
 	property var weatherBoxes: null
 
-	readonly property string spans: "details-24h,details-72h,details-7d"
-	readonly property string weather: "weather-24h,weather-72h,weather-7d"
+	readonly property string spans: "details-24h,details-72h"
+	readonly property string weather: "weather-72h,weather-7d"
 
 	// The two contexts these cards are not on at all. Settings leaves them exactly the way the
 	// cameras do.
@@ -57,11 +57,6 @@ CardFrame {
 			},
 			State { name: "details-24h" },
 			State { name: "details-72h" },
-			State { name: "details-7d" },
-			State {
-				name: "weather-24h"
-				PropertyChanges { target: temperature; box: layer.weatherBoxes.temperature }
-			},
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: temperature; box: layer.weatherBoxes.temperature }
@@ -160,11 +155,6 @@ CardFrame {
 			},
 			State { name: "details-24h" },
 			State { name: "details-72h" },
-			State { name: "details-7d" },
-			State {
-				name: "weather-24h"
-				PropertyChanges { target: temperatureChart; box: layer.weatherBoxes.temperatureChart }
-			},
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: temperatureChart; box: layer.weatherBoxes.temperatureChart }
@@ -259,11 +249,6 @@ CardFrame {
 			},
 			State { name: "details-24h" },
 			State { name: "details-72h" },
-			State { name: "details-7d" },
-			State {
-				name: "weather-24h"
-				PropertyChanges { target: rainChance; box: layer.weatherBoxes.rainChance }
-			},
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: rainChance; box: layer.weatherBoxes.rainChance }
