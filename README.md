@@ -71,10 +71,20 @@ whole connector and needs the display to itself. Qt's KMS backend becomes DRM ma
 ## Where this runs
 
 A Raspberry Pi 5 on Raspberry Pi OS Lite, installed with `apt` from this Gitea's Debian
-registry. `main` and `testing` are two components of that repository and two channels: a
-board's `sources.list` names one, an update is `apt upgrade`, and a rollback is
-`apt install qt-hmi=<older>`. The lines that put a board on it are in
-[docs/packaging.md](docs/packaging.md).
+registry:
+
+```sh
+curl -fsSL https://git.example.com/api/packages/<REDACTED>/debian/repository.key \
+  | sudo tee /etc/apt/keyrings/gitea-<REDACTED>.asc >/dev/null
+echo "deb [signed-by=/etc/apt/keyrings/gitea-<REDACTED>.asc] \
+https://git.example.com/api/packages/<REDACTED>/debian trixie main" \
+  | sudo tee /etc/apt/sources.list.d/qt-hmi.list
+```
+
+`main` there is the channel: it and `testing` are two components of the one repository, so a
+board takes whichever it names. An update is `apt upgrade` and a rollback is
+`apt install qt-hmi=<older>`. What to do after the install, and what the package depends on
+that nothing can see, are in [docs/packaging.md](docs/packaging.md).
 
 The **qt-hmi-buildroot** repository also consumes this tree as a git submodule, building it into
 a purpose-built Buildroot image for the same board. Everything about that image is

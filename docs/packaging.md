@@ -109,6 +109,8 @@ container, plain in a throwaway one. The build dependencies are never written tw
 `apt-get build-dep` reads them out of `debian/control`. The cross build itself, and the
 `QT_HOST_PATH` pair `debian/rules` passes, are in [docs/targets.md](docs/targets.md).
 
-Publishing needs a `PACKAGE_TOKEN` secret on the repository holding a Gitea token with
-`write:package`. Gitea authenticates the token and ignores the username beside it, so the
-workflow sends a placeholder.
+Publishing needs a `PACKAGE_TOKEN` secret holding a Gitea token with `write:package`. Gitea
+authenticates the token and ignores the username beside it, so the workflow sends a
+placeholder. Nothing else in the run is authenticated — the checkout clones anonymously and
+a board's `apt` reads the registry anonymously, both of which stop working the moment this
+repository or the `<REDACTED>` organisation stops being public.
