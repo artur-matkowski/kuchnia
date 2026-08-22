@@ -76,21 +76,57 @@ Card {
 			elide: Text.ElideRight
 		}
 
-		RowLayout {
+		// The stations, and the only way to reach one that is not the next or the previous.
+		ListView {
+			id: channels
+
 			Layout.fillWidth: true
 			Layout.fillHeight: true
+			clip: true
+
+			model: Radio.names
+			currentIndex: Radio.index
+
+			delegate: Rectangle {
+				// The view's width and not parent.width: a delegate's parent is the content item,
+				// which is as wide as the widest delegate rather than as wide as the view.
+				width: channels.width
+				height: Theme.fontBody * 2
+				color: Radio.index === index ? Theme.accent : "transparent"
+
+				Text {
+					anchors { fill: parent; leftMargin: Theme.gap; rightMargin: Theme.gap }
+					verticalAlignment: Text.AlignVCenter
+					text: modelData
+					color: Radio.index === index ? Theme.background : Theme.text
+					font.pixelSize: Theme.fontBody
+					elide: Text.ElideRight
+				}
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: Radio.index = index
+				}
+			}
+		}
+
+		RowLayout {
+			Layout.fillWidth: true
+			// Explicit, because it defaults to true for a nested layout: left alone the buttons
+			// take the whole column and the station list above them is laid out one pixel high.
+			Layout.fillHeight: false
 			spacing: Theme.gap
 
 			Button {
 				Layout.fillWidth: true
-				Layout.fillHeight: true
+				Layout.preferredHeight: Theme.fontBody * 2
 				text: "Prev"
 				enabled: Radio.count > 1
 				onClicked: Radio.previous()
 			}
 			Button {
 				Layout.fillWidth: true
-				Layout.fillHeight: true
+				Layout.preferredHeight: Theme.fontBody * 2
 				text: root._wanted ? "Stop" : "Play"
 				enabled: Radio.count > 0
 				onClicked: {
@@ -104,7 +140,7 @@ Card {
 			}
 			Button {
 				Layout.fillWidth: true
-				Layout.fillHeight: true
+				Layout.preferredHeight: Theme.fontBody * 2
 				text: "Next"
 				enabled: Radio.count > 1
 				onClicked: Radio.next()

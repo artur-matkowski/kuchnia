@@ -10,14 +10,14 @@ The weight is meant to sit in the application — what it shows and what it does
 a rendering architecture. The repository next to it, `drm-hmi`, is where that architecture
 lives; when a problem here wants a renderer seam, it belongs there instead.
 
-The scene is a dashboard of the house across four contexts the left and right arrows cycle
-between: five RTSP cameras beside a clock and the hot water tank on one, and the gate's state
-and its controls, the tank over the last day, the weather forecast and an internet radio on the
-other three, which differ only in how far the forecast runs - a day, three days, a week. Up
-puts all four on the screen at once as miniatures to choose between, with a settings screen
-that is reachable no other way. Behind it are three clients of the <REDACTED> - PostgreSQL, HTTP
-and MQTT - each on its own thread, reaching the scene through one seam and never touching Qt
-themselves.
+The scene is a dashboard of the house across five contexts the left and right arrows cycle
+between: five RTSP cameras beside a clock and the hot water tank on one; the gate's state and
+its controls, the tank over the last day, the weather forecast and an internet radio on the
+compact screen; and the weather on its own on the last. Each forecast screen is two contexts -
+one per span it carries - and the two do not carry the same pair. Up puts all four screens on
+at once as miniatures to choose between, with a settings screen that is reachable no other way.
+Behind it are three clients of the <REDACTED> - PostgreSQL, HTTP and MQTT - each on its own
+thread, reaching the scene through one seam and never touching Qt themselves.
 
 ## Nodes
 
@@ -25,7 +25,7 @@ themselves.
 |---|---|
 | [app](docs/app.md) | The process and the QML module: the error that does not exit, the order that must not move, the font in the binary |
 | [state](docs/state.md) | The seam: how a worker thread's data becomes a QML property without corrupting one |
-| [contexts](docs/contexts.md) | The contexts the arrow keys cycle, the three forecast spans among them, and where an element's animation is written |
+| [contexts](docs/contexts.md) | The contexts the arrow keys cycle, the forecast spans among them, and where an element's animation is written |
 | [carousel](docs/carousel.md) | The chooser on the up key: whole screens shrunk into a strip, the copies that must not overlap the originals, and the settings mockup behind it |
 | [scene](docs/scene.md) | The panels and the charts, the window a forecast is drawn through, and the QML names that are already taken |
 | [media](docs/media.md) | The cameras and the radio: the mute that a mixer cannot see, and the dead stream that reports nothing |

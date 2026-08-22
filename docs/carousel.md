@@ -3,6 +3,8 @@
 > Owns: src/qml/Carousel.qml
 > Owns: src/qml/CardFrame.qml
 > Owns: src/qml/CarouselWeather.qml
+> Owns: src/qml/CarouselIn.qml
+> Owns: src/qml/CarouselOut.qml
 > Owns: src/qml/SettingsScreen.qml
 > See:  docs/contexts.md docs/scene.md
 

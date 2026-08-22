@@ -12,3 +12,5 @@
 /CMakeFiles/
 /qt-hmi
 config.conf
+# A local agent's workspace. Not this project's, and never committed.
+/.opencode/

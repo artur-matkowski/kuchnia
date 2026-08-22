@@ -14,6 +14,7 @@
 > Owns: src/qml/ChartCard.qml
 > Owns: src/qml/TemperatureCard.qml
 > Owns: src/qml/WindCard.qml
+> Owns: src/qml/ConditionsCard.qml
 > Owns: src/qml/ForecastCard.qml
 > Owns: src/qml/RainChanceCard.qml
 > See:  docs/state.md docs/media.md docs/app.md docs/contexts.md docs/carousel.md
@@ -100,7 +101,7 @@ draws `no data` rather than an empty frame with axes.
 
 `windowStart`/`windowEnd` left at zero means "the whole series", which is what the hot water
 history wants. The weather panel drives them instead, and animating `windowEnd` is the whole
-of the compression between the three forecast contexts - see [contexts](docs/contexts.md).
+of the compression between the forecast spans - see [contexts](docs/contexts.md).
 
 **The vertical range follows the window, not the series.** A day scaled against a week's
 extremes is a line that barely moves. Because the range is recomputed as the window animates,

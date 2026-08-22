@@ -4,14 +4,14 @@ import QtQuick
 // The forecast window every weather chart is drawn through: where it starts, how wide it is,
 // and the animation that widens it.
 //
-// A singleton for the same reason Nav is one. Six cards on two screens draw against one
+// A singleton for the same reason Nav is one. Four cards across two screens draw against one
 // window, and threading a reference to it through both layouts would be plumbing; more to the
-// point, a window each card owned a copy of is six copies of one fact, and the three that
-// migrate would then have to hand their copy over mid-flight.
+// point, a window each card owned a copy of is four copies of one fact, and the two that
+// migrate between the screens would then have to hand their copy over mid-flight.
 //
 // This is the only element in the scene whose animation is not written where it is used. It
-// has no pose and nothing to stagger against - it is a number - and the six span pairs are
-// the same six pairs on both screens.
+// has no pose and nothing to stagger against - it is a number - and a span change reads the
+// same whichever of the two screens it happens on.
 Item {
 	id: span
 
@@ -42,32 +42,31 @@ Item {
 
 	state: Nav.current
 
-	// restoreEntryValues is false on all six: leaving for the cameras would otherwise restore
+	// restoreEntryValues is false on all four: leaving for the cameras would otherwise restore
 	// the base 24h, and a week-wide chart would snap shut while it is still flying off screen.
 	// The cameras context therefore names no value of its own - it keeps whatever was showing.
 	states: [
 		State { name: "cameras" },
-		State { name: "details-24h"; PropertyChanges { target: span; ms: 24 * 3600 * 1000; restoreEntryValues: false } },
-		State { name: "details-72h"; PropertyChanges { target: span; ms: 72 * 3600 * 1000; restoreEntryValues: false } },
+		State { name: "compact-24h"; PropertyChanges { target: span; ms: 24 * 3600 * 1000; restoreEntryValues: false } },
+		State { name: "compact-72h"; PropertyChanges { target: span; ms: 72 * 3600 * 1000; restoreEntryValues: false } },
 		State { name: "weather-72h"; PropertyChanges { target: span; ms: 72 * 3600 * 1000; restoreEntryValues: false } },
 		State { name: "weather-7d";  PropertyChanges { target: span; ms: 168 * 3600 * 1000; restoreEntryValues: false } }
 	]
 
-	// The six ordered span pairs, named on both screens at once: a span change reads the same
-	// whichever screen it happens on, and the screen it happens on is not this element's
-	// business. A pair whose two sides are the same span - details-24h to weather-24h - is in
-	// none of them, because there is nothing to move.
+	// The four ordered span pairs, and both of the screens' own. No pair crosses between the
+	// screens because no span does: the compact screen carries 24h and 72h, the weather screen
+	// 72h and 7d, and the step between them moves cards rather than the window.
 	//
 	// Nothing here names a pair with the cameras in it either. The chart is off screen or
 	// arriving from off screen, and a window easing open behind an element that is still
 	// flying in is an animation nobody sees.
 	transitions: [
 		Transition {
-			from: "details-24h"; to: "details-72h"
+			from: "compact-24h"; to: "compact-72h"
 			NumberAnimation { properties: "ms"; duration: 560; easing.type: Easing.OutCubic }
 		},
 		Transition {
-			from: "details-72h"; to: "details-24h"
+			from: "compact-72h"; to: "compact-24h"
 			NumberAnimation { properties: "ms"; duration: 520; easing.type: Easing.InOutCubic }
 		},
 		Transition {

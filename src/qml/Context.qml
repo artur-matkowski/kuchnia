@@ -6,8 +6,8 @@ import QtQuick
 CardFrame {
 	id: context
 
-	// Every id this screen answers to. A list and not one id because the details screen is
-	// three contexts - one per forecast span - showing the same boxes in the same places, and
+	// Every id this screen answers to. A list and not one id because each forecast screen is
+	// two contexts - one per span it carries - showing the same boxes in the same places, and
 	// because every screen also answers to `carousel`, where all four are on at once.
 	property var contextIds: []
 

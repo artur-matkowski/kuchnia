@@ -88,12 +88,15 @@ set(QT_HMI_QML
 	src/qml/CameraTile.qml
 	src/qml/CamerasScreen.qml
 	src/qml/Carousel.qml
+	src/qml/CarouselIn.qml
+	src/qml/CarouselOut.qml
 	src/qml/CarouselWeather.qml
 	src/qml/Cells.qml
 	src/qml/ChartCard.qml
 	src/qml/Clock.qml
+	src/qml/CompactScreen.qml
+	src/qml/ConditionsCard.qml
 	src/qml/Context.qml
-	src/qml/DetailsScreen.qml
 	src/qml/ForecastCard.qml
 	src/qml/ForecastSpan.qml
 	src/qml/GatePanel.qml

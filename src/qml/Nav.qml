@@ -16,15 +16,15 @@ QtObject {
 	// third place is not an error: the element simply keeps its base pose and is never
 	// animated.
 	//
-	// Two of the three screens are three ids each - one screen seen over three forecast spans.
-	// The three differ in nothing but the width of the forecast window, which is why every
-	// element outside that window gives all three the same pose: crossing between them must
-	// not move a single box.
+	// Two of the three screens are two ids each - one screen seen over two forecast spans. The
+	// two differ in nothing but the width of the forecast window, which is why every element
+	// outside that window gives both the same pose: crossing between them must not move a
+	// single box.
 	//
-	// The weather ids come after the details ids for a reason: the step between the two
+	// The weather ids come after the compact ids for a reason: the step between the two
 	// screens is the one that carries three cards across rather than fading them, and it reads
 	// as a step only if it is a step.
-	readonly property var cycle: ["cameras", "details-24h", "details-72h",
+	readonly property var cycle: ["cameras", "compact-24h", "compact-72h",
 	                              "weather-72h", "weather-7d"]
 
 	// Every id `goTo` accepts. `settings` and `carousel` are off the ring on purpose: the
@@ -40,14 +40,14 @@ QtObject {
 	property string current: nav.cycle[0]
 
 	// The context being left, for as long as the machine is in flight. `Context.live` needs it:
-	// with three details contexts a span change restarts the settle timer, and a `live` that
-	// only asked "is anything in flight?" would bring the cameras' streams up for the length of
-	// an animation they take no part in.
+	// a span change restarts the settle timer, and a `live` that only asked "is anything in
+	// flight?" would bring the cameras' streams up for the length of an animation they take no
+	// part in.
 	property string leaving: nav.cycle[0]
 
 	// The forecast span last asked for, and it is one fact for both screens that carry a
-	// forecast. Leaving the details screen at 7d and picking the weather card out of the
-	// carousel arrives at `weather-7d`: the miniature that was being looked at is the screen
+	// forecast. Leaving the compact screen at 72h and picking the weather card out of the
+	// carousel arrives at `weather-72h`: the miniature that was being looked at is the screen
 	// that opens.
 	property string lastSpan: "24h"
 
@@ -55,12 +55,29 @@ QtObject {
 	// owns its own duration - only the point at which an OFF context may tear its video down.
 	// It MUST be at least the longest transition in the scene: shorter, and a camera is
 	// disconnected part-way through its own exit animation, which reads as a stream that died
-	// exactly when you looked away from it.
-	property int settleMs: 900
+	// exactly when you looked away from it. The longest is 880ms, and the margin over it is
+	// there because this is a GUI-thread timer racing animations the render thread finishes.
+	property int settleMs: 1000
 
 	readonly property bool transitioning: settle.running
 
 	property Timer settle: Timer { interval: nav.settleMs; repeat: false }
+
+	// The id a card opens on, which is NOT simply the card plus the span last asked for: the
+	// two forecast screens do not carry the same spans - the compact screen has no week and
+	// the weather screen has no day - so `lastSpan` is regularly a span the card being opened
+	// does not have. `goTo` returns on an id that is not in `contexts`, and the visible result
+	// is a `down` key that does nothing and a chooser that will not close, with one line in
+	// the log to say why. Falling back to the card's first span is what keeps it working.
+	function spanId(card) {
+		var wanted = card + "-" + nav.lastSpan
+		if (nav.contexts.indexOf(wanted) >= 0)
+			return wanted
+		for (var i = 0; i < nav.cycle.length; ++i)
+			if (nav.cycle[i].indexOf(card + "-") === 0)
+				return nav.cycle[i]
+		return card
+	}
 
 	// The any-to-any entry point. next()/previous() are the arrow keys; the carousel and every
 	// direct jump use this.

@@ -19,20 +19,20 @@ CardFrame {
 
 	// Both screens' slots, wired by Main.qml: which of the two these copies fill depends on
 	// which one the originals were left in, and that is not known until the chooser opens.
-	property var detailsBoxes: null
+	property var compactBoxes: null
 	property var weatherBoxes: null
 
 	// Always the card the originals are NOT in. That is the whole of how the two sets are kept
 	// apart: they can never be asked to stand in the same column, whichever screen the chooser
 	// was opened from.
-	card: Carousel.anchorCard === "weather" ? "details" : "weather"
+	card: Carousel.anchorCard === "weather" ? "compact" : "weather"
 
 	baseZ: 2
 
 	SceneElement {
 		id: temperature
 		box: extra.card === "weather"
-			? extra.weatherBoxes.temperature : extra.detailsBoxes.temperature
+			? extra.weatherBoxes.temperature : extra.compactBoxes.temperature
 
 		// Invisible everywhere but in the carousel.
 		opacity: 0
@@ -41,8 +41,8 @@ CardFrame {
 
 		states: [
 			State { name: "cameras" },
-			State { name: "details-24h" },
-			State { name: "details-72h" },
+			State { name: "compact-24h" },
+			State { name: "compact-72h" },
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings" },
@@ -80,7 +80,7 @@ CardFrame {
 	SceneElement {
 		id: forecast
 		box: extra.card === "weather"
-			? extra.weatherBoxes.temperatureChart : extra.detailsBoxes.temperatureChart
+			? extra.weatherBoxes.temperatureChart : extra.compactBoxes.temperatureChart
 
 		// Invisible everywhere but in the carousel.
 		opacity: 0
@@ -89,8 +89,8 @@ CardFrame {
 
 		states: [
 			State { name: "cameras" },
-			State { name: "details-24h" },
-			State { name: "details-72h" },
+			State { name: "compact-24h" },
+			State { name: "compact-72h" },
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings" },
@@ -128,7 +128,7 @@ CardFrame {
 	SceneElement {
 		id: rain
 		box: extra.card === "weather"
-			? extra.weatherBoxes.rainChance : extra.detailsBoxes.rainChance
+			? extra.weatherBoxes.rainChance : extra.compactBoxes.rainChance
 
 		// Invisible everywhere but in the carousel.
 		opacity: 0
@@ -137,8 +137,8 @@ CardFrame {
 
 		states: [
 			State { name: "cameras" },
-			State { name: "details-24h" },
-			State { name: "details-72h" },
+			State { name: "compact-24h" },
+			State { name: "compact-72h" },
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings" },

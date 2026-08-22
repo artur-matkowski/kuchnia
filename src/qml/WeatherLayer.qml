@@ -3,7 +3,7 @@ import QtHmi
 
 // The three weather cards that are on two screens at once.
 //
-// They belong to neither screen, and that is the whole design. The details screen stacks them
+// They belong to neither screen, and that is the whole design. The compact screen stacks them
 // in one quarter of itself and the weather screen spreads them down half of it; crossing
 // between the two must not fade them out and build them again, so there is one instance of
 // each, drawn above both screens, animating its own box between the boxes the two screens ask
@@ -17,10 +17,10 @@ CardFrame {
 
 	// The two screens' boxes, wired by Main.qml - a card cannot ask a screen it is not inside
 	// where to be.
-	property var detailsBoxes: null
+	property var compactBoxes: null
 	property var weatherBoxes: null
 
-	readonly property string spans: "details-24h,details-72h"
+	readonly property string spans: "compact-24h,compact-72h"
 	readonly property string weather: "weather-72h,weather-7d"
 
 	// The two contexts these cards are not on at all. Settings leaves them exactly the way the
@@ -35,7 +35,7 @@ CardFrame {
 	// And they are in flight whenever EITHER of the two screens they belong to is the one being
 	// opened or left: the three cards migrate between those two layouts, so a step between the
 	// carousel and the weather screen moves them as surely as a step to the compact one does.
-	focused: Carousel.focused === "details" || Carousel.focused === "weather"
+	focused: Carousel.focused === "compact" || Carousel.focused === "weather"
 
 	// Above both contexts, which own z 0 and 1. A card in flight belongs to neither screen.
 	baseZ: 2
@@ -43,10 +43,10 @@ CardFrame {
 	SceneElement {
 		id: temperature
 
-		// The base box is the details screen's, so only the weather ids need a State that says
+		// The base box is the compact screen's, so only the weather ids need a State that says
 		// otherwise. The cameras context names no box of its own and is animated out of
 		// whichever one it was showing - see the transitions.
-		box: layer.detailsBoxes.temperature
+		box: layer.compactBoxes.temperature
 
 		TemperatureCard { anchors.fill: parent }
 
@@ -55,8 +55,8 @@ CardFrame {
 				name: "cameras"
 				PropertyChanges { target: temperature; offsetX: -1400; opacity: 0 }
 			},
-			State { name: "details-24h" },
-			State { name: "details-72h" },
+			State { name: "compact-24h" },
+			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: temperature; box: layer.weatherBoxes.temperature }
@@ -74,7 +74,7 @@ CardFrame {
 				PropertyChanges {
 					target: temperature
 					box: Carousel.anchorCard === "weather"
-						? layer.weatherBoxes.temperature : layer.detailsBoxes.temperature
+						? layer.weatherBoxes.temperature : layer.compactBoxes.temperature
 				}
 			}
 		]
@@ -97,7 +97,7 @@ CardFrame {
 			},
 			// The box is animated on the way to and from the cameras as well, because the
 			// cameras context names none of its own: leaving the weather screen for it would
-			// otherwise snap the card back into its details box before it had faded.
+			// otherwise snap the card back into its compact box before it had faded.
 			Transition {
 				from: layer.offIds; to: layer.spans + "," + layer.weather
 				SequentialAnimation {
@@ -144,7 +144,7 @@ CardFrame {
 	SceneElement {
 		id: temperatureChart
 
-		box: layer.detailsBoxes.temperatureChart
+		box: layer.compactBoxes.temperatureChart
 
 		ForecastCard { anchors.fill: parent }
 
@@ -153,8 +153,8 @@ CardFrame {
 				name: "cameras"
 				PropertyChanges { target: temperatureChart; offsetX: -1400; opacity: 0 }
 			},
-			State { name: "details-24h" },
-			State { name: "details-72h" },
+			State { name: "compact-24h" },
+			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: temperatureChart; box: layer.weatherBoxes.temperatureChart }
@@ -172,7 +172,7 @@ CardFrame {
 				PropertyChanges {
 					target: temperatureChart
 					box: Carousel.anchorCard === "weather"
-						? layer.weatherBoxes.temperatureChart : layer.detailsBoxes.temperatureChart
+						? layer.weatherBoxes.temperatureChart : layer.compactBoxes.temperatureChart
 				}
 			}
 		]
@@ -238,7 +238,7 @@ CardFrame {
 	SceneElement {
 		id: rainChance
 
-		box: layer.detailsBoxes.rainChance
+		box: layer.compactBoxes.rainChance
 
 		RainChanceCard { anchors.fill: parent }
 
@@ -247,8 +247,8 @@ CardFrame {
 				name: "cameras"
 				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
 			},
-			State { name: "details-24h" },
-			State { name: "details-72h" },
+			State { name: "compact-24h" },
+			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
 				PropertyChanges { target: rainChance; box: layer.weatherBoxes.rainChance }
@@ -266,7 +266,7 @@ CardFrame {
 				PropertyChanges {
 					target: rainChance
 					box: Carousel.anchorCard === "weather"
-						? layer.weatherBoxes.rainChance : layer.detailsBoxes.rainChance
+						? layer.weatherBoxes.rainChance : layer.compactBoxes.rainChance
 				}
 			}
 		]

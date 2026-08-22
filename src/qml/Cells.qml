@@ -20,6 +20,14 @@ QtObject {
 	}
 
 	function _band(origin, total, sizes, index, span) {
+		// A NaN box is a panel that is laid out nowhere and drawn nowhere, and Qt says nothing
+		// about it: an index past the end of the grid is otherwise a card that has silently left
+		// the screen. Warn and return the NaN anyway - a clamped box would be a plausible
+		// looking one, which is worse than none.
+		if (index < 0 || index + span > sizes.length)
+			console.warn("[cells] band " + index + "+" + span + " of " + sizes.length
+			             + ": the grid has no such cell, so this box is NaN")
+
 		var fixed = 0
 		var flexible = 0
 		for (var i = 0; i < sizes.length; ++i) {

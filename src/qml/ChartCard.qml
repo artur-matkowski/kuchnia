@@ -4,8 +4,9 @@ import QtHmi
 
 // A card holding one forecast chart, drawn through the shared window in ForecastSpan.
 //
-// Five of the six cards on the weather screen are this file. What differs between them is a
-// series, a colour and a range, and none of that is worth a file each.
+// Four of the weather screen's seven cards are this file, two of them arriving from the
+// compact screen as ForecastCard and RainChanceCard. What differs between them is a series, a
+// colour and a range, and none of that is worth a file each.
 Card {
 	id: root
 
@@ -22,8 +23,8 @@ Card {
 	// there is no fallback reading here and there must not be one.
 	property string reading: ""
 
-	// Without the detail: the badge elides against whatever the title leaves, and five cards
-	// each printing the same connection error is five illegible lines. The temperature card
+	// Without the detail: the badge elides against whatever the title leaves, and every chart
+	// printing the same connection error is a screen of illegible lines. The temperature card
 	// carries the detail for all of them.
 	status: Weather.status
 

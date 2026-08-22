@@ -49,8 +49,8 @@ Item {
 	// of arriving in it.
 	states: [
 		State { name: "cameras" },
-		State { name: "details-24h" },
-		State { name: "details-72h" },
+		State { name: "compact-24h" },
+		State { name: "compact-72h" },
 		State { name: "weather-72h" },
 		State { name: "weather-7d" },
 		State { name: "settings" },

@@ -55,7 +55,7 @@ Window {
 		// elements of both screens at the same time, so both have to exist at the same time -
 		// and in the carousel all four are on screen at once as miniatures.
 		CamerasScreen {}
-		DetailsScreen { id: details }
+		CompactScreen { id: compact }
 		WeatherScreen { id: weather }
 		SettingsScreen {}
 
@@ -64,7 +64,7 @@ Window {
 		// sets of slots is the one piece of wiring this file does - a card cannot ask a screen
 		// it is not inside where its box is.
 		WeatherLayer {
-			detailsBoxes: details.weatherBoxes
+			compactBoxes: compact.weatherBoxes
 			weatherBoxes: weather.weatherBoxes
 		}
 
@@ -72,7 +72,7 @@ Window {
 		// at once - the carousel, where the layer above stands in the compact miniature and
 		// these stand in the weather one.
 		CarouselWeather {
-			detailsBoxes: details.weatherBoxes
+			compactBoxes: compact.weatherBoxes
 			weatherBoxes: weather.weatherBoxes
 		}
 	}

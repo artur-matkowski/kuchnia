@@ -19,9 +19,9 @@ import QtQuick
 QtObject {
 	id: carousel
 
-	// The strip, in order, looped. These are card names and not context ids: the details and
-	// weather screens are three contexts each and one card each.
-	readonly property var cards: ["cameras", "details", "weather", "settings"]
+	// The strip, in order, looped. These are card names and not context ids: the compact and
+	// weather screens are two contexts each and one card each.
+	readonly property var cards: ["cameras", "compact", "weather", "settings"]
 
 	// The scene's size, bound by Main.qml. Under eglfs the window takes the whole connector, so
 	// this cannot be the 1366x768 the desktop window is pinned to.
@@ -97,8 +97,8 @@ QtObject {
 	}
 
 	function cardOf(contextId) {
-		if (contextId.indexOf("details") === 0)
-			return "details"
+		if (contextId.indexOf("compact") === 0)
+			return "compact"
 		if (contextId.indexOf("weather") === 0)
 			return "weather"
 		if (contextId === "settings")
@@ -118,13 +118,13 @@ QtObject {
 	// What it buys: arriving from the weather screen the originals simply stay where they are
 	// and that screen zooms out around them, instead of flying across the scene into the
 	// compact card while their copies stand in the column they left.
-	property string anchorCard: "details"
+	property string anchorCard: "compact"
 
 	// Opening centres the card you were already on, and does it without animating: the strip
 	// has to be standing where the scene is arriving from, or every miniature slides sideways
 	// during the zoom out.
 	function open(fromContextId) {
-		carousel.anchorCard = carousel.cardOf(fromContextId) === "weather" ? "weather" : "details"
+		carousel.anchorCard = carousel.cardOf(fromContextId) === "weather" ? "weather" : "compact"
 		slide.enabled = false
 		carousel.position = carousel.cards.indexOf(carousel.cardOf(fromContextId))
 		slide.enabled = true
@@ -134,8 +134,9 @@ QtObject {
 		carousel.position += delta
 	}
 
-	// Down. The two screens that carry a forecast open on the span last asked for, so the
-	// screen that opens is the miniature that was being looked at.
+	// Down. The two screens that carry a forecast open on the span last asked for - through
+	// Nav.spanId, because the two do not carry the same spans and the span last asked for is
+	// regularly not one the card being opened has.
 	//
 	// The hand-over is the first line of it. Picking one of the two weather-bearing screens
 	// while the originals are standing in the other one moves them across first: `anchorCard`
@@ -146,13 +147,8 @@ QtObject {
 	// arriving from the miniature next to it.
 	function confirm() {
 		var card = carousel.cards[carousel.selected]
-		if (card === "details" || card === "weather")
+		if (card === "compact" || card === "weather")
 			carousel.anchorCard = card
-		if (card === "details")
-			Nav.goTo("details-" + Nav.lastSpan)
-		else if (card === "weather")
-			Nav.goTo("weather-" + Nav.lastSpan)
-		else
-			Nav.goTo(card)
+		Nav.goTo(Nav.spanId(card))
 	}
 }
