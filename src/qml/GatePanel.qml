@@ -34,12 +34,17 @@ Card {
 			font.pixelSize: Theme.fontLabel
 		}
 
-		// The three commands as one bar, filling what is left of the card. Which sections are
-		// available comes from Gate and not from the state name spelled again here - see
-		// docs/state.md.
+		// What is left of the card, so the bar sits along its lower edge with the state above.
+		// Explicit on a plain Item, where it defaults to false rather than to true.
+		Item { Layout.fillHeight: true }
+
+		// The three commands as one bar, as tall as the radio's transport buttons and no taller.
+		// Layout.fillHeight here instead would hand it every pixel the state text leaves, which
+		// is most of the card. Which sections are available comes from Gate and not from the
+		// state name spelled again here - see docs/state.md.
 		SegmentedBar {
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			Layout.preferredHeight: Theme.fontBody * 2
 
 			model: [
 				{ text: "Open",  enabled: Gate.canOpen },

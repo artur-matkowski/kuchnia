@@ -65,6 +65,10 @@ fills the box it was given. `SegmentedBar` is the same control for a set of comm
 belong together - the gate's Open/Stop/Close - drawn as one bar, with only the two outer
 corners rounded and each section squared off against its neighbour.
 
+Both take their **height** from the type scale and not from what the card has left over. A
+`Layout.fillHeight` on either hands it every pixel the readings above it did not use, which
+is most of the panel and reads as a control built for a different screen.
+
 ## Card has no default property
 
 A `default property alias content: body.data` is the obvious way to write a frame, and it is
@@ -85,6 +89,11 @@ version of that function that took the size as arguments would draw once and nev
 
 `Shape` renders through the scene graph. `Canvas` would not: it rasterises on the CPU, which
 is the wrong thing to reach for on an image with no software fallback at all.
+
+The grid is gated on `hasVisible` for the same reason the axes are: a full grid with no line
+in it is the "empty frame" that `no data` exists to prevent. Its horizontals land on round
+values, so the step is taken from a range that moves while a span animates - a line arriving
+or leaving at an edge mid-transition is that, and not a fault.
 
 `minimumSpan` forces the vertical range open when the data is nearly flat, so a tank holding
 steady renders as a steady line rather than as sensor noise magnified across the whole

@@ -14,6 +14,16 @@ QtObject {
 	readonly property color hot:        "#ff7a45"
 	readonly property color cool:       "#4ad0ff"
 
+	// The selected row of a list, and not the pressed state of a button. Accent at full
+	// strength behind a whole row is a slab from three metres away; this is the same colour at
+	// a fifth of it, so the row is marked rather than inverted.
+	readonly property color highlight:  "#334aa3ff"
+
+	// The rules inside a chart. Lighter than `border`, which is an edge drawn against the
+	// background and is nearly invisible against `surface` - a grid that cannot be seen from
+	// the sofa is a grid that was not drawn. Still far under the line it sits behind.
+	readonly property color grid:       "#33333f"
+
 	// The daylight wash behind a forecast chart. Low alpha on purpose: night is the bare
 	// surface and day is lit, so the bands never compete with the line drawn over them.
 	readonly property color daylight:   "#16ffc76b"
