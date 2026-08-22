@@ -201,6 +201,16 @@ void KeyBindings::apply(int key)
 		return;
 	}
 
+	// A key the platform has no name for arrives as this one value whatever button produced it,
+	// so binding it would bind every unnamed button on the device at once - and it has no text
+	// to write to the file either, which reads back as unbound on the next start. Remotes reach
+	// this constantly: a consumer-control node emits far more usages than a keymap names.
+	if (key == Qt::Key_unknown) {
+		LOG_WARN(applog::App) << "a key with no name on this system cannot be bound";
+		setRefused(QStringLiteral("no name for that key"));
+		return;
+	}
+
 	// The key that arms a row is the key that abandons it, which is why binding an action to
 	// whatever `confirm` holds cannot be done from here - the conflict below would refuse it
 	// anyway.
@@ -212,7 +222,7 @@ void KeyBindings::apply(int key)
 
 	if (!holder.isEmpty() && holder != m_capturing) {
 		// Still armed: the next key can simply be tried without arming the row again.
-		setRefused(labels().value(holder).toString());
+		setRefused(QStringLiteral("held by ") + labels().value(holder).toString());
 		return;
 	}
 
@@ -222,10 +232,10 @@ void KeyBindings::apply(int key)
 	cancel();
 }
 
-void KeyBindings::setRefused(const QString& label)
+void KeyBindings::setRefused(const QString& message)
 {
-	if (label == m_refused)
+	if (message == m_refused)
 		return;
-	m_refused = label;
+	m_refused = message;
 	emit refusedChanged();
 }

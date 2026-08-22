@@ -34,8 +34,8 @@ class KeyBindings : public QObject {
 	// belongs to it - Main.qml routes nothing else anywhere.
 	Q_PROPERTY(QString capturing READ capturing NOTIFY capturingChanged)
 
-	// The label of the action already holding the key that was just refused, for the armed
-	// row to show. Cleared by the next capture, bind or cancel.
+	// Why the armed row would not take the key it was just given, ready to draw. Empty while
+	// nothing has been refused; cleared by the next capture, bind or cancel.
 	Q_PROPERTY(QString refused READ refused NOTIFY refusedChanged)
 
 public:
@@ -57,8 +57,8 @@ public:
 	Q_INVOKABLE void cancel();
 
 	// The armed row's answer to a key press: Escape unbinds it, the key bound to `confirm`
-	// cancels, a key another action holds is refused and the row stays armed, and anything
-	// else binds and saves.
+	// cancels, a key another action holds and a key the platform cannot name are both refused
+	// with the row left armed, and anything else binds and saves.
 	Q_INVOKABLE void apply(int key);
 
 signals:
@@ -70,7 +70,7 @@ private:
 	std::unique_ptr<QSettings> open() const;
 	void                       load();
 	void                       save();
-	void                       setRefused(const QString& label);
+	void                       setRefused(const QString& message);
 
 	QString     m_path;
 	QStringList m_ids;

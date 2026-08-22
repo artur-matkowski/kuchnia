@@ -88,7 +88,7 @@ Context {
 				horizontalAlignment: Text.AlignHCenter
 				verticalAlignment: Text.AlignVCenter
 				text: !row.capturing ? (row.key.length > 0 ? row.key : "unbound")
-				    : KeyBindings.refused.length > 0 ? "held by " + KeyBindings.refused
+				    : KeyBindings.refused.length > 0 ? KeyBindings.refused
 				    : "press a key"
 				color: !row.capturing ? (row.key.length > 0 ? Theme.text : Theme.textDim)
 				     : KeyBindings.refused.length > 0 ? Theme.failed : Theme.accent

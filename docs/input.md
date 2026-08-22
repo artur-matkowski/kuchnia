@@ -68,8 +68,25 @@ of a key that did something on the way in. Three things end it:
 * **Escape** unbinds the row and saves it that way. It is therefore the one key no action can
   hold.
 * **Whatever `confirm` holds** cancels, leaving the row as it was.
-* **Anything else** binds - unless another action holds that key already, and then the row
-  says which one and stays armed, so the next key can simply be tried.
+* **Anything else** binds - unless the key is refused, and then the row says why and stays
+  armed, so the next key can simply be tried. Two things are refused: a key another action
+  already holds, and a key the platform has no name for.
 
 Every other action stays live on this screen: a key bound to the gate opens the gate from
 here too. Only an armed row swallows it.
+
+## Keys that cannot be bound, and keys that never arrive
+
+A key with no entry in the active keymap arrives as `Qt::Key_unknown` - **the same value for
+every such key**, and one with no text to write to the file. Bound, it would answer to every
+unnamed button at once and read back as unbound on the next start. Remotes reach this easily:
+a HID consumer-control node emits far more usages than any keymap names.
+
+A media remote is also the case where a key that *is* named still never arrives. On a desktop
+host the session grabs the transport keys for itself - KDE's `[mediacontrol]` block in
+`kglobalshortcutsrc` takes Play, Pause, Stop, Next and Previous by default, GNOME the same set
+- and a grabbed key goes to the grabber, never to the focused window. The screen simply waits,
+which reads exactly like a binding that will not take. Nothing in the application can change
+that; the grab is the session's. It is a host-only fault, because the board runs no session at
+all. Confirm it before suspecting the code: if the key reaches the kernel but not the window,
+it was grabbed.
