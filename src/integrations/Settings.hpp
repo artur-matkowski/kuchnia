@@ -42,6 +42,11 @@ struct Settings {
 	// The playlist the stations are read from. Nothing here parses it - see src/app/Radio.cpp.
 	std::string radioM3u;
 
+	// The key binding file, and whether to throw it away on this start. Empty means the
+	// standard per-user config location; nothing here reads either - see src/app/KeyBindings.cpp.
+	std::string keyBindings;
+	bool        keyReset = false;
+
 	int retryMinMs = 0;
 	int retryMaxMs = 0;
 };

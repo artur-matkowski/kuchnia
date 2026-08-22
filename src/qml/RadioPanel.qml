@@ -41,6 +41,33 @@ Card {
 	property bool _wanted: false
 	property string _detail: ""
 
+	// The transport, from the button below and from a bound key alike. It is here and not in
+	// Actions.qml because what is playing is this MediaPlayer's business and not a singleton's;
+	// this panel is instantiated at startup and never destroyed, so a key pressed on the camera
+	// screen reaches it. See docs/input.md.
+	function _toggle() {
+		if (Radio.count === 0)
+			return
+		root._wanted = !root._wanted
+		root._detail = ""
+		if (root._wanted)
+			player.play()
+		else
+			player.stop()
+	}
+
+	Connections {
+		target: Actions
+		function onInvoked(id) {
+			if (id === "radio-play-stop")
+				root._toggle()
+			else if (id === "radio-next")
+				Radio.next()
+			else if (id === "radio-previous")
+				Radio.previous()
+		}
+	}
+
 	// What the station says it is playing. The stations do send it - ICY StreamTitle is in the
 	// stream and ffprobe reads it - but Qt's ffmpeg backend maps it onto no metadata key this
 	// can read: a playing MP3 station offers Duration, FileFormat, AudioCodec and AudioBitRate
@@ -143,14 +170,7 @@ Card {
 				Layout.preferredHeight: Theme.fontBody * 2
 				text: root._wanted ? "Stop" : "Play"
 				enabled: Radio.count > 0
-				onClicked: {
-					root._wanted = !root._wanted
-					root._detail = ""
-					if (root._wanted)
-						player.play()
-					else
-						player.stop()
-				}
+				onClicked: root._toggle()
 			}
 			Button {
 				Layout.fillWidth: true

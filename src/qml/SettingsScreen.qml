@@ -1,17 +1,21 @@
 import QtQuick
+import QtHmi
 
-// The settings screen, and it is a mockup: every row below is drawn and none of them do
-// anything. What it is a mockup OF is the shape the real screen will have - an alternative key
-// binding for each thing the panel can be told to do, blank until one is chosen, with the
-// arrows working alongside whatever is bound here rather than being replaced by it.
+// The key bindings, one row per action. The rows are drawn in the order KeyBindings lists its
+// actions and nothing checks that they agree: drawn in another order, the selection appears to
+// jump about the screen.
 //
 // It is off the left/right ring on purpose - `settings` is not in Nav.cycle - so the carousel
-// is the only way in and up is the only way out.
+// is the only way in and the menu key is the only way out.
 Context {
 	id: screen
 
 	contextIds: ["settings", "carousel"]
 	card: "settings"
+
+	// The row the up and down keys are standing on. Main.qml drives both, because it owns the
+	// keys and this screen never takes focus.
+	property string selection: KeyBindings.actions[0]
 
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
 	                                        width - Theme.gap * 2, height - Theme.gap * 2)
@@ -20,35 +24,76 @@ Context {
 		return Cells.box(screen.content, [-1], [-1, -1, -1], 0, row)
 	}
 
-	// One row of the mockup: what can be bound, and what it is bound to. Nothing is, so every
-	// slot reads as unset, which is what the real screen will show until somebody binds one.
-	component BindingRow: Row {
+	function moveSelection(delta) {
+		const rows = KeyBindings.actions
+		const at = rows.indexOf(screen.selection)
+		screen.selection = rows[(at + delta + rows.length) % rows.length]
+	}
+
+	function arm() {
+		KeyBindings.capture(screen.selection)
+	}
+
+	// One action: what it is, and the key that runs it. An armed row shows what it is waiting
+	// for, and says so rather than merely looking different - the panel is read from across a
+	// room.
+	component BindingRow: Rectangle {
+		id: row
+
 		property string action: ""
 
+		readonly property bool selected:  screen.selection === row.action
+		readonly property bool capturing: KeyBindings.capturing === row.action
+		readonly property string key:     KeyBindings.keys[row.action]
+
 		width: parent.width
-		spacing: Theme.gap
+		height: Theme.fontBody * 1.8
+		radius: 4
+		color: row.selected ? Theme.highlight : "transparent"
+
+		// The id is written here and in KeyBindings' own table. Misspelt, it is a row with no
+		// label that answers to nothing, which looks like a binding that will not take.
+		Component.onCompleted:
+			if (KeyBindings.actions.indexOf(row.action) < 0)
+				console.warn("[settings] no such action: " + row.action)
 
 		Text {
-			width: parent.width * 0.6
-			text: action
-			color: Theme.text
+			anchors {
+				left: parent.left
+				leftMargin: Theme.gap
+				verticalCenter: parent.verticalCenter
+			}
+			width: parent.width * 0.5
+			text: KeyBindings.labels[row.action]
+			color: row.selected ? Theme.text : Theme.textDim
 			font.pixelSize: Theme.fontBody
 			elide: Text.ElideRight
 		}
 
 		Rectangle {
-			width: Theme.fontBody * 6
-			height: Theme.fontBody * 1.6
+			anchors {
+				right: parent.right
+				rightMargin: Theme.gap
+				verticalCenter: parent.verticalCenter
+			}
+			width: Theme.fontBody * 11
+			height: Theme.fontBody * 1.4
 			radius: 4
 			color: "transparent"
-			border.color: Theme.border
+			border.color: row.capturing ? Theme.accent : Theme.border
 			border.width: 1
 
 			Text {
-				anchors.centerIn: parent
-				text: "unbound"
-				color: Theme.textDim
+				anchors { fill: parent; margins: Theme.gap / 2 }
+				horizontalAlignment: Text.AlignHCenter
+				verticalAlignment: Text.AlignVCenter
+				text: !row.capturing ? (row.key.length > 0 ? row.key : "unbound")
+				    : KeyBindings.refused.length > 0 ? "held by " + KeyBindings.refused
+				    : "press a key"
+				color: !row.capturing ? (row.key.length > 0 ? Theme.text : Theme.textDim)
+				     : KeyBindings.refused.length > 0 ? Theme.failed : Theme.accent
 				font.pixelSize: Theme.fontLabel
+				elide: Text.ElideRight
 			}
 		}
 	}
@@ -66,9 +111,9 @@ Context {
 				anchors { fill: parent; margins: Theme.gap; topMargin: radioKeysCard.contentTop }
 				spacing: Theme.gap
 
-				BindingRow { action: "play / pause" }
-				BindingRow { action: "next station" }
-				BindingRow { action: "previous station" }
+				BindingRow { action: "radio-play-stop" }
+				BindingRow { action: "radio-next" }
+				BindingRow { action: "radio-previous" }
 			}
 		}
 
@@ -101,9 +146,9 @@ Context {
 				anchors { fill: parent; margins: Theme.gap; topMargin: gateKeysCard.contentTop }
 				spacing: Theme.gap
 
-				BindingRow { action: "open" }
-				BindingRow { action: "stop" }
-				BindingRow { action: "close" }
+				BindingRow { action: "gate-open" }
+				BindingRow { action: "gate-stop" }
+				BindingRow { action: "gate-close" }
 			}
 		}
 
@@ -136,9 +181,10 @@ Context {
 				anchors { fill: parent; margins: Theme.gap; topMargin: navKeysCard.contentTop }
 				spacing: Theme.gap
 
-				BindingRow { action: "previous context" }
-				BindingRow { action: "next context" }
-				BindingRow { action: "open the chooser" }
+				BindingRow { action: "context-previous" }
+				BindingRow { action: "context-next" }
+				BindingRow { action: "menu" }
+				BindingRow { action: "confirm" }
 			}
 		}
 

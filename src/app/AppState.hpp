@@ -11,6 +11,7 @@
 class Cameras;
 class Gate;
 class HotWater;
+class KeyBindings;
 class Radio;
 class Weather;
 
@@ -43,9 +44,10 @@ public:
 	void setGateCommandSink(std::function<void(const std::string&)> sink);
 
 private:
-	Cameras*  m_cameras;
-	Gate*     m_gate;
-	HotWater* m_hotWater;
-	Radio*    m_radio;
-	Weather*  m_weather;
+	Cameras*     m_cameras;
+	Gate*        m_gate;
+	HotWater*    m_hotWater;
+	KeyBindings* m_keys;
+	Radio*       m_radio;
+	Weather*     m_weather;
 };

@@ -81,6 +81,12 @@ std::vector<ParamInitializer> specs()
 		ParamInitializer(STRING, "radio-m3u", "/etc/radio.m3u",
 			"Extended M3U playlist the radio stations are read from"),
 
+		ParamInitializer(STRING, "key-bindings", "",
+			"INI file the key bindings are read from and written to; "
+			"empty is the standard per-user config location"),
+		ParamInitializer(FLAG,   "key-reset",
+			"Erase the key bindings on this start and write the defaults back"),
+
 		ParamInitializer(INT, "retry-min-ms", 1000,  "First delay after a failed attempt"),
 		ParamInitializer(INT, "retry-max-ms", 30000, "Ceiling the backoff doubles up to"),
 	};
@@ -155,6 +161,8 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 	get("camera-url", &out->cameraUrls);
 	get("camera-hold-ms", &out->cameraHoldMs);
 	get("radio-m3u", &out->radioM3u);
+	get("key-bindings", &out->keyBindings);
+	get("key-reset", &out->keyReset);
 
 	get("retry-min-ms", &out->retryMinMs);
 	get("retry-max-ms", &out->retryMaxMs);

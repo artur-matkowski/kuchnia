@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Window
+import QtHmi
 
 // The shell. It owns the geometry and the keys, and nothing else: what is on the screen is
 // decided by the contexts below it and by Nav.
@@ -28,23 +29,54 @@ Window {
 		anchors.fill: parent
 
 		// The only focused item in the application. Nothing else takes focus - there is no
-		// text input anywhere - so the arrow keys are never swallowed on the way here.
+		// text input anywhere - so a key press is never swallowed on the way here.
 		focus: true
 
-		// Left and right walk the ring; up and down are the chooser. In the carousel the two
-		// horizontal keys slide the strip instead of walking the ring, and down is what picks
-		// the centred card. There is no cancel: up in the carousel does nothing.
-		Keys.onLeftPressed: Nav.current === "carousel" ? Carousel.step(-1) : Nav.previous()
-		Keys.onRightPressed: Nav.current === "carousel" ? Carousel.step(1) : Nav.next()
-		Keys.onUpPressed: {
-			if (Nav.current === "carousel")
+		// Every key press in the application arrives here and leaves as an action. What each
+		// action does is Actions.qml's; which key runs it is KeyBindings'. See docs/input.md.
+		Keys.onPressed: function(event) {
+			// A held key is one press. Auto-repeat on a gate command is a publish per repeat.
+			if (event.isAutoRepeat)
 				return
-			// The strip has to be standing on the card the scene is arriving from before the
-			// context changes, or every miniature slides sideways during the zoom out.
-			Carousel.open(Nav.current)
-			Nav.goTo("carousel")
+
+			event.accepted = true
+
+			// An armed row takes every key there is, or a binding could only ever be made out
+			// of keys that already do nothing.
+			if (KeyBindings.capturing.length > 0) {
+				KeyBindings.apply(event.key)
+				return
+			}
+
+			// The settings screen's own two keys, and the only hardwired ones left. They are
+			// not actions and cannot be bound: a vertical list wants vertical keys, and a
+			// screen whose rows cannot be reached is a screen that cannot be repaired.
+			if (Nav.current === "settings") {
+				if (event.key === Qt.Key_Up) {
+					settings.moveSelection(-1)
+					return
+				}
+				if (event.key === Qt.Key_Down) {
+					settings.moveSelection(1)
+					return
+				}
+			}
+
+			const action = KeyBindings.actionFor(event.key)
+
+			// Confirm is what arms a row, so on that screen it never reaches the carousel.
+			if (action === "confirm" && Nav.current === "settings") {
+				settings.arm()
+				return
+			}
+
+			if (action.length > 0) {
+				Actions.run(action)
+				return
+			}
+
+			event.accepted = false
 		}
-		Keys.onDownPressed: if (Nav.current === "carousel") Carousel.confirm()
 
 		// The scene's real size, which under eglfs is the connector's and not the 1366x768 the
 		// desktop window is pinned to. Every miniature's geometry is cut out of it.
@@ -57,7 +89,7 @@ Window {
 		CamerasScreen {}
 		CompactScreen { id: compact }
 		WeatherScreen { id: weather }
-		SettingsScreen {}
+		SettingsScreen { id: settings }
 
 		// The three weather cards, which belong to both of the screens above and therefore to
 		// neither: they migrate between them rather than being drawn twice. Handing them both

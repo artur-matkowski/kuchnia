@@ -3,7 +3,7 @@
 A Qt Quick application that draws straight onto a display through `eglfs` on KMS, with no
 X11, no Wayland, no compositor and no software rasteriser behind it.
 
-It shows a house across two screens the arrow keys cycle between: five RTSP cameras beside a
+It shows a house across screens two keys cycle between: five RTSP cameras beside a
 clock and the hot water tank on one, and the gate's state and its controls, the tank over the
 last day, the weather forecast and an internet radio on the other. Behind it
 are three clients of the <REDACTED> — PostgreSQL, HTTP and MQTT — each on its own thread. This

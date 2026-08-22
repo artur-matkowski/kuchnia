@@ -5,13 +5,12 @@
 > Owns: src/qml/CarouselWeather.qml
 > Owns: src/qml/CarouselIn.qml
 > Owns: src/qml/CarouselOut.qml
-> Owns: src/qml/SettingsScreen.qml
-> See:  docs/contexts.md docs/scene.md
+> See:  docs/contexts.md docs/scene.md docs/input.md
 
-The chooser on the up key. All four screens are on at once, laid out at full size and put
-through one Scale each into a strip of miniatures; left and right slide the strip, always
-looping, with the selected card centred; down opens the centred one. There is no cancel - up
-inside the carousel does nothing.
+The chooser on the menu key. All four screens are on at once, laid out at full size and put
+through one Scale each into a strip of miniatures; the two context keys slide the strip, always
+looping, with the selected card centred; confirm opens the centred one. There is no cancel -
+the menu key inside the carousel does nothing.
 
 ## Frames move, elements do not
 
@@ -65,10 +64,9 @@ flight whenever *either* of them is being opened or left, whichever card it is s
 
 ## Settings
 
-A mockup, and off the ring - `settings` is in `Nav.contexts` and not in `Nav.cycle`, so the
-arrows do nothing there and the carousel is the only way in and out. What it mocks up is a key
-binding per thing the panel can be told to do, blank until something is bound, with the arrows
-working alongside whatever is bound rather than being replaced by it.
+Off the ring - `settings` is in `Nav.contexts` and not in `Nav.cycle`, so the context keys do
+nothing there and the carousel is the only way in and out. What the screen itself does is
+[input](docs/input.md).
 
 ## What is silent here
 

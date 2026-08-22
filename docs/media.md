@@ -6,7 +6,7 @@
 > Owns: src/app/Cameras.cpp
 > Owns: src/app/Radio.hpp
 > Owns: src/app/Radio.cpp
-> See:  docs/scene.md docs/state.md docs/contexts.md qt-hmi-buildroot/docs/build-pipeline.md
+> See:  docs/scene.md docs/state.md docs/contexts.md qt-hmi-buildroot/docs/build-pipeline.md docs/input.md
 
 Five RTSP tiles from `camera-url` and one internet radio from `radio-m3u`, all through
 QtMultimedia. The tiles reach the cameras directly; nothing sits in between.

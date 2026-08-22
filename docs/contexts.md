@@ -9,16 +9,16 @@
 > Owns: src/qml/WeatherLayer.qml
 > Owns: src/qml/ForecastSpan.qml
 > Owns: src/qml/Cells.qml
-> See:  docs/scene.md docs/media.md docs/carousel.md
+> See:  docs/scene.md docs/media.md docs/carousel.md docs/input.md
 
-Exactly one context is ON; the left and right arrows cycle. Nothing draws a tab bar and
+Exactly one context is ON; the two context keys cycle. Nothing draws a tab bar and
 nothing is meant to: the only evidence a context exists is what it puts on the screen. The one
 context where that is not true is [the carousel](docs/carousel.md), where all four screens are
 on at once as miniatures and every screen therefore names `carousel` among its `contextIds`.
 
-`Nav.cycle` is the ring the arrow keys walk and `Nav.contexts` is everything `goTo` accepts.
+`Nav.cycle` is the ring those two keys walk and `Nav.contexts` is everything `goTo` accepts.
 The two differ by `settings` and `carousel`, which are off the ring: `next()`/`previous()`
-answer -1 for a context that is not on it and do nothing, which is what makes the arrows inert
+answer -1 for a context that is not on it and do nothing, which is what makes them inert
 in settings rather than jumping somewhere arbitrary.
 
 Seven ids and four screens, five of the ids on the ring. Two of the screens are two ids each -

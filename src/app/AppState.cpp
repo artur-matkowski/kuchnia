@@ -9,6 +9,7 @@
 #include "Cameras.hpp"
 #include "Gate.hpp"
 #include "HotWater.hpp"
+#include "KeyBindings.hpp"
 #include "Radio.hpp"
 #include "Weather.hpp"
 #include "integrations/Log.hpp"
@@ -31,6 +32,8 @@ AppState::AppState(const Settings& settings, QObject* parent)
 	, m_cameras(new Cameras(toStringList(settings.cameraUrls), settings.cameraHoldMs, this))
 	, m_gate(new Gate(this))
 	, m_hotWater(new HotWater(this))
+	, m_keys(new KeyBindings(QString::fromStdString(settings.keyBindings),
+	                         settings.keyReset, this))
 	, m_radio(new Radio(QString::fromStdString(settings.radioM3u), this))
 	, m_weather(new Weather(this))
 {
@@ -49,6 +52,7 @@ void AppState::registerSingletons()
 	qmlRegisterSingletonInstance("QtHmi", 1, 0, "Cameras", m_cameras);
 	qmlRegisterSingletonInstance("QtHmi", 1, 0, "Gate", m_gate);
 	qmlRegisterSingletonInstance("QtHmi", 1, 0, "HotWater", m_hotWater);
+	qmlRegisterSingletonInstance("QtHmi", 1, 0, "KeyBindings", m_keys);
 	qmlRegisterSingletonInstance("QtHmi", 1, 0, "Radio", m_radio);
 	qmlRegisterSingletonInstance("QtHmi", 1, 0, "Weather", m_weather);
 }

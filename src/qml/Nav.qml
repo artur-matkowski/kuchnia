@@ -10,7 +10,7 @@ import QtQuick
 QtObject {
 	id: nav
 
-	// The ids the arrow keys walk, in the order they walk them. Each one is written in three
+	// The ids the two context keys walk, in the order they walk them. Each one is written in three
 	// places - here, as one of a Context's `contextIds`, and as a State name on every element
 	// that animates - and nothing checks that they agree. An id that is misspelled in the
 	// third place is not an error: the element simply keeps its base pose and is never
@@ -29,7 +29,7 @@ QtObject {
 
 	// Every id `goTo` accepts. `settings` and `carousel` are off the ring on purpose: the
 	// carousel is the only way into settings and the only way out of it, and the carousel
-	// itself is reached with up.
+	// itself is reached with the menu action.
 	readonly property var contexts: nav.cycle.concat(["carousel", "settings"])
 
 	// Every id that is not the carousel, as one Transition side. Every element in the scene
@@ -67,7 +67,7 @@ QtObject {
 	// two forecast screens do not carry the same spans - the compact screen has no week and
 	// the weather screen has no day - so `lastSpan` is regularly a span the card being opened
 	// does not have. `goTo` returns on an id that is not in `contexts`, and the visible result
-	// is a `down` key that does nothing and a chooser that will not close, with one line in
+	// is a confirm key that does nothing and a chooser that will not close, with one line in
 	// the log to say why. Falling back to the card's first span is what keeps it working.
 	function spanId(card) {
 		var wanted = card + "-" + nav.lastSpan
@@ -79,8 +79,8 @@ QtObject {
 		return card
 	}
 
-	// The any-to-any entry point. next()/previous() are the arrow keys; the carousel and every
-	// direct jump use this.
+	// The any-to-any entry point. next()/previous() are the two context keys; the carousel and
+	// every direct jump use this.
 	function goTo(id) {
 		if (nav.contexts.indexOf(id) < 0) {
 			console.warn("[nav] no such context: " + id)
@@ -103,9 +103,9 @@ QtObject {
 		nav.current = id
 	}
 
-	// The two arrow keys. A context off the ring - settings, and the carousel itself - is not
-	// in `cycle`, so indexOf answers -1 and the key does nothing rather than jumping somewhere
-	// arbitrary.
+	// The two context keys. A context off the ring - settings, and the carousel itself - is
+	// not in `cycle`, so indexOf answers -1 and the key does nothing rather than jumping
+	// somewhere arbitrary.
 	function next() {
 		var i = nav.cycle.indexOf(nav.current)
 		if (i >= 0)

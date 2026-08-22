@@ -17,13 +17,13 @@
 > Owns: src/qml/ConditionsCard.qml
 > Owns: src/qml/ForecastCard.qml
 > Owns: src/qml/RainChanceCard.qml
-> See:  docs/state.md docs/media.md docs/app.md docs/contexts.md docs/carousel.md
+> See:  docs/state.md docs/media.md docs/app.md docs/contexts.md docs/carousel.md docs/input.md
 
 The panels the screens are assembled from - the clock, the gauge, the charts, the gate and
 the radio - and the frame they all sit in. Which panel is on which screen, and how it gets
 there, is [contexts](docs/contexts.md).
 
-`Main.qml` is only the shell: the geometry, the focus and the arrow keys. It owns no layout.
+`Main.qml` is only the shell: the geometry, the focus and the keyboard. It owns no layout.
 
 `Window` is pinned to 1366x768, the panel the scene is composed against 1:1, so a desktop
 window shows what the board will show rather than an approximation of it. Under `eglfs` the
