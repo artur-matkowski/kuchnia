@@ -65,6 +65,10 @@ fills the box it was given. `SegmentedBar` is the same control for a set of comm
 belong together - the gate's Open/Stop/Close - drawn as one bar, with only the two outer
 corners rounded and each section squared off against its neighbour.
 
+Both take their **height** from the type scale and not from what the card has left over. A
+`Layout.fillHeight` on either hands it every pixel the readings above it did not use, which
+is most of the panel and reads as a control built for a different screen.
+
 ## Card has no default property
 
 A `default property alias content: body.data` is the obvious way to write a frame, and it is

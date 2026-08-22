@@ -76,36 +76,50 @@ Card {
 			elide: Text.ElideRight
 		}
 
-		// The stations, and the only way to reach one that is not the next or the previous.
-		ListView {
-			id: channels
-
+		// The stations, and the only way to reach one that is not the next or the previous. The
+		// frame is its own Rectangle because a ListView is not one: the list needs an edge of its
+		// own to separate a scrolled stop from the card it sits in.
+		Rectangle {
 			Layout.fillWidth: true
+			// Explicit, because it defaults to true for a nested layout and to false for a plain
+			// Item - which this is.
 			Layout.fillHeight: true
-			clip: true
 
-			model: Radio.names
-			currentIndex: Radio.index
+			color: "transparent"
+			border.color: Theme.border
+			border.width: 1
+			radius: 4
 
-			delegate: Rectangle {
-				// The view's width and not parent.width: a delegate's parent is the content item,
-				// which is as wide as the widest delegate rather than as wide as the view.
-				width: channels.width
-				height: Theme.fontBody * 2
-				color: Radio.index === index ? Theme.accent : "transparent"
+			ListView {
+				id: channels
 
-				Text {
-					anchors { fill: parent; leftMargin: Theme.gap; rightMargin: Theme.gap }
-					verticalAlignment: Text.AlignVCenter
-					text: modelData
-					color: Radio.index === index ? Theme.background : Theme.text
-					font.pixelSize: Theme.fontBody
-					elide: Text.ElideRight
-				}
+				anchors.fill: parent
+				anchors.margins: 1
+				clip: true
 
-				MouseArea {
-					anchors.fill: parent
-					onClicked: Radio.index = index
+				model: Radio.names
+				currentIndex: Radio.index
+
+				delegate: Rectangle {
+					// The view's width and not parent.width: a delegate's parent is the content item,
+					// which is as wide as the widest delegate rather than as wide as the view.
+					width: channels.width
+					height: Theme.fontBody * 2
+					color: Radio.index === index ? Theme.highlight : "transparent"
+
+					Text {
+						anchors { fill: parent; leftMargin: Theme.gap; rightMargin: Theme.gap }
+						verticalAlignment: Text.AlignVCenter
+						text: modelData
+						color: Radio.index === index ? Theme.accent : Theme.text
+						font.pixelSize: Theme.fontBody
+						elide: Text.ElideRight
+					}
+
+					MouseArea {
+						anchors.fill: parent
+						onClicked: Radio.index = index
+					}
 				}
 			}
 		}

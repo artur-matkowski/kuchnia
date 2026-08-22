@@ -15,7 +15,9 @@ Item {
 
 	signal activated(int index)
 
-	implicitHeight: Theme.fontBody * 2.4
+	// The same height a Button answers with, so a bar of commands and a row of buttons on
+	// two panels of one screen do not read as two different controls.
+	implicitHeight: Theme.fontBody * 2
 
 	Row {
 		anchors.fill: parent
