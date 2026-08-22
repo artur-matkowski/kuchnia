@@ -34,9 +34,14 @@ const char* const kCurrent =
 // scan every poll and the aggregation has to happen in the server: pulling a day of raw
 // samples across the LAN to average them here would move roughly ten thousand rows to draw
 // a line a few hundred pixels wide.
+//
+// The bucket is sized from the window for the same reason, rather than fixed at a minute:
+// widening db-history-hours coarsens the line instead of growing the query, the transfer and
+// the remap QML does on every poll.
 std::string historyQuery(int hours)
 {
-	return "SELECT extract(epoch FROM date_trunc('minute', timestamp)) AS t,"
+	const std::string bucket = std::to_string(std::max(60, hours * 3600 / 300));
+	return "SELECT floor(extract(epoch FROM timestamp) / " + bucket + ") * " + bucket + " AS t,"
 	       " avg(value) / 100.0 AS v"
 	       " FROM \"CWU_temp\""
 	       " WHERE timestamp > now() - interval '" + std::to_string(hours) + " hours'"

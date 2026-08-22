@@ -21,6 +21,11 @@ is a sequential scan on every poll. That is why it aggregates in the server: pul
 raw samples across the LAN to average them here would move roughly ten thousand rows to draw
 a line a few hundred pixels wide.
 
+The bucket it groups into is **sized from `db-history-hours` rather than fixed**, so widening
+the window coarsens the line instead of growing the result set. A minute bucket over a day is
+1440 rows for a chart that cannot show them, and every one of them is remapped in QML on each
+poll.
+
 An archive that has stopped being written is not an error and libpqxx will not report one.
 An empty `CWU_temp` throws here instead, so the panel says "failed" rather than showing a
 tank at zero degrees.
