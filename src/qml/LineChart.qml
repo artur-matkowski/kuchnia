@@ -122,6 +122,53 @@ Item {
 		return out
 	}
 
+	// The grid step: the smallest of 1, 2 or 5 times a power of ten that leaves about five
+	// divisions across the range, so a line lands on a value that can be named - every ten
+	// degrees across the tank's range, every twenty percent across a cloud cover chart.
+	function _step(span) {
+		const raw = span / 5
+		const magnitude = Math.pow(10, Math.floor(Math.log10(raw)))
+		const steps = [1, 2, 5, 10]
+		for (let i = 0; i < steps.length; ++i)
+			if (raw <= steps[i] * magnitude)
+				return steps[i] * magnitude
+		return 10 * magnitude
+	}
+
+	// Every round value strictly inside the vertical range. The range follows the window and
+	// the window animates, so a line can arrive or leave at an edge part-way through a span
+	// change - which is the price of lines that mean something over lines at fixed fractions.
+	function _levels() {
+		const span = yHigh - yLow
+		if (!hasVisible || span <= 0)
+			return []
+
+		const step = _step(span)
+		const out = []
+		for (let v = Math.ceil(yLow / step) * step; v < yHigh; v += step)
+			if (v > yLow)
+				out.push(v)
+		return out
+	}
+
+	// Local midnight inside the window. Stepped with setDate and never by adding 86400000: the
+	// clock changes twice a year, and a day of fixed milliseconds puts every line after the
+	// change an hour off the midnight it claims to be - which reads as a forecast that is
+	// wrong rather than as a grid that is.
+	function _days() {
+		if (!hasVisible)
+			return []
+
+		const out = []
+		const at = new Date(xLow)
+		at.setHours(24, 0, 0, 0)
+		while (at.getTime() < xHigh) {
+			out.push(at.getTime())
+			at.setDate(at.getDate() + 1)
+		}
+		return out
+	}
+
 	// The format follows the width of the window rather than being fixed: a week labelled
 	// HH:mm at both ends reads as a day, and a week labelled with the weekday alone reads as
 	// the same weekday twice.
@@ -181,6 +228,35 @@ Item {
 				width: (modelData.to - modelData.from) / span * plot.width
 				height: plot.height
 				color: Theme.daylight
+			}
+		}
+
+		// The grid, over the daylight wash and under the line. Both models answer empty while the
+		// chart has nothing to draw, which is what keeps a window past the end of the forecast
+		// reading as "no data" rather than as a frame with nothing happening in it.
+		Repeater {
+			model: root._levels()
+
+			Rectangle {
+				readonly property real span: Math.max(1e-6, root.yHigh - root.yLow)
+
+				y: Math.round(plot.height - (modelData - root.yLow) / span * plot.height)
+				width: plot.width
+				height: 1
+				color: Theme.grid
+			}
+		}
+
+		Repeater {
+			model: root._days()
+
+			Rectangle {
+				readonly property real span: Math.max(1, root.xHigh - root.xLow)
+
+				x: Math.round((modelData - root.xLow) / span * plot.width)
+				width: 1
+				height: plot.height
+				color: Theme.grid
 			}
 		}
 

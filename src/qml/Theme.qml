@@ -14,6 +14,11 @@ QtObject {
 	readonly property color hot:        "#ff7a45"
 	readonly property color cool:       "#4ad0ff"
 
+	// The rules inside a chart. Lighter than `border`, which is an edge drawn against the
+	// background and is nearly invisible against `surface` - a grid that cannot be seen from
+	// the sofa is a grid that was not drawn. Still far under the line it sits behind.
+	readonly property color grid:       "#33333f"
+
 	// The daylight wash behind a forecast chart. Low alpha on purpose: night is the bare
 	// surface and day is lit, so the bands never compete with the line drawn over them.
 	readonly property color daylight:   "#16ffc76b"
