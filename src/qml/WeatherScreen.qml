@@ -16,14 +16,14 @@ Context {
 	readonly property string away: "cameras,details-24h,details-72h,settings"
 	readonly property string spans: "weather-72h,weather-7d"
 
-	// Everything inside the margin: two columns, a row for the readings and two for the charts.
+	// Everything inside the margin: single column for full width panels.
 	// The left column is the same division the details screen makes of its weather quadrant,
 	// which is what lets the three cards grow into it rather than be re-laid-out inside it.
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
 	                                        width - Theme.gap * 2, height - Theme.gap * 2)
 
 	function cell(column, row) {
-		return Cells.box(screen.content, [-1, -1], [Theme.readingRow, -1, -1], column, row)
+		return Cells.box(screen.content, [-1], [120, -1, -1, -1, -1], column, row)
 	}
 
 	// Where WeatherLayer's cards are asked to be while this context is on. The names are the
@@ -37,7 +37,7 @@ Context {
 
 	SceneElement {
 		id: wind
-		box: screen.cell(1, 0)
+		box: screen.cell(0, 0)
 
 		WindCard { anchors.fill: parent }
 
@@ -91,7 +91,7 @@ Context {
 
 	SceneElement {
 		id: cloud
-		box: screen.cell(1, 1)
+		box: screen.cell(0, 3)
 
 		ChartCard {
 			anchors.fill: parent
@@ -155,7 +155,7 @@ Context {
 
 	SceneElement {
 		id: fall
-		box: screen.cell(1, 2)
+		box: screen.cell(0, 4)
 
 		// Millimetres, and the card beside the rain chance is percent. The two are the
 		// weather screen's one real trap: a chart of how much rain falls and a chart of
