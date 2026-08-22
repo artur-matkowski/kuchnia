@@ -69,6 +69,16 @@ unit are what give them somewhere; nothing else in the package refers to that di
 The unit grants `video`, `render` and `input` through `SupplementaryGroups`, so `postinst`
 only has to create the account.
 
+## What the unit sets for the display
+
+`QT_QPA_PLATFORM` and `QT_QPA_EGLFS_ALWAYS_SET_MODE` are the two without which there is no
+picture or a correctly drawn one at the console's resolution. Beside them the unit ranks the
+V4L2 H.264/H.265 decoders to `NONE` through `GST_PLUGIN_FEATURE_RANK`, which pushes the
+camera tiles onto software decode — that setting is empirical, taken from a deployment where
+it was needed, and the failure it avoids is not recorded anywhere. `Conflicts=lightdm.service`
+is there because `eglfs` cannot take a CRTC a display manager already holds; a board with no
+display manager installed is unaffected.
+
 ## The config file
 
 `/etc/qt-hmi.conf` is a dpkg conffile, which is what makes a hand-edited copy survive an
