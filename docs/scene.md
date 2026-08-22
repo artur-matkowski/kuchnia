@@ -87,8 +87,13 @@ binding re-evaluate on a resize — QML records every property read during an ev
 inside called functions included, so the dependency does not have to be named anywhere. A
 version of that function that took the size as arguments would draw once and never again.
 
-`Shape` renders through the scene graph. `Canvas` would not: it rasterises on the CPU, which
-is the wrong thing to reach for on an image with no software fallback at all.
+**`_range()` and `_plot()` run on every frame of a span change, on every visible chart, so
+neither may touch `series.points`.** It is a `QVariantList` of `QPointF` and every element
+read through it materialises a value-type wrapper; `_flat` copies the series into two arrays
+of plain numbers once per change, and the loops read those. **Both also require x to ascend**
+— the archive orders by its bucket and a forecast is zipped against `hourly.time` — because
+they binary-search the window rather than scanning. A series that stopped ascending would be
+drawn truncated at the first step backwards, with nothing anywhere saying so.
 
 The grid is gated on `hasVisible` for the same reason the axes are: a full grid with no line
 in it is the "empty frame" that `no data` exists to prevent. Its horizontals land on round
@@ -101,10 +106,8 @@ height.
 
 `fixedLow`/`fixedHigh` take the vertical range away from the data - the precipitation chart
 is pinned to 0-100% and the tank to its 20-65 degrees, the same bounds its gauge carries. A
-percentage that rescales itself puts 40% at the top of the frame, which reads as a downpour
-from any distance at which the axis label cannot be read. A fixed range does not change what
-`hasVisible` means: the point count is still taken over the window, so an empty window still
-draws `no data` rather than an empty frame with axes.
+fixed range does not change what `hasVisible` means: the point count is still taken over the
+window, so an empty window still draws `no data` rather than an empty frame with axes.
 
 ## The chart's window is what the forecast spans animate
 
@@ -112,12 +115,15 @@ draws `no data` rather than an empty frame with axes.
 history wants. The weather panel drives them instead, and animating `windowEnd` is the whole
 of the compression between the forecast spans - see [contexts](docs/contexts.md).
 
+**A `ChartCard` follows the window only while it can be seen.** An invisible item stops
+rendering but not evaluating, and four of the six charts are off screen at any moment - the
+two on whichever forecast screen is not showing, and the carousel's two copies. `visible` is
+effective visibility, so the `Binding` releases when the card's `SceneElement` fades out and
+is back on the frame opacity first rises, before the card has been drawn.
+
 **The vertical range follows the window, not the series.** A day scaled against a week's
 extremes is a line that barely moves. Because the range is recomputed as the window animates,
 it eases with it rather than stepping when the transition lands.
-
-A window containing fewer than two points draws `no data`, not an empty frame with axes: a
-range past the end of the forecast must not look like a range with nothing happening in it.
 
 The day/night bands come from `Weather.daylight` and are mapped through the same window as
 the line, so the two cannot disagree. A query that did not ask for the daily block yields no

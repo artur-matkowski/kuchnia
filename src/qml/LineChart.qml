@@ -44,11 +44,21 @@ Item {
 	// its own axis.
 	readonly property real _gutter: Theme.fontLabel * 3.2
 
-	readonly property bool hasData: series !== null && series.points !== undefined
-	                                && series.points.length > 1
+	// The series as two flat arrays of plain numbers, refilled only when the series itself
+	// changes. `series.points` is a QVariantList of QPointF, and reading an element through it
+	// materialises a value-type wrapper every time; the window animates, so the loops below run
+	// on every frame of a span change and must not touch it. See docs/scene.md.
+	readonly property var _flat: _flatten()
+
+	readonly property bool hasData: _flat.xs.length > 1
 
 	readonly property real xLow: windowEnd > windowStart ? windowStart : (hasData ? series.xMin : 0)
 	readonly property real xHigh: windowEnd > windowStart ? windowEnd : (hasData ? series.xMax : 0)
+
+	// Where the window falls in the series: `first` is the first point at or after xLow, `last`
+	// the first one past xHigh. Everything below works on that slice and not on the whole
+	// series, which is what keeps a 24 hour window off the other seven days of the forecast.
+	readonly property var _window: _bracket()
 
 	// The vertical range is taken over the points inside the window and not over the whole
 	// series: a day scaled against a week's extremes is a line that barely moves. It also
@@ -60,25 +70,68 @@ Item {
 	readonly property real yLow: range.low
 	readonly property real yHigh: range.high
 
+	function _flatten() {
+		const points = (series !== null && series.points !== undefined) ? series.points : []
+		const xs = new Array(points.length)
+		const ys = new Array(points.length)
+		for (let i = 0; i < points.length; ++i) {
+			xs[i] = points[i].x
+			ys[i] = points[i].y
+		}
+		return { xs: xs, ys: ys }
+	}
+
+	// The first index whose x is at or after `at`. The points must be ascending in x, and both
+	// producers are: the archive orders by its time bucket, and a forecast is zipped against an
+	// ascending hourly.time. A series that stopped being ascending would draw a line truncated
+	// at the first step backwards, with nothing anywhere saying so.
+	function _seek(xs, at) {
+		let lo = 0
+		let hi = xs.length
+		while (lo < hi) {
+			const mid = (lo + hi) >> 1
+			if (xs[mid] < at)
+				lo = mid + 1
+			else
+				hi = mid
+		}
+		return lo
+	}
+
+	function _bracket() {
+		if (!hasData)
+			return { first: 0, last: 0 }
+
+		const xs = _flat.xs
+		const first = _seek(xs, xLow)
+
+		// _seek stops at the first x at or after xHigh, and a point landing exactly on the far
+		// edge is inside the window.
+		let last = _seek(xs, xHigh)
+		while (last < xs.length && xs[last] <= xHigh)
+			++last
+
+		return { first: first, last: last }
+	}
+
 	function _range() {
 		const empty = { count: 0, low: 0, high: 0 }
 		if (!hasData)
 			return empty
 
-		const points = series.points
-		let count = 0
-		let low = Infinity
-		let high = -Infinity
-
-		for (let i = 0; i < points.length; ++i) {
-			if (points[i].x < xLow || points[i].x > xHigh)
-				continue
-			++count
-			low = Math.min(low, points[i].y)
-			high = Math.max(high, points[i].y)
-		}
+		const ys = _flat.ys
+		const first = _window.first
+		const last = _window.last
+		const count = last - first
 		if (count === 0)
 			return empty
+
+		let low = Infinity
+		let high = -Infinity
+		for (let i = first; i < last; ++i) {
+			low = Math.min(low, ys[i])
+			high = Math.max(high, ys[i])
+		}
 
 		// count stays the number of points inside the window even when the range is fixed:
 		// it is what hasVisible - and therefore "no data" - is decided on, and a fixed range
@@ -103,22 +156,21 @@ Item {
 		if (!hasVisible || plot.width <= 0 || plot.height <= 0)
 			return []
 
-		const points = series.points
+		const xs = _flat.xs
+		const ys = _flat.ys
 		const xSpan = Math.max(1, xHigh - xLow)
 		const ySpan = Math.max(1e-6, yHigh - yLow)
-		const out = []
 
-		for (let i = 0; i < points.length; ++i) {
-			// One point beyond each edge is mapped too, so the line enters and leaves the frame
-			// instead of stopping short of it. `plot` clips, so the overshoot is never seen.
-			if (points[i].x < xLow && i + 1 < points.length && points[i + 1].x < xLow)
-				continue
-			if (points[i].x > xHigh && i > 0 && points[i - 1].x > xHigh)
-				continue
+		// One point beyond each edge is mapped too, so the line enters and leaves the frame
+		// instead of stopping short of it. `plot` clips, so the overshoot is never seen.
+		const from = Math.max(0, _window.first - 1)
+		const to = Math.min(xs.length - 1, _window.last)
+
+		const out = []
+		for (let i = from; i <= to; ++i)
 			out.push(Qt.point(
-				(points[i].x - xLow) / xSpan * plot.width,
-				plot.height - (points[i].y - yLow) / ySpan * plot.height))
-		}
+				(xs[i] - xLow) / xSpan * plot.width,
+				plot.height - (ys[i] - yLow) / ySpan * plot.height))
 		return out
 	}
 

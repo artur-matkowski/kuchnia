@@ -48,8 +48,28 @@ Card {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 			bands: Weather.daylight
-			windowStart: ForecastSpan.windowStart
-			windowEnd: ForecastSpan.windowEnd
 		}
+	}
+
+	// The window is bound only while the card can be seen. Four of the scene's six charts are
+	// off screen at any moment - the two on whichever forecast screen is not showing, and the
+	// carousel's two copies - and an invisible item stops rendering but does not stop
+	// evaluating: each of them would remap its series once per frame of a span change for
+	// something nobody is looking at.
+	//
+	// RestoreNone leaves the parked window in place instead of reverting it to zero. The
+	// binding is back on the frame opacity first rises above zero, which is before the card
+	// has been drawn, so a chart never arrives showing the span it left on.
+	Binding {
+		target: chart; property: "windowStart"
+		value: ForecastSpan.windowStart
+		when: chart.visible
+		restoreMode: Binding.RestoreNone
+	}
+	Binding {
+		target: chart; property: "windowEnd"
+		value: ForecastSpan.windowEnd
+		when: chart.visible
+		restoreMode: Binding.RestoreNone
 	}
 }
