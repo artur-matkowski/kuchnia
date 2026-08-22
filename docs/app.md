@@ -11,12 +11,33 @@ a set of network clients started beside it. The seam between the clients and the
 
 **Everything Qt says is routed into `applog`.** `qInstallMessageHandler` goes in immediately
 after `applog::init()` and before `QGuiApplication`, under the `QT` topic. Without it QML
-binding warnings, the media backend's complaints and libav's lines under them go to stderr,
-which on the board is not the file anybody reads — invisible exactly when the screen is
-wrong. The handler drops one line, `deprecated pixel format used`: the cameras deliver
-`yuvj420p` and libswscale says so once per scaler context, per camera, per reconnect, and
-nothing here chooses the decoder's output format. The filter is that narrow on purpose —
-silencing the category would take real ffmpeg errors with it.
+binding warnings and the media backend's complaints go to stderr, which on the board is not
+the file anybody reads — invisible exactly when the screen is wrong.
+
+**libav does not come through that handler, and a filter written there is dead code that
+reads as live.** Qt's ffmpeg backend installs an `av_log` callback of its own, and unless
+`QT_FFMPEG_DEBUG` is set that callback forwards to `av_log_default_callback` — libavutil
+formats the line and writes it to stderr itself, and `qInstallMessageHandler` never sees it.
+A `[swscaler @ 0x…]` prefix is the tell: nothing in Qt's own logging puts one there.
+
+`routeLibavLog()` therefore takes `av_log` over, and three things about it are load-bearing:
+
+* **It runs after a `QMediaPlayer` exists.** Constructing one loads the media backend, which
+  is both what brings `libavutil` into the process and when Qt installs the callback this one
+  replaces. Earlier is a lookup that finds nothing, then a callback Qt overwrites.
+* **The symbols come out of the link map, not `RTLD_DEFAULT`.** Qt dlopens plugins into a
+  local scope, so `dlsym(RTLD_DEFAULT, …)` answers null on a process that plainly has ffmpeg
+  in it. `dl_iterate_phdr` names the object and `dlopen` on that path hands back the copy
+  already loaded.
+* **`av_vlog` does not filter by level.** That check lives in the default callback, which is
+  exactly what was replaced — so the replacement has to make it. Without `av_log_get_level()`
+  every decoder debug line, one per NAL, is formatted before `applog` discards it.
+
+One line is dropped by name, `deprecated pixel format used`. The cameras encode full-range
+H.264, so the decoder hands Qt `yuvj420p`, and Qt frees the `SwsContext` after every frame —
+libswscale warns per frame rather than once per stream, and buries the log. Nothing here
+chooses either. Everything else libav says is kept at its own level, and `QT_FFMPEG_DEBUG`
+still works, now landing in `applog` with the rest.
 
 **Order in `main()` is load-bearing, and so is declaration order.** Logging is up first
 because reading the settings logs; the settings are read before `QGuiApplication` so that

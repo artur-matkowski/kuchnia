@@ -169,6 +169,10 @@ target_link_libraries(qt-hmi PRIVATE
 	Poco::JSON
 	PahoMqttCpp::paho-mqttpp3
 	PkgConfig::PQXX
+
+	# main.cpp resolves libav's log entry points at runtime rather than linking ffmpeg -
+	# the backend that carries them is a plugin. Empty on a glibc that has dlsym in libc.
+	${CMAKE_DL_LIBS}
 )
 
 include(GNUInstallDirs)

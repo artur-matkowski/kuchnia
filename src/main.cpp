@@ -1,7 +1,14 @@
+#include <cstdarg>
+#include <cstring>
 #include <iostream>
+#include <string>
+
+#include <dlfcn.h>
+#include <link.h>
 
 #include <QFontDatabase>
 #include <QGuiApplication>
+#include <QMediaPlayer>
 #include <QQmlApplicationEngine>
 #include <QString>
 
@@ -13,21 +20,11 @@
 namespace {
 
 // Everything Qt says goes to stderr by default, and on the board stderr is not the file
-// anybody reads - S99app redirects stdout into /var/log/app.log. A QML binding warning, the
-// media backend's complaints and libav's own lines under them are all invisible there
-// exactly when the screen is wrong. This puts them in the log, with a timestamp and a topic.
-//
-// Qt's ffmpeg backend routes libav's av_log into the qt.multimedia.ffmpeg category, and the
-// cameras deliver yuvj420p - the deprecated full-range JPEG YUV format - so libswscale warns
-// once per scaler context, per camera, per reconnect. It is harmless and it is not
-// actionable: nothing here chooses the decoder's output format. Dropping that one line is
-// the point of the filter, and the filter is deliberately that narrow - a category-wide
-// silence would take real ffmpeg errors with it.
+// anybody reads - S99app redirects stdout into /var/log/app.log. A QML binding warning and
+// the media backend's complaints are both invisible there exactly when the screen is wrong.
+// This puts them in the log, with a timestamp and a topic.
 void routeQtMessages(QtMsgType type, const QMessageLogContext&, const QString& message)
 {
-	if (message.contains(QStringLiteral("deprecated pixel format used")))
-		return;
-
 	const std::string text = message.toStdString();
 	switch (type) {
 	case QtDebugMsg:    LOG_DEBUG(applog::Gui) << text; break;
@@ -36,6 +33,99 @@ void routeQtMessages(QtMsgType type, const QMessageLogContext&, const QString& m
 	case QtCriticalMsg:
 	case QtFatalMsg:    LOG_ERROR(applog::Gui) << text; break;
 	}
+}
+
+// libav's lines do not come through the handler above and cannot be filtered there, so the
+// application takes av_log itself. Why, and why one line is dropped, is in docs/app.md.
+//
+// The levels and the signatures are libav's, written out because there is no build
+// dependency on ffmpeg here - the backend is a plugin, and these are looked up in whatever
+// the plugin dragged in. Both have been ABI for the lifetime of the library.
+constexpr int kAvLogError   = 16;
+constexpr int kAvLogWarning = 24;
+constexpr int kAvLogInfo    = 32;
+
+using AvLogCallback    = void (*)(void*, int, const char*, va_list);
+using AvLogGetLevel    = int (*)();
+using AvLogFormatLine  = int (*)(void*, int, const char*, va_list, char*, int, int*);
+using AvLogSetCallback = void (*)(AvLogCallback);
+
+AvLogGetLevel   avLogGetLevel   = nullptr;
+AvLogFormatLine avLogFormatLine = nullptr;
+
+// Called on libav's decode threads. applog::Line is what makes that safe: it assembles the
+// line off to the side and emits it whole, under the lock.
+void routeLibavMessages(void* avcl, int level, const char* fmt, va_list args)
+{
+	// av_vlog does not filter - the level check lives in the default callback, which is
+	// exactly what this replaced. Without it every decoder debug line, one per NAL, is
+	// formatted here before applog throws it away.
+	if (level > avLogGetLevel())
+		return;
+
+	char line[1024];
+	int prefix = 1;
+	avLogFormatLine(avcl, level, fmt, args, line, sizeof(line), &prefix);
+
+	if (std::strstr(line, "deprecated pixel format used") != nullptr)
+		return;
+
+	std::string text(line);
+	while (!text.empty() && (text.back() == '\n' || text.back() == '\r'))
+		text.pop_back();
+	if (text.empty())
+		return;
+
+	if (level <= kAvLogError)        LOG_ERROR(applog::Gui) << text;
+	else if (level <= kAvLogWarning) LOG_WARN(applog::Gui) << text;
+	else if (level <= kAvLogInfo)    LOG_INFO(applog::Gui) << text;
+	else                             LOG_DEBUG(applog::Gui) << text;
+}
+
+// libavutil comes in as a dependency of the media plugin, and Qt dlopens plugins into a
+// local scope: RTLD_DEFAULT cannot see a symbol of theirs, and looking one up there answers
+// null on a process that plainly has ffmpeg in it. The link map does carry the object, under
+// a full path that dlopen resolves back to the copy already in memory.
+void* libavutil()
+{
+	std::string path;
+	dl_iterate_phdr(
+		[](struct dl_phdr_info* info, size_t, void* found) {
+			if (info->dlpi_name == nullptr ||
+			    std::strstr(info->dlpi_name, "/libavutil.so") == nullptr)
+				return 0;
+			*static_cast<std::string*>(found) = info->dlpi_name;
+			return 1;
+		},
+		&path);
+
+	return path.empty() ? nullptr : dlopen(path.c_str(), RTLD_LAZY | RTLD_NOLOAD);
+}
+
+void routeLibavLog()
+{
+	// Constructing a player is what loads the media backend, and the backend is what both
+	// brings libavutil into the process and installs the callback this one has to replace.
+	// Before this line there is no object to find and nothing to take over from.
+	QMediaPlayer backend;
+
+	void* const av = libavutil();
+	if (av == nullptr) {
+		LOG_INFO(applog::App) << "no libav in the process - its log is left where it is";
+		return;
+	}
+
+	avLogGetLevel   = reinterpret_cast<AvLogGetLevel>(dlsym(av, "av_log_get_level"));
+	avLogFormatLine = reinterpret_cast<AvLogFormatLine>(dlsym(av, "av_log_format_line2"));
+	const auto set  = reinterpret_cast<AvLogSetCallback>(dlsym(av, "av_log_set_callback"));
+
+	if (avLogGetLevel == nullptr || avLogFormatLine == nullptr || set == nullptr) {
+		LOG_ERROR(applog::App) << "libav is loaded but its log entry points are not - "
+		                       << "its output stays on stderr";
+		return;
+	}
+
+	set(routeLibavMessages);
 }
 
 // The target ships no fonts and has no fontconfig, so a Text item there draws nothing at all
@@ -90,6 +180,10 @@ int main(int argc, char *argv[])
 	applog::setLevel(settings.logLevel);
 
 	QGuiApplication app(argc, argv);
+
+	// Needs the application object for the plugin paths to resolve, and goes in here so that
+	// nothing has decoded a frame yet by the time libav's log has somewhere to go.
+	routeLibavLog();
 
 	// QSettings refuses to open a file without these and says so only as a warning, so the
 	// radio's remembered station would silently never be written. QML's Settings type is the
