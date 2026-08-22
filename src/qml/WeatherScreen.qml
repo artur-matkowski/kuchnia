@@ -32,22 +32,26 @@ Context {
 
 	// Row 0, divided. A cell handed back in as the bounds of a finer grid, which is what Cells
 	// is built to allow: the three readings share the top row and each keeps the row's height.
-	function reading(column) {
-		return Cells.box(screen.cell(0), [-1, -1, -1], [-1], column, 0)
+	//
+	// Seven bands spanned 3/2/2 and not three equal ones: the temperature card carries a hero
+	// number, a sky word and a humidity line side by side and is the only one of the three that
+	// runs out of width. Nothing warns when it does - the sky word simply elides.
+	function reading(column, span) {
+		return Cells.box(screen.cell(0), [-1, -1, -1, -1, -1, -1, -1], [-1], column, 0, span)
 	}
 
 	// Where WeatherLayer's cards are asked to be while this context is on. The names are the
 	// whole contract: nothing checks that a screen offers the boxes the layer looks for, and a
 	// misspelt one is a card that never arrives.
 	readonly property var weatherBoxes: ({
-		temperature: screen.reading(0),
+		temperature: screen.reading(0, 3),
 		temperatureChart: screen.cell(1),
 		rainChance: screen.cell(2)
 	})
 
 	SceneElement {
 		id: wind
-		box: screen.reading(1)
+		box: screen.reading(3, 2)
 
 		WindCard { anchors.fill: parent }
 
@@ -88,7 +92,7 @@ Context {
 
 	SceneElement {
 		id: conditions
-		box: screen.reading(2)
+		box: screen.reading(5, 2)
 
 		ConditionsCard { anchors.fill: parent }
 
