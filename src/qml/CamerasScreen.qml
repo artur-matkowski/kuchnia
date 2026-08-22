@@ -9,6 +9,9 @@ import QtHmi
 // The five tiles are written out rather than driven by a Repeater, and that is the point of
 // this file: a Repeater makes every delegate identical, and every delegate here is animated
 // differently. The count is fixed at five - a sixth camera-url is configured and not shown.
+//
+// A camera key fills the screen with one tile by growing its box, and not by changing context;
+// docs/contexts.md says why. The other four keep their sessions, so the way back costs nothing.
 Context {
 	id: screen
 
@@ -31,6 +34,10 @@ Context {
 	// cellHeight read back out of a cell would be circular.
 	readonly property real cellHeight: (width - Theme.gap * 4) / 3 * 9 / 16
 
+	// Whether a camera on this screen may be heard at all. The carousel does not count, even
+	// though this screen is `on` there: a miniature is not what somebody is listening to.
+	readonly property bool listening: Nav.current === "cameras"
+
 	// Three columns, two rows of cameras, and the readouts strip taking whatever the two rows
 	// leave - which is why the strip is as tall as it is and the readings on it as large.
 	function cell(column, row, columnSpan) {
@@ -41,13 +48,18 @@ Context {
 
 	SceneElement {
 		id: cameraOne
-		box: screen.cell(0, 0)
+
+		readonly property bool zoomed: Cctv.zoom === 1
+		box: cameraOne.zoomed ? screen.content : screen.cell(0, 0)
+		z: cameraOne.zoomed ? 1 : 0
+		boxMs: 320
 
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 0 ? Cameras.urls[0] : ""
 			label: "camera 1"
 			active: screen.live
+			audible: screen.listening && Cctv.audible === 1
 		}
 
 		states: [
@@ -99,13 +111,18 @@ Context {
 
 	SceneElement {
 		id: cameraTwo
-		box: screen.cell(1, 0)
+
+		readonly property bool zoomed: Cctv.zoom === 2
+		box: cameraTwo.zoomed ? screen.content : screen.cell(1, 0)
+		z: cameraTwo.zoomed ? 1 : 0
+		boxMs: 320
 
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 1 ? Cameras.urls[1] : ""
 			label: "camera 2"
 			active: screen.live
+			audible: screen.listening && Cctv.audible === 2
 		}
 
 		states: [
@@ -163,13 +180,18 @@ Context {
 
 	SceneElement {
 		id: cameraThree
-		box: screen.cell(2, 0)
+
+		readonly property bool zoomed: Cctv.zoom === 3
+		box: cameraThree.zoomed ? screen.content : screen.cell(2, 0)
+		z: cameraThree.zoomed ? 1 : 0
+		boxMs: 320
 
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 2 ? Cameras.urls[2] : ""
 			label: "camera 3"
 			active: screen.live
+			audible: screen.listening && Cctv.audible === 3
 		}
 
 		states: [
@@ -227,13 +249,18 @@ Context {
 
 	SceneElement {
 		id: cameraFour
-		box: screen.cell(0, 1)
+
+		readonly property bool zoomed: Cctv.zoom === 4
+		box: cameraFour.zoomed ? screen.content : screen.cell(0, 1)
+		z: cameraFour.zoomed ? 1 : 0
+		boxMs: 320
 
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 3 ? Cameras.urls[3] : ""
 			label: "camera 4"
 			active: screen.live
+			audible: screen.listening && Cctv.audible === 4
 		}
 
 		states: [
@@ -291,13 +318,18 @@ Context {
 
 	SceneElement {
 		id: cameraFive
-		box: screen.cell(1, 1)
+
+		readonly property bool zoomed: Cctv.zoom === 5
+		box: cameraFive.zoomed ? screen.content : screen.cell(1, 1)
+		z: cameraFive.zoomed ? 1 : 0
+		boxMs: 320
 
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 4 ? Cameras.urls[4] : ""
 			label: "camera 5"
 			active: screen.live
+			audible: screen.listening && Cctv.audible === 5
 		}
 
 		states: [

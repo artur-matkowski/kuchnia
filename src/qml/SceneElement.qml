@@ -28,6 +28,18 @@ Item {
 	// Cells. A rectangle rather than four numbers so that a move is one animated property.
 	property rect box: Qt.rect(0, 0, 0, 0)
 
+	// How long a change of `box` takes, and ZERO - the default - means it snaps. A box that is
+	// handed from one screen to another must snap: WeatherLayer's carousel hand-over depends on
+	// nothing being rendered between the assignment and the state change that follows it.
+	property int boxMs: 0
+
+	// PropertyAnimation and not NumberAnimation: `box` is a rect, which NumberAnimation does not
+	// interpolate - it snaps, silently, and the only symptom is an animation nobody sees.
+	Behavior on box {
+		enabled: element.boxMs > 0
+		PropertyAnimation { duration: element.boxMs; easing.type: Easing.InOutCubic }
+	}
+
 	property real offsetX: 0
 	property real offsetY: 0
 

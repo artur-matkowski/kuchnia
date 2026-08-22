@@ -3,7 +3,8 @@ import QtHmi
 
 // The key bindings, one row per action. The rows are drawn in the order KeyBindings lists its
 // actions and nothing checks that they agree: drawn in another order, the selection appears to
-// jump about the screen.
+// jump about the screen. Two columns, walked column-major - down the left one, then down the
+// right - because sixteen rows in one column leave a card too short to hold its own rows.
 //
 // It is off the left/right ring on purpose - `settings` is not in Nav.cycle - so the carousel
 // is the only way in and the menu key is the only way out.
@@ -20,8 +21,8 @@ Context {
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
 	                                        width - Theme.gap * 2, height - Theme.gap * 2)
 
-	function cell(row) {
-		return Cells.box(screen.content, [-1], [-1, -1, -1], 0, row)
+	function cell(column, row) {
+		return Cells.box(screen.content, [-1, -1], [-1, -1], column, row)
 	}
 
 	function moveSelection(delta) {
@@ -100,7 +101,7 @@ Context {
 
 	SceneElement {
 		id: radioKeys
-		box: screen.cell(0)
+		box: screen.cell(0, 0)
 
 		Card {
 			id: radioKeysCard
@@ -135,7 +136,7 @@ Context {
 
 	SceneElement {
 		id: gateKeys
-		box: screen.cell(1)
+		box: screen.cell(0, 1)
 
 		Card {
 			id: gateKeysCard
@@ -169,8 +170,46 @@ Context {
 	}
 
 	SceneElement {
+		id: cameraKeys
+		box: screen.cell(1, 0)
+
+		Card {
+			id: cameraKeysCard
+			anchors.fill: parent
+			title: "Cameras"
+
+			Column {
+				anchors { fill: parent; margins: Theme.gap; topMargin: cameraKeysCard.contentTop }
+				spacing: Theme.gap
+
+				BindingRow { action: "camera-1" }
+				BindingRow { action: "camera-2" }
+				BindingRow { action: "camera-3" }
+				BindingRow { action: "camera-4" }
+				BindingRow { action: "camera-5" }
+				BindingRow { action: "camera-grid" }
+			}
+		}
+
+		states: [
+			State { name: "cameras"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
+			State { name: "compact-24h"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
+			State { name: "compact-72h"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
+			State { name: "weather-72h"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
+			State { name: "weather-7d"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
+			State { name: "settings" },
+			State { name: "carousel" }
+		]
+
+		transitions: [
+			CarouselIn {},
+			CarouselOut {}
+		]
+	}
+
+	SceneElement {
 		id: navKeys
-		box: screen.cell(2)
+		box: screen.cell(1, 1)
 
 		Card {
 			id: navKeysCard

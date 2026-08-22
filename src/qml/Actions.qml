@@ -50,6 +50,20 @@ QtObject {
 				Gate.close()
 			break
 
+		// The camera keys reach the CCTV screen from anywhere, as the gate keys reach the gate,
+		// and the grid key goes back the way they came. Both the zoom and that journey belong to
+		// Cctv - this only names which camera.
+		case "camera-1":
+		case "camera-2":
+		case "camera-3":
+		case "camera-4":
+		case "camera-5":
+			Cctv.show(parseInt(id.substring(7)))
+			break
+		case "camera-grid":
+			Cctv.grid()
+			break
+
 		case "radio-play-stop":
 		case "radio-next":
 		case "radio-previous":

@@ -4,6 +4,7 @@
 > Owns: src/qml/Context.qml
 > Owns: src/qml/SceneElement.qml
 > Owns: src/qml/CamerasScreen.qml
+> Owns: src/qml/Cctv.qml
 > Owns: src/qml/CompactScreen.qml
 > Owns: src/qml/WeatherScreen.qml
 > Owns: src/qml/WeatherLayer.qml
@@ -95,3 +96,27 @@ that leaves over is the strip along the bottom that carries the clock and the ta
 height is derived from the *screen's* width and not from the cell's: a `Layout.preferredHeight`
 bound to the width the same layout assigns is a loop, and the layout settling it is not
 something to depend on.
+
+## Fullscreen is a zoom and not a context
+
+A camera key grows one tile's `box` to the whole content rect and raises its `z`. `Cctv.zoom`
+is which tile, and 0 is the grid. An eighth context id would be the obvious way to write it and
+is the wrong one: every element of every screen would need a `State` for it - the silent
+failure above - and the id would have to be threaded through `Nav.cycle`, `Nav.elsewhere` and
+`Carousel.cardOf` as well, for something that is one screen's business. The other four tiles
+keep their sessions while one fills the screen, so the way back costs no reconnect.
+
+**`SceneElement.boxMs` is what animates a box, and it is off unless a use asks for it.**
+`WeatherLayer` assigns `box` to hand a card between two screens and depends on that landing
+inside one pass; animated, the cards would fly across the scene during the carousel hand-over.
+The `Behavior` holds a `PropertyAnimation` because `box` is a rect - `NumberAnimation` does not
+interpolate one, and what that looks like is a box that snaps with nothing said anywhere.
+
+A camera key pressed on another context navigates to CCTV and `Cctv.returnTo` remembers where
+from, so dropping the zoom goes back there rather than leaving somebody on a screen they only
+asked one camera of. **Both halves of that are conditioned on the CCTV screen being the current
+one**: off it a camera key is a way on and never a toggle, and the way back is not taken at all
+- somebody who walked off with a context key has already chosen where they are, and a panel
+that sent them back would read as one navigating itself. Only ring contexts are remembered;
+`carousel` would be returned to with its strip standing wherever it was left.
+See [input](docs/input.md).

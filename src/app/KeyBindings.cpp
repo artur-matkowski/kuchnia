@@ -12,7 +12,8 @@ namespace {
 // the QML that draws its row: a misspelt one is a row with no label that can never be bound.
 //
 // The six panel actions ship unbound on purpose: a key that opens a gate is not something to
-// guess at on someone's behalf.
+// guess at on someone's behalf. The camera keys are bound, because a digit that fills the
+// screen with a camera commands no hardware and undoes itself.
 struct Definition {
 	const char* id;
 	const char* label;
@@ -27,6 +28,13 @@ const Definition kActions[] = {
 	{"gate-open",        "open",             0},
 	{"gate-stop",        "stop",             0},
 	{"gate-close",       "close",            0},
+
+	{"camera-1",         "camera 1",         Qt::Key_1},
+	{"camera-2",         "camera 2",         Qt::Key_2},
+	{"camera-3",         "camera 3",         Qt::Key_3},
+	{"camera-4",         "camera 4",         Qt::Key_4},
+	{"camera-5",         "camera 5",         Qt::Key_5},
+	{"camera-grid",      "back to the grid", Qt::Key_0},
 
 	{"context-previous", "previous context", Qt::Key_Left},
 	{"context-next",     "next context",     Qt::Key_Right},

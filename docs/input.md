@@ -53,10 +53,28 @@ its row. `run` warns about an id it does not know and `BindingRow` warns about o
 does not have; a table entry that no `case` handles is the silent one - its key is simply a
 key that does nothing.
 
+## The camera keys navigate; the one that goes back does not
+
+`camera-1` to `camera-5` fill the CCTV screen with one camera and `camera-grid` drops back to
+all five. The key of the camera already filling the screen also drops back, so one key does
+both and nothing has to remember which. Pressed on another context the five go to the CCTV
+screen first, as the gate keys work from every screen - and the way back goes with them, so
+dropping the zoom returns to the context the key was pressed on, unless a context key has
+already carried somebody off that screen. `Actions.run` names the camera and nothing else; both
+the zoom and that journey are `Cctv`'s, and what they do to the screen is
+[contexts](docs/contexts.md).
+
+These six ship **bound**, to 1-5 and 0, where the radio's and the gate's ship unbound: a digit
+that fills the screen with a camera commands no hardware and undoes itself. A bindings file
+written before they existed has no entry for them, which is "never touched" and takes the
+default - the rule above is what makes that work.
+
 ## The settings screen
 
 The rows are drawn in the order the table lists them and nothing checks that they agree. Drawn
-in another order, the selection appears to jump about the screen as it moves.
+in another order, the selection appears to jump about the screen as it moves. The four cards
+stand in two columns and the walk is **column-major** - down the left one, then down the right
+- so the table's order is that walk and not a left-to-right reading of the screen.
 
 Up and down walk the rows, and they are the only hardwired keys left in the application. That
 is deliberate: they are not actions because a screen whose rows cannot be reached is a screen

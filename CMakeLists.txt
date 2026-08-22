@@ -93,6 +93,7 @@ set(QT_HMI_QML
 	src/qml/CarouselIn.qml
 	src/qml/CarouselOut.qml
 	src/qml/CarouselWeather.qml
+	src/qml/Cctv.qml
 	src/qml/Cells.qml
 	src/qml/ChartCard.qml
 	src/qml/Clock.qml
@@ -129,12 +130,13 @@ foreach(qml IN LISTS QT_HMI_QML)
 	set_source_files_properties("${qml}" PROPERTIES QT_RESOURCE_ALIAS "${name}")
 endforeach()
 
-# These six carry `pragma Singleton`, which is only half of what a singleton needs: without
+# These seven carry `pragma Singleton`, which is only half of what a singleton needs: without
 # this the generated qmldir does not declare it, and every `Theme.`, `Nav.`, `Cells.`,
-# `ForecastSpan.`, `Carousel.` and `Actions.` in the scene resolves to undefined - an unstyled
-# screen with every panel at the origin, which answers no key at all, rather than an error.
+# `ForecastSpan.`, `Carousel.`, `Cctv.` and `Actions.` in the scene resolves to undefined - an
+# unstyled screen with every panel at the origin, which answers no key at all, rather than an
+# error.
 set_source_files_properties(src/qml/Theme.qml src/qml/Nav.qml src/qml/ForecastSpan.qml
-	src/qml/Cells.qml src/qml/Carousel.qml src/qml/Actions.qml
+	src/qml/Cells.qml src/qml/Carousel.qml src/qml/Cctv.qml src/qml/Actions.qml
 	PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # URI QtHmi is the string main.cpp passes to loadFromModule() and the one AppState registers

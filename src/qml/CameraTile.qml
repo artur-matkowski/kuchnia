@@ -6,10 +6,10 @@ import QtHmi
 //
 // THREE THINGS THAT FAIL QUIETLY HERE:
 //
-// The AudioOutput is assigned and muted rather than left off. A MediaPlayer with no
-// audioOutput is silent on some backends and audible on others, and the two cameras that
-// carry sound are the ones that would prove which - after the radio has already been mixed
-// with a doorway.
+// The AudioOutput is assigned on every tile whether or not it is wanted, and muted when it is
+// not. A MediaPlayer with no audioOutput is silent on some backends and audible on others, and
+// the two cameras that carry sound are the ones that would prove which - after the radio has
+// already been mixed with a doorway.
 //
 // A stream that goes away does not error once and stay errored: the player settles into
 // StoppedState and simply paints its last frame forever, which is a live-looking tile of an
@@ -28,6 +28,10 @@ Rectangle {
 	// Whether this tile is wanted on screen. Going false does not disconnect immediately -
 	// see holdMs.
 	property bool active: true
+
+	// Whether this tile may be heard. Who decides is Cctv, and the caller passes the answer in:
+	// a tile knows which camera it is and nothing else.
+	property bool audible: false
 
 	// How long the stream survives after active goes false, and NEGATIVE never disconnects.
 	//
@@ -103,8 +107,9 @@ Rectangle {
 		id: player
 		videoOutput: output
 
-		// Never unmuted. The radio owns the one audio sink in this application.
-		audioOutput: AudioOutput { muted: true }
+		// The sink is shared with the radio, which wins. Muted here rather than by leaving the
+		// output unassigned - see the note at the top and docs/media.md.
+		audioOutput: AudioOutput { muted: !root.audible }
 
 		onErrorOccurred: function(error, text) {
 			root._setHealth("failed", text)

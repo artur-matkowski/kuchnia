@@ -4,7 +4,8 @@ import QtQuick.Layouts
 import QtMultimedia
 import QtHmi
 
-// The internet radio, and the only thing in this application with an unmuted audio output.
+// The internet radio. It shares one audio sink with the cameras and wins whenever it is
+// playing, which is what the Binding below publishes.
 Card {
 	id: root
 
@@ -40,6 +41,11 @@ Card {
 
 	property bool _wanted: false
 	property string _detail: ""
+
+	// The cameras have to know, because the sink is one and this panel owns it. What was ASKED
+	// for and not what the player is doing: a station that drops mid-song would otherwise let a
+	// camera into the room until it reconnected. See docs/media.md.
+	Binding { target: Cctv; property: "radioPlaying"; value: root._wanted }
 
 	// The transport, from the button below and from a bound key alike. It is here and not in
 	// Actions.qml because what is playing is this MediaPlayer's business and not a singleton's;

@@ -9,23 +9,30 @@
 > See:  docs/scene.md docs/state.md docs/contexts.md qt-hmi-buildroot/docs/build-pipeline.md docs/input.md
 
 Five RTSP tiles from `camera-url` and one internet radio from `radio-m3u`, all through
-QtMultimedia. The tiles reach the cameras directly; nothing sits in between.
+QtMultimedia. The tiles reach the cameras directly; nothing sits in between. `VideoOutput` is
+set to `Stretch` and not to a preserved aspect: the cells are cut to the streams' own 16:9 so
+there is nothing to fit, and a black bar down one tile of five reads as a tile that has stopped
+working. A zoomed tile is a little wider than 16:9 and is stretched by that much.
 
-`VideoOutput` preserves aspect. The cells are cut to the streams' own 16:9, so there is
-normally nothing to fit; a camera that is not 16:9 letterboxes rather than being stretched
-into a shape it never had.
+## One audio sink, and the radio wins
 
-## One audio sink, and it belongs to the radio
+Every `CameraTile` assigns an `AudioOutput` whether or not it is wanted, and mutes it when it
+is not. Leaving `audioOutput` unset is not equivalent: it is silent on some backends and
+audible on others, and the cameras that carry sound are exactly the ones that would establish
+which — after the radio has already been mixed with a doorway.
 
-Every `CameraTile` assigns an `AudioOutput` and mutes it. Leaving `audioOutput` unset is not
-equivalent: it is silent on some backends and audible on others, and the cameras that carry
-sound are exactly the ones that would establish which — after the radio has already been
-mixed with a doorway.
+`Cctv.audible` decides, and at most one camera is ever heard: the one filling the screen, while
+the radio is not wanted and CCTV is the context on screen. Nothing is configured about which
+cameras carry a microphone, because nothing has to be — an unmuted stream with no audio track
+is silent by itself.
+
+**What the radio publishes is what it was asked for, not what its player is doing.**
+`RadioPanel` binds `_wanted` onto `Cctv.radioPlaying`; taken from `playbackState` instead, a
+station that drops mid-song would let a camera into the room until it reconnected.
 
 **The mute is applied in software, not at the sink.** PulseAudio reports these streams as
 unmuted and at 100%, because Qt zeroes the samples before they reach it. Checking a mixer
-therefore proves nothing; measuring the output does. Recording the sink monitor with the
-radio stopped gives digital silence.
+therefore proves nothing; measuring the output does.
 
 ## A dead camera does not report itself
 
@@ -59,48 +66,41 @@ Reconnecting is `source = ""` followed by the URL again. A `stop()`/`play()` pai
 source makes the backend seek instead, which on a live stream is an RTSP `PAUSE` the server
 answers with 405 and a tile that never comes back.
 
-`Component.onCompleted` connects, and `onUrlChanged` deliberately does not: the `url` binding
-is evaluated during creation and `Component.onCompleted` runs after it, so wiring both opens
-every stream twice.
+`Component.onCompleted` connects and `onUrlChanged` deliberately does not: the `url` binding is
+evaluated during creation and this runs after it, so wiring both opens every stream twice.
 
 ## The station list is a file
 
-Stations come from the extended M3U at `radio-m3u`, parsed in `Radio::load()`: the text after
-the last comma of an `#EXTINF` line is the name, the next line that is neither blank nor a
-directive is the URL. A path that cannot be read, and a file with no entries, are both an
-error in the log and a radio with no stations. Shipping that file to the board is
-`qt-hmi-buildroot`'s job; nothing here creates it.
+Stations come from the extended M3U at `radio-m3u`, parsed in `Radio::load()`. A path that
+cannot be read, and a file with no entries, are both an error in the log and a radio with no
+stations. Shipping that file to the board is `qt-hmi-buildroot`'s job; nothing here creates it.
 
 **Qt exposes no now-playing title.** The stations do broadcast one — ICY `StreamTitle` is in
-the stream and `ffprobe` prints it — but Qt's ffmpeg backend maps it onto no key the scene
-can read: a playing MP3 station offers `Duration`, `FileFormat`, `AudioCodec` and
-`AudioBitRate` and nothing else. `RadioPanel`'s status line stays bound and empty, rather
-than carrying a placeholder for something the stream never told us.
+the stream and `ffprobe` prints it — but Qt's ffmpeg backend maps it onto no key the scene can
+read. `RadioPanel`'s status line stays bound and empty rather than carrying a placeholder for
+something the stream never told us.
 
 ## The remembered station
 
-`RadioPanel` persists the station index through QML's `Settings`, which is `QSettings`, which
-needs `QCoreApplication::setOrganizationName`/`setApplicationName` — set in `main.cpp` — and
-a writable config location on the target. Where it cannot be written the station simply does
-not survive a restart and nothing else breaks.
+`RadioPanel` persists the station index through QML's `Settings`, which is `QSettings` and
+needs the organisation and application names `main.cpp` sets, plus a writable config location
+on the target. Where it cannot be written the station does not survive a restart and nothing
+else breaks.
 
 `Radio.index` and the persisted value are wired one direction each way rather than bound
-together: a two-way binding fights itself the first time a button moves the station.
-
-`Radio` clamps the index to the list, so a remembered station from a longer playlist cannot
-leave the panel pointed at a URL that no longer exists.
+together: a two-way binding fights itself the first time a button moves the station. `Radio`
+clamps the index to the list, so a remembered station from a longer playlist cannot leave the
+panel pointed at a URL that no longer exists.
 
 ## A stream cannot be paused, so leaving a screen is expensive
 
-A tile that goes off screen has only one way to stop decoding: tear the session down and open
-a fresh one on the way back. `pause()` is not an option — on a live stream it is an RTSP
-`PAUSE`, which these cameras answer with 405, and the tile never comes back.
-
-Reopening one of these cameras takes **five to six seconds**, measured. That is the number
-`camera-hold-ms` is weighed against: a tile keeps its stream for that long after its context
-leaves the screen, so a glance at the other screen costs nothing and only a real stay pays
-the reconnect. **Negative never disconnects.** Zero disconnects as soon as the transition
-settles, which is the setting that makes every return cost six seconds of black tiles.
+A tile that goes off screen has only one way to stop decoding: tear the session down and open a
+fresh one on the way back. Reopening one of these cameras takes **five to six seconds**,
+measured, and that is the number `camera-hold-ms` is weighed against: a tile keeps its stream
+for that long after its context leaves the screen, so a glance at another screen costs nothing
+and only a real stay pays the reconnect. **Negative never disconnects.** Zero disconnects as
+soon as the transition settles, which is the setting that makes every return cost six seconds
+of black tiles.
 
 Two things a tile must not do while it is torn down, and neither announces itself:
 
