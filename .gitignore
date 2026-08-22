@@ -14,3 +14,14 @@
 config.conf
 # A local agent's workspace. Not this project's, and never committed.
 /.opencode/
+
+# dpkg-buildpackage's working tree and the artifact scripts/build-deb.sh collects. The
+# obj- directory is named for the host architecture, so it is matched rather than listed.
+/obj-*/
+/debian/.debhelper/
+/debian/qt-hmi/
+/debian/debhelper-build-stamp
+/debian/files
+/debian/*.substvars
+/debian/*.debhelper.log
+/dist/

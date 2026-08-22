@@ -1,0 +1,47 @@
+Source: qt-hmi
+Section: misc
+Priority: optional
+Maintainer: Artur <15357763+artur-matkowski@users.noreply.github.com>
+Rules-Requires-Root: no
+Standards-Version: 4.7.0
+# pkg-config must stay unqualified. It is Multi-Arch: same, so a cross build resolves it to
+# the host architecture's copy, and that copy is what provides the aarch64-linux-gnu-pkg-config
+# wrapper dh_auto_configure hands to CMake. Pinned to :native it would answer with the build
+# machine's paths, and libpqxx would be found, configured and linked from the wrong one.
+Build-Depends: debhelper-compat (= 13),
+               cmake,
+               ninja-build,
+               pkg-config,
+               qt6-base-dev-tools,
+               qt6-declarative-dev-tools,
+               qt6-base-dev,
+               qt6-declarative-dev,
+               qt6-multimedia-dev,
+               libpoco-dev,
+               libpqxx-dev,
+               libpaho-mqttpp-dev,
+               libpaho-mqtt-dev
+
+Package: qt-hmi
+Architecture: any
+# dh_shlibdeps sees none of these: they are QML imports, a dlopen'd platform plugin and a file
+# read off disk. --as-needed drops even libQt6Quick from the binary, so the Quick library
+# arrives through qml6-module-qtquick or not at all - see docs/packaging.md.
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libqt6opengl6,
+         qml6-module-qtcore,
+         qml6-module-qtquick,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-shapes,
+         qml6-module-qtquick-window,
+         qml6-module-qtmultimedia,
+         ca-certificates,
+         adduser
+Description: Qt Quick HMI for the house, drawn straight onto DRM/KMS
+ A dashboard of the house across five contexts: the cameras beside a
+ clock and the hot water tank, the gate and its controls, the tank's
+ last day, the weather forecast and an internet radio.
+ .
+ It draws through eglfs onto KMS with no display server in the path,
+ and reaches the <REDACTED> over PostgreSQL, HTTP and MQTT.

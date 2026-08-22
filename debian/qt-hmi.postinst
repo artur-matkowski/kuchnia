@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+	configure)
+		# systemd adds video, render and input at exec, so the account itself needs
+		# nothing but to exist. /var/lib/qt-hmi is StateDirectory=, not this user's.
+		if ! getent passwd qt-hmi >/dev/null; then
+			adduser --system --group --no-create-home \
+				--home /var/lib/qt-hmi --gecos "Qt Quick HMI" qt-hmi
+		fi
+
+		# The passwords live in this file, and it is read by the service user.
+		chown root:qt-hmi /etc/qt-hmi.conf
+		chmod 0640 /etc/qt-hmi.conf
+		;;
+esac
+
+#DEBHELPER#

@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+
+# DEB_BUILD_ARCH, DEB_HOST_ARCH and DEB_BUILD_MULTIARCH, used below.
+include /usr/share/dpkg/architecture.mk
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@ --buildsystem=cmake
+
+# Qt puts an $ORIGIN RUNPATH on anything it installs. From /usr/bin it resolves to the
+# multiarch directory the loader already searches, so it buys nothing and adds /usr/bin to a
+# system binary's library search path.
+CONFIGURE_OPTS = -DCMAKE_SKIP_INSTALL_RPATH=ON
+
+# Qt runs moc, rcc, qmlcachegen and qmlimportscanner on the build machine and the CMake
+# toolchain knows nothing about them. On Debian the host Qt's CMake package does not sit at
+# ${QT_HOST_PATH}/lib/cmake, so naming the prefix alone is not enough - see docs/targets.md.
+ifneq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
+CONFIGURE_OPTS += -DQT_HOST_PATH=/usr \
+                  -DQT_HOST_PATH_CMAKE_DIR=/usr/lib/$(DEB_BUILD_MULTIARCH)/cmake
+endif
+
+override_dh_auto_configure:
+	dh_auto_configure -- $(CONFIGURE_OPTS)

@@ -35,19 +35,19 @@ never touching Qt themselves.
 | [database](docs/database.md) | The archive client: centidegrees, and a table with no index on its timestamp |
 | [rest](docs/rest.md) | The HTTP client: a forecast field that goes missing without an error |
 | [mqtt](docs/mqtt.md) | The broker client: the callback thread that must not block, and a refusal that names why |
-| [targets](docs/targets.md) | `host` and `board`, one cache each, and the host tools a Qt cross build needs |
+| [targets](docs/targets.md) | `host` and `board`, one cache each, and what a Qt cross build needs on top of a toolchain |
+| [packaging](docs/packaging.md) | The `.deb`, the two channels it is published to, and the dependencies nothing can see |
 
 ## Where the rest of the answers are
 
-This repository is a git submodule of the **qt-hmi-buildroot** image repository, which builds it
-as a Buildroot package for a Raspberry Pi 5 on bare DRM/KMS. What is not the application
-itself lives there and is not repeated here:
+A board gets the application from the Debian repository in [packaging](docs/packaging.md).
+This tree is also a submodule of the **qt-hmi-buildroot** image repository, which builds it
+into a Buildroot image for the same board; what belongs to that image is not repeated here:
 
 | Question | Node in the image repository |
 |---|---|
 | The Buildroot packaging, Qt's config, the rebuild targets | `qt-hmi-buildroot/docs/build-pipeline.md` |
 | Which application autostarts, who owns the CRTC | `qt-hmi-buildroot/docs/display-pipeline.md` |
-| Deploying a build to a board | `qt-hmi-buildroot/docs/image-and-flash.md` |
 | A board that boots to nothing | `qt-hmi-buildroot/docs/debugging.md` |
 
 ## Navigating

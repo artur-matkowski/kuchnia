@@ -1,0 +1,26 @@
+[Unit]
+Description=Qt Quick HMI on DRM/KMS
+# Every client backs off and retries on its own, so nothing here waits for a route.
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/qt-hmi
+Restart=always
+RestartSec=2
+
+User=qt-hmi
+SupplementaryGroups=video render input
+
+# Debian's Qt has no image-wide default QPA to inherit, and the console already put a mode
+# on the CRTC that Qt would otherwise keep - a correct picture at the wrong size.
+Environment=QT_QPA_PLATFORM=eglfs
+Environment=QT_QPA_EGLFS_ALWAYS_SET_MODE=1
+
+# QSettings has nowhere to write for a system user with no home, and both writers report it
+# only after the fact. See docs/packaging.md.
+StateDirectory=qt-hmi
+Environment=XDG_CONFIG_HOME=/var/lib/qt-hmi
+
+[Install]
+WantedBy=multi-user.target

@@ -34,7 +34,8 @@ for this repository are in [CLAUDE.md](CLAUDE.md).
 ```sh
 scripts/build.sh host          # a window on this desktop
 scripts/build.sh host --run
-scripts/build.sh board         # the cross build the image packages
+scripts/build.sh board         # the cross build against a Buildroot sysroot
+scripts/build-deb.sh           # the arm64 .deb, into dist/, in a debian:trixie container
 ```
 
 Needs Qt 6.5 or later with the `Gui`, `Qml` and `Quick` modules, and `QtQuick.Shapes` at
@@ -52,7 +53,8 @@ this machine's cross toolchain, and note the `QT_HOST_PATH` line — a Qt cross 
 them. See [docs/targets.md](docs/targets.md).
 
 There is no Buildroot, qmake or autotools vocabulary anywhere in this repository. The
-CMakeLists takes its compiler and sysroot from the caller, so it cross-builds unmodified.
+CMakeLists takes its compiler and sysroot from the caller, so it cross-builds unmodified —
+`debian/` included, which is a package of this application and knows nothing about any image.
 
 ## Run
 
@@ -61,19 +63,25 @@ qt-hmi [--configpath <file>] [-platform <qpa>]
 ```
 
 Parameters come from `/etc/qt-hmi.conf`, then the environment, then the command line, each
-overriding the one before; `--help` lists them. On a desktop the default QPA platform is whatever the session
-provides; on the board it is `eglfs`, which takes the whole connector and needs the display
-to itself. Qt's KMS backend becomes DRM master, so **it cannot run while anything else owns
-the display** — including `drm-hmi`.
+overriding the one before; `--help` lists them. On a desktop the default QPA platform is
+whatever the session provides; on the board the systemd unit sets `eglfs`, which takes the
+whole connector and needs the display to itself. Qt's KMS backend becomes DRM master, so
+**it cannot run while anything else owns the display** — including `drm-hmi`.
 
 ## Where this runs
 
-The **qt-hmi-buildroot** repository packages this into a purpose-built Raspberry Pi 5 Linux image
-— Buildroot, BusyBox init, Mesa's `v3d` driver, one application started at boot on HDMI —
-and consumes this repository as a git submodule. Everything about the board, the image and
-the packaging is documented there.
+A Raspberry Pi 5 on Raspberry Pi OS Lite, installed with `apt` from this Gitea's Debian
+registry. `main` and `testing` are two components of that repository and two channels: a
+board's `sources.list` names one, an update is `apt upgrade`, and a rollback is
+`apt install qt-hmi=<older>`. The lines that put a board on it are in
+[docs/packaging.md](docs/packaging.md).
 
-Nothing here depends on that. The application builds and runs on any Linux machine with Qt 6.
+The **qt-hmi-buildroot** repository also consumes this tree as a git submodule, building it into
+a purpose-built Buildroot image for the same board. Everything about that image is
+documented there.
+
+Nothing here depends on either. The application builds and runs on any Linux machine with
+Qt 6.
 
 ## Licence
 

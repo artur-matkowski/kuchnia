@@ -11,18 +11,21 @@ deliberate:
 * **There is no fallback path.** No software rasteriser, no compositor, no windowing system
   on the target. A broken hardware path fails loudly because nothing exists to degrade into.
 * **Nothing here knows what Buildroot is.** `CMakeLists.txt` takes its compiler, sysroot and
-  flags from whoever calls it. Packaging belongs to the consumer, not to this repository.
+  flags from whoever calls it. *Image* packaging belongs to the consumer. The Debian package
+  under `debian/` is a different thing and does live here: it names this application's own
+  runtime dependencies and its unit, and nothing else builds it.
 
-## This repository is a submodule
+## How this reaches a board
 
-It is consumed by the **qt-hmi-buildroot** image repository, which builds it into a Raspberry Pi 5
-Buildroot image. That has one consequence worth stating plainly: a commit here changes
-nothing for the image until the submodule pointer is committed *there*. A local build in
+As a `.deb`, published from `main` or `testing` to this Gitea's Debian registry and installed
+with `apt` — [docs/packaging.md](docs/packaging.md). The board runs Raspberry Pi OS Lite.
+
+This tree is also a submodule of the **qt-hmi-buildroot** image repository, which builds it into
+a Buildroot image. That has one consequence worth stating plainly: a commit here changes
+nothing for that image until the submodule pointer is committed *there*. A local build in
 that tree picks the edit up immediately and every other checkout will not, which is exactly
-the shape of a change that looks applied and is not.
-
-So: edit and commit here, then bump the pointer in the image repository as part of the same
-piece of work.
+the shape of a change that looks applied and is not. So when the work touches the image:
+edit and commit here, then bump the pointer there as part of the same piece of work.
 
 ## Start here
 
@@ -142,8 +145,10 @@ Run `docs/check-docs.sh` after touching anything under `docs/`.
 ```sh
 scripts/build.sh host          # a window on this desktop
 scripts/build.sh host --run
-scripts/build.sh board         # the cross build, into build/board/, for the image to deploy
+scripts/build.sh board         # the cross build, into build/board/, against a Buildroot sysroot
 scripts/build.sh board --clean
+
+scripts/build-deb.sh           # the arm64 package, into dist/, in a debian:trixie container
 ```
 
 `scripts/build.sh` takes no toolchain from the environment: copy

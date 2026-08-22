@@ -1,0 +1,5 @@
+qt-hmi (1.0.0) trixie; urgency=medium
+
+  * Deliver the application as a Debian package.
+
+ -- Artur <15357763+artur-matkowski@users.noreply.github.com>  Sat, 22 Aug 2026 18:00:00 +0200
