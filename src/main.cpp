@@ -137,10 +137,9 @@ void routeLibavLog()
 
 // WHICH GPU IS ACTUALLY DRAWING THIS.
 //
-// The Buildroot image carried no software rasteriser, so a v3d that did not bind was a black
-// screen and an obvious fault. Raspberry Pi OS ships llvmpipe, and there Qt does not fail at
-// all: it renders the whole scene on the CPU and says nothing. The panel still paints, just
-// slowly, and under load the GUI thread blocks on the render thread and the application stops
+// Raspberry Pi OS ships llvmpipe, so a v3d that does not bind is not a failure Qt reports: it
+// renders the whole scene on the CPU and says nothing. The panel still paints, just slowly,
+// and under load the GUI thread blocks on the render thread and the application stops
 // answering the keyboard - which reads as a hang, not as a missing driver.
 //
 // Runs on the render thread, where the context is current; DirectConnection is what puts it
@@ -187,8 +186,11 @@ void loadBundledFont()
 	const int id = QFontDatabase::addApplicationFont(":/fonts/LiberationSans-Regular.ttf");
 	QFontDatabase::addApplicationFont(":/fonts/LiberationSans-Bold.ttf");
 
+	// Not fatal, and not visible either: the scene falls back to whatever fontconfig
+	// resolves, at metrics the layout was never measured against.
 	if (id < 0) {
-		LOG_ERROR(applog::App) << "the bundled font did not load - no text will be drawn";
+		LOG_ERROR(applog::App) << "the bundled font did not load - the scene will be drawn "
+		                       << "in the system font, at the wrong metrics";
 		return;
 	}
 

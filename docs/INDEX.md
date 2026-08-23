@@ -2,8 +2,7 @@
 
 The map of this repository. **Start every task here**, follow the link, read the node, then
 read the code it names. Paths are repo-relative, resolved from the repository root and not
-from the file you are reading; a `qt-hmi-buildroot/` prefix marks a node in the image repository
-that consumes this one.
+from the file you are reading.
 
 A QML application on a Raspberry Pi 5, drawn by Qt Quick fullscreen in the board's desktop
 session. The weight sits in what it shows and what it does, not in a rendering architecture:
@@ -37,18 +36,6 @@ PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through o
 | [targets](docs/targets.md) | The desktop build and the package's cross build, and what a Qt cross build needs beyond a compiler |
 | [packaging](docs/packaging.md) | The `.deb`, the two channels it is published to, and the dependencies nothing can see |
 | [session](docs/session.md) | How the application gets on screen: the target that is never reached, and the variable systemd does not have |
-
-## Where the rest of the answers are
-
-A board gets the application from the Debian repository in [packaging](docs/packaging.md).
-This tree is also a submodule of the **qt-hmi-buildroot** image repository, which builds it
-into a Buildroot image for the same board; what belongs to that image is not repeated here:
-
-| Question | Node in the image repository |
-|---|---|
-| The Buildroot packaging, Qt's config, the rebuild targets | `qt-hmi-buildroot/docs/build-pipeline.md` |
-| Which application autostarts, who owns the CRTC | `qt-hmi-buildroot/docs/display-pipeline.md` |
-| A board that boots to nothing | `qt-hmi-buildroot/docs/debugging.md` |
 
 ## Navigating
 

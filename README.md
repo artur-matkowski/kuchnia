@@ -50,9 +50,9 @@ The `.deb` is the only cross build, and it needs no toolchain file from you — 
 build runs `moc`, `rcc` and `qmlcachegen` on the build machine, and Debian keeps the host
 package somewhere `QT_HOST_PATH` alone does not reach. See [docs/targets.md](docs/targets.md).
 
-There is no Buildroot, qmake or autotools vocabulary anywhere in this repository. The
-CMakeLists takes its compiler and sysroot from the caller, so it cross-builds unmodified —
-`debian/` included, which is a package of this application and knows nothing about any image.
+Plain CMake, and nothing else. The CMakeLists takes its compiler and flags from the caller,
+so `debian/` cross-builds it unmodified — that package is a package of this application and
+knows nothing about any image.
 
 ## Run
 
@@ -84,12 +84,8 @@ board takes whichever it names. An update is `apt upgrade` and a rollback is
 that nothing can see, are in [docs/packaging.md](docs/packaging.md); what has to be true of
 the board's session before any of it shows is [docs/session.md](docs/session.md).
 
-The **qt-hmi-buildroot** repository also consumes this tree as a git submodule, building it into
-a purpose-built Buildroot image for the same board. Everything about that image is
-documented there.
-
-Nothing here depends on either. The application builds and runs on any Linux machine with
-Qt 6.
+Nothing here depends on that board. The application builds and runs on any Linux machine
+with Qt 6.
 
 ## Licence
 

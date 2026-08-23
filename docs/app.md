@@ -74,11 +74,12 @@ thread every frame — so anything slow in either reads identically from outside
 answering the keyboard. `Main.qml`'s `guiStall` timer ticks on the GUI thread and logs how late
 a tick was, so a freeze leaves a number behind instead of nothing.
 
-**The scene can be drawn on the CPU without a word.** The Buildroot image carried no software
-rasteriser, so a `v3d` that did not bind was a black screen and an obvious fault. Raspberry Pi
-OS ships llvmpipe and Qt simply uses it: the panel paints, slowly, and stalls under load.
-`reportRenderer()` runs on the render thread once the scene graph is up and says so at error
-level, because nothing else in the process ever will.
+**The scene can be drawn on the CPU without a word.** Raspberry Pi OS ships llvmpipe, so a
+`v3d` that does not bind is not a black screen and not an error — Qt simply renders the whole
+scene on the CPU. The panel paints, slowly, and stalls under load, which reads as a hang
+rather than as a missing driver. `reportRenderer()` runs on the render thread once the scene
+graph is up and names the renderer at error level, because nothing else in the process ever
+will.
 
 **`QMediaPlayer::setSource()` is not a setter.** Qt's ffmpeg backend opens the media on
 `QThreadPool::globalInstance()`, waits for that task on the calling thread, and runs a
@@ -89,15 +90,14 @@ assigns `source` while `mediaStatus` is `LoadingMedia`: [media](docs/media.md),
 
 ## The font is in the binary
 
-The target has no fonts and no fontconfig. A `Text` item there draws nothing at all and says
-nothing about it, so every label, axis and reading is simply absent on a screen that is
-otherwise working — and a host build masks it completely, because the desktop has fonts.
-
-`loadBundledFont()` therefore installs Liberation Sans out of `:/fonts/` and checks the
-result: `addApplicationFont` answers `-1` for a missing resource path and for a corrupt face
-alike, and both produce the same blank screen. The resource lives in its own
-`qt_add_resources()` call rather than in the QML module's `RESOURCES`, which would put it
-under `:/qt/qml/QtHmi/` and break the path `main.cpp` opens.
+Every size and spacing in the scene was measured against Liberation Sans, and fontconfig
+resolves a default from whatever the board happens to have installed — so a package added or
+removed there silently re-metrics every label, axis and reading. `loadBundledFont()` installs
+the face out of `:/fonts/` and makes it the application font. It checks the result because
+`addApplicationFont` answers `-1` for a missing resource path and a corrupt face alike, and
+neither is visible afterwards: the scene just draws in whatever fontconfig picked. The
+resource lives in its own `qt_add_resources()` call rather than in the QML module's
+`RESOURCES`, which would put it under `:/qt/qml/QtHmi/` and break the path `main.cpp` opens.
 
 `QCoreApplication::setOrganizationName`/`setApplicationName` are set for `QSettings`, which
 the radio's remembered station goes through — see [radio](docs/radio.md). Without them
@@ -115,8 +115,8 @@ the pragma the generated `qmldir` does not declare it and every `Theme.` in the 
 evaluates to `undefined` — an unstyled screen, not an error.
 
 `Qt6::Multimedia` links, but the `QtMultimedia` QML import and the backend that decodes
-anything are both loaded at runtime. A build that links fine still plays nothing on an image
-missing either; [media](docs/media.md) lists what the image has to carry.
+anything are both loaded at runtime. A build that links fine still plays nothing on a board
+missing either; [media](docs/media.md) lists what has to be installed.
 
 `QtQuick.Shapes` and `QtQuick.Layouts` are imported by QML and named in no CMake target.
 Both are part of `qt6declarative`, so they are present whenever Quick is — but a Qt built

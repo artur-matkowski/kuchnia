@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.21)
 
 project(qt-qml-hmi VERSION 1.0 LANGUAGES CXX)
 
-# Gui rather than Widgets: there is no window system on the target and no widget on
-# either. Quick pulls the scene graph; Qml pulls the engine main.cpp drives.
+# Gui rather than Widgets: the scene is Quick end to end and there is no widget anywhere in
+# it. Quick pulls the scene graph; Qml pulls the engine main.cpp drives.
 #
 # Multimedia links, but the QML import comes from a plugin loaded at runtime, and so does the
-# backend that decodes anything - a build that links fine still plays nothing on an image
+# backend that decodes anything - a build that links fine still plays nothing on a board
 # missing either. See docs/media.md.
 find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Multimedia Qml Quick)
 

@@ -13,7 +13,9 @@ is made of are [media](docs/media.md).
 
 Stations come from the extended M3U at `radio-m3u`, parsed in `Radio::load()`. A path that
 cannot be read, and a file with no entries, are both an error in the log and a radio with no
-stations. Shipping that file to the board is `qt-hmi-buildroot`'s job; nothing here creates it.
+stations. **Nothing ships that file.** The package does not carry it and the default path
+points at `/etc/radio.m3u`, so a board that has only been installed has a radio panel with an
+empty station list until someone puts one there.
 
 **Qt exposes no now-playing title.** The stations do broadcast one — ICY `StreamTitle` is in
 the stream and `ffprobe` prints it — but Qt's ffmpeg backend maps it onto no key the scene can

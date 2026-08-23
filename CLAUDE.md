@@ -8,12 +8,11 @@ shape almost every decision here, and all three are deliberate:
   Effort spent on rendering architecture is effort spent in the wrong repository — that is
   `drm-hmi`, and the split is the point of having two.
 * **The display is the session's, not this application's.** It picks no QPA platform, sets no
-  mode and owns no connector; it asks for the screen and draws. The **qt-hmi-buildroot**
-  image is the vertical that owns a display path, and it configures its own.
-* **Nothing here knows what Buildroot is.** `CMakeLists.txt` takes its compiler, sysroot and
-  flags from whoever calls it. *Image* packaging belongs to the consumer. The Debian package
-  under `debian/` is a different thing and does live here: it names this application's own
-  runtime dependencies and its unit, and nothing else builds it.
+  mode and owns no connector; it asks for the screen and draws. Nothing here configures a
+  display path, and a change that starts to is a change in the wrong repository.
+* **The package is the only delivery.** `debian/` names this application's runtime
+  dependencies and its unit, and nothing else builds it. `CMakeLists.txt` takes its compiler
+  and flags from whoever calls it, so the tree also builds on any desktop with Qt 6.
 
 ## How this reaches a board
 
@@ -21,13 +20,6 @@ As a `.deb`, published from `main` or `testing` to this Gitea's Debian registry 
 with `apt` — [docs/packaging.md](docs/packaging.md). The board runs Raspberry Pi OS Desktop,
 and what has to be true of its session before anything shows is
 [docs/session.md](docs/session.md).
-
-This tree is also a submodule of the **qt-hmi-buildroot** image repository, which builds it into
-a Buildroot image. That has one consequence worth stating plainly: a commit here changes
-nothing for that image until the submodule pointer is committed *there*. A local build in
-that tree picks the edit up immediately and every other checkout will not, which is exactly
-the shape of a change that looks applied and is not. So when the work touches the image:
-edit and commit here, then bump the pointer there as part of the same piece of work.
 
 ## Start here
 
@@ -78,9 +70,6 @@ because it gets written anyway:
 * "why not X", unless X is what a reader is about to reach for.
 
 **One fact, one home.** If two nodes need the same fact, one owns it and the other links.
-That rule crosses the repository boundary too: facts about the image, the board, the
-Buildroot packaging or the init script live in qt-hmi-buildroot and are referenced from here with
-a `qt-hmi-buildroot/` path prefix, never copied.
 
 **Node anatomy.** `# Title`, then a header block, then prose:
 
@@ -90,7 +79,7 @@ a `qt-hmi-buildroot/` path prefix, never copied.
 ```
 
 `Owns:` lines are repo-relative paths, one per line. Every path written anywhere in `docs/`
-must exist, unless it carries the `qt-hmi-buildroot/` prefix.
+must exist — `check-docs.sh` has no exemptions.
 
 **Size.** A node caps at 120 lines of prose — the `Owns:`/`See:` block does not count
 against it — with `docs/INDEX.md` at 60. The cap is a limit and not a budget:

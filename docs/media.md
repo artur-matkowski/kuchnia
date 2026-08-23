@@ -3,7 +3,7 @@
 > Owns: src/qml/CameraTile.qml
 > Owns: src/app/Cameras.hpp
 > Owns: src/app/Cameras.cpp
-> See:  docs/radio.md docs/app.md docs/scene.md docs/state.md docs/contexts.md qt-hmi-buildroot/docs/build-pipeline.md docs/input.md
+> See:  docs/radio.md docs/app.md docs/scene.md docs/state.md docs/contexts.md docs/packaging.md docs/input.md
 
 Five RTSP tiles from `camera-url`, through QtMultimedia. The tiles reach the cameras directly;
 nothing sits in between, and the radio they share an audio sink with is [radio](docs/radio.md).
@@ -101,7 +101,7 @@ Linking `Qt6::Multimedia` is not enough; none of this is resolved until runtime:
 * video decode reachable from userspace.
 
 A build that links cleanly still shows five black tiles and plays nothing when any of these
-is missing. The Buildroot side of it is `qt-hmi-buildroot/docs/build-pipeline.md`.
+is missing. `debian/control` is where the first three are named — [packaging](docs/packaging.md).
 
 ## There is no ALSA path, and no server is silent
 

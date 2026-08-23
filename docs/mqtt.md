@@ -50,7 +50,3 @@ by hand. `publish()` takes the flag explicitly and `sendGateCommand()` passes fa
 
 MQTT has no prefix wildcard, so the gate topics are named one by one in `kGateTopics` — a
 signal added to `hc12-message-definitions` needs adding there too.
-
-**The desktop and the board build against different paho versions** — 1.5.2 from Debian,
-1.3.2 from Buildroot — so only the subset common to both may be used, and a host build is no
-evidence the board's will compile.

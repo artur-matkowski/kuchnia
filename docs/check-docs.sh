@@ -24,24 +24,10 @@ INDEX=docs/INDEX.md
 NODES=(docs/*.md)
 LINKED=(docs/*.md CLAUDE.md README.md)
 
-skip_path() {
-	case "$1" in
-		# Nodes in the consuming image repository. This repo is a submodule of it,
-		# so those files are never on disk here - the prefix exists to say "other
-		# repository" out loud rather than to be resolved.
-		qt-hmi-buildroot/*) return 0 ;;
-		# Written by hand from the .example beside it and gitignored, so it is
-		# absent from every clean checkout and present on every working machine.
-		scripts/toolchain.cmake) return 0 ;;
-	esac
-	return 1
-}
-
 echo "=== every '> Owns:' path exists ==="
 while IFS=: read -r file line rest; do
 	path=$(echo "$rest" | sed 's/^> Owns:[[:space:]]*//; s/[[:space:]]*$//')
 	[ -n "$path" ] || continue
-	skip_path "$path" && continue
 	[ -e "$path" ] || err "$file:$line owns a path that does not exist: $path"
 done < <(grep -Hn '^> Owns:' "${NODES[@]}")
 
@@ -54,7 +40,6 @@ while IFS=: read -r file line rest; do
 	case "$target" in
 		http://*|https://*|mailto:*) continue ;;
 	esac
-	skip_path "$target" && continue
 	[ -e "$target" ] || err "$file:$line links to a missing path: $target"
 done < <(grep -HnoE '\]\([^)]+\)' "${LINKED[@]}")
 
@@ -62,9 +47,8 @@ echo "=== every repo-relative path mentioned exists ==="
 while IFS=: read -r file line rest; do
 	path=$(echo "$rest" | sed 's/[.,:;)]*$//')
 	[ -n "$path" ] || continue
-	skip_path "$path" && continue
 	[ -e "$path" ] || err "$file:$line mentions a path that does not exist: $path"
-done < <(grep -HnoE '(qt-hmi-buildroot|docs|src|scripts)/[A-Za-z0-9._/-]*' "${LINKED[@]}")
+done < <(grep -HnoE '(docs|src|scripts)/[A-Za-z0-9._/-]*' "${LINKED[@]}")
 
 echo "=== every node is reachable from the index ==="
 for f in "${NODES[@]}"; do

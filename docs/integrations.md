@@ -8,7 +8,7 @@
 > Owns: src/integrations/Service.cpp
 > Owns: src/integrations/Integrations.hpp
 > Owns: src/integrations/Integrations.cpp
-> See:  docs/app.md docs/state.md docs/database.md docs/rest.md docs/mqtt.md qt-hmi-buildroot/docs/image-and-flash.md docs/input.md
+> See:  docs/app.md docs/state.md docs/database.md docs/rest.md docs/mqtt.md docs/packaging.md docs/input.md
 
 Three clients of things on the LAN — PostgreSQL through libpqxx, HTTP through Poco, MQTT
 through paho — each on its own thread, each configured by `Settings` and each reporting
@@ -71,11 +71,10 @@ The environment name is derived from the parameter name — uppercased, `-` to `
 `mqtt-password` is `MQTT_PASSWORD`. Renaming a parameter silently renames its environment
 variable and orphans whatever was exporting the old one.
 
-* **An unknown `--parameter` on the command line is skipped without a word.** A typo in the
-  arguments the init script passes changes nothing and reports nothing. The parameter list
-  in `specs()` and the arguments in `qt-hmi-buildroot`'s `S99app` are one fact in two
-  repositories. So is the config file itself: `qt-hmi-buildroot`'s rootfs overlay ships
-  `/etc/qt-hmi.conf`, and a key added or removed here has to be changed there too.
+* **An unknown `--parameter` on the command line is skipped without a word.** A typo in an
+  argument changes nothing and reports nothing. `specs()` is also one half of a pair with the
+  shipped config file: a parameter added or removed here has to be added or removed in
+  `debian/qt-hmi.conf`, which nothing checks — [packaging](docs/packaging.md).
 * **`radio-url` and `radio-name` are one list read with one index.** `loadSettings()` refuses
   a pair of unequal length rather than letting the scene index past the end of one of them.
   Both split on commas, so a station name containing one becomes two names.
