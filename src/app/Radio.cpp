@@ -23,8 +23,10 @@ void Radio::load()
 {
 	QFile file(m_playlist);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		// The reason, because a permission bit, a missing file and an unmounted path read alike.
 		LOG_ERROR(applog::App) << "radio-m3u " << m_playlist.toStdString()
-		                       << " cannot be read - the radio has no stations";
+		                       << " cannot be read (" << file.errorString().toStdString()
+		                       << ") - the radio has no stations";
 		return;
 	}
 
