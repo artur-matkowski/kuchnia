@@ -14,26 +14,51 @@ Card {
 	Settings {
 		id: persisted
 		// Written to the platform's config location, which the target has to provide - see
-		// docs/media.md. Where it cannot be written the station simply does not survive a
+		// docs/radio.md. Where it cannot be written the station simply does not survive a
 		// restart; nothing else breaks.
 		property int station: 0
 	}
 
 	// One direction each way, and neither is a binding: a two-way binding between this and
 	// Radio.index would fight itself the first time a button moved the station.
-	Component.onCompleted: Radio.index = persisted.station
+	Component.onCompleted: {
+		Radio.index = persisted.station
+		root._station()
+	}
 	Connections {
 		target: Radio
-		function onIndexChanged() { persisted.station = Radio.index }
+		function onIndexChanged() {
+			persisted.station = Radio.index
+			root._station()
+		}
+	}
+
+	property bool _stationPending: false
+
+	// What points the player at a station, instead of a binding onto Radio.url. Assigning
+	// source waits for whatever the player is already opening, on the GUI thread - so a
+	// station changed while one is being opened stops the whole screen until it answers, and
+	// a stream the pool has not started yet is opened here outright. See docs/app.md.
+	function _station() {
+		root._stationPending = false
+		if (player.source.toString() === Radio.url)
+			return
+		if (player.mediaStatus === MediaPlayer.LoadingMedia) {
+			root._stationPending = true
+			return
+		}
+		player.source = Radio.url
 	}
 
 	MediaPlayer {
 		id: player
-		source: Radio.url
 		audioOutput: AudioOutput {}
 
 		// A source change while playing does not restart playback by itself.
 		onSourceChanged: if (root._wanted && source.toString().length > 0) play()
+
+		// A station that arrived while this one was still being opened.
+		onMediaStatusChanged: if (root._stationPending) root._station()
 
 		onErrorOccurred: function(error, text) { root._detail = text }
 		onPlaybackStateChanged: if (playbackState === MediaPlayer.PlayingState) root._detail = ""
@@ -44,7 +69,7 @@ Card {
 
 	// The cameras have to know, because the sink is one and this panel owns it. What was ASKED
 	// for and not what the player is doing: a station that drops mid-song would otherwise let a
-	// camera into the room until it reconnected. See docs/media.md.
+	// camera into the room until it reconnected. See docs/radio.md.
 	Binding { target: Cctv; property: "radioPlaying"; value: root._wanted }
 
 	// The transport, from the button below and from a bound key alike. It is here and not in
@@ -78,7 +103,7 @@ Card {
 	// stream and ffprobe reads it - but Qt's ffmpeg backend maps it onto no metadata key this
 	// can read: a playing MP3 station offers Duration, FileFormat, AudioCodec and AudioBitRate
 	// and nothing else. So this is empty in practice, and it stays empty rather than being
-	// filled with a placeholder - see docs/media.md.
+	// filled with a placeholder - see docs/radio.md.
 	readonly property string _nowPlaying:
 		player.metaData ? (player.metaData.stringValue(MediaMetaData.Title) || "") : ""
 

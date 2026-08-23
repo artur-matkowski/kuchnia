@@ -4,7 +4,7 @@ import QtHmi
 
 // One RTSP stream.
 //
-// THREE THINGS THAT FAIL QUIETLY HERE:
+// FOUR THINGS THAT FAIL QUIETLY HERE:
 //
 // The AudioOutput is assigned on every tile whether or not it is wanted, and muted when it is
 // not. A MediaPlayer with no audioOutput is silent on some backends and audible on others, and
@@ -19,6 +19,10 @@ import QtHmi
 // Liveness is counted in frames off the video sink. position does not advance on a live
 // stream whose duration the container never declares, and playbackState says Playing from
 // the moment play() is called - see docs/media.md.
+//
+// And source is not a setter. Assigning it waits for any open already in flight, on the
+// thread doing the assigning, which is the one drawing the screen. Nothing below touches
+// source while _loading - see docs/app.md.
 Rectangle {
 	id: root
 
@@ -52,6 +56,11 @@ Rectangle {
 	// hand over a picture, and judging it on the stall budget kills every stream on connect.
 	property int connectTimeoutMs: 20000
 
+	// Whether the backend is inside an open of its own. Assigning source now waits for that
+	// open on the GUI thread, and runs it here outright if the pool has not started it yet -
+	// docs/app.md. Everything below defers instead of interrupting.
+	readonly property bool _loading: player.mediaStatus === MediaPlayer.LoadingMedia
+
 	property int _retryMs: minimumRetryMs
 	property string _health: "connecting"
 	property string _detail: ""
@@ -79,6 +88,14 @@ Rectangle {
 	function _connect() {
 		if (root.url.length === 0)
 			return
+		// The backend is already opening this stream, and there is nothing to gain by handing it
+		// another source: an open that fails says so, and that lands on onErrorOccurred. Arriving
+		// here while torn down is a tile that came back mid-open - keep the open, and cancel the
+		// teardown onMediaStatusChanged is holding.
+		if (root._loading) {
+			root._down = false
+			return
+		}
 		retry.stop()
 		hold.stop()
 		root._down = false
@@ -120,6 +137,20 @@ Rectangle {
 		// what a camera reboot looks like from here. Without this the tile keeps painting its
 		// last frame and goes on claiming to be live.
 		onMediaStatusChanged: {
+			// Every status change is the backend saying it got somewhere, and the connect budget
+			// is measured from the last one. Without this an open that legitimately takes longer
+			// than connectTimeoutMs is judged on a clock that started before it.
+			root._lastProgressMs = Date.now()
+
+			// The teardown the hold timer could not perform while an open was in flight. Clearing
+			// the source is itself a status change, and the source check is what stops this from
+			// recursing on its own work.
+			if (root._down) {
+				if (!root._loading && player.source.toString().length > 0)
+					player.source = ""
+				return
+			}
+
 			if (mediaStatus === MediaPlayer.EndOfMedia) {
 				root._setHealth("connecting", "ended")
 				root._retryLater()
@@ -149,6 +180,16 @@ Rectangle {
 		running: root.url.length > 0 && !root._down
 		repeat: true
 		onTriggered: {
+			// The backend owns the tile while it is opening. It carries its own timeouts and
+			// reports its own failure, and taking the stream off it from here costs the whole
+			// screen - docs/app.md. Say so instead: an open that never lands is a tile that will
+			// never retry, and it otherwise reads exactly like one that is about to.
+			if (root._loading) {
+				if (Date.now() - root._lastProgressMs >= root.connectTimeoutMs)
+					root._setHealth("connecting", "still opening")
+				return
+			}
+
 			// A pending reconnect owns the tile. Without this the watchdog re-arms the retry
 			// timer on every tick, pushing its deadline out by a tick each time, and the
 			// reconnect it is waiting for never happens.
@@ -183,7 +224,10 @@ Rectangle {
 		onTriggered: {
 			retry.stop()
 			root._down = true
-			player.source = ""
+			// Not while an open is in flight: clearing the source waits for it here, and the
+			// screen stops with it. onMediaStatusChanged finishes the teardown when it lands.
+			if (!root._loading)
+				player.source = ""
 			root._frames = 0
 			root._setHealth("connecting", "off screen")
 		}

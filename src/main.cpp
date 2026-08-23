@@ -234,6 +234,15 @@ int main(int argc, char *argv[])
 	// nothing has decoded a frame yet by the time libav's log has somewhere to go.
 	routeLibavLog();
 
+	// Qt's ffmpeg backend opens a source on the global thread pool, and QMediaPlayer::setSource
+	// WAITS for that task on the thread that called it - which is the one drawing the screen.
+	// A task the pool has not started yet is taken out of the queue and run by that wait, so a
+	// pool with no free thread turns an RTSP connect into a frozen panel. The default is one
+	// thread per core, four on the board, against five cameras and the radio. See docs/app.md.
+	QThreadPool::globalInstance()->setMaxThreadCount(
+		std::max(QThread::idealThreadCount(),
+		         static_cast<int>(settings.cameraUrls.size()) + 3));
+
 	// QSettings refuses to open a file without these and says so only as a warning, so the
 	// radio's remembered station would silently never be written. QML's Settings type is the
 	// only thing that reads them.
