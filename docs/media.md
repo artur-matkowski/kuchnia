@@ -1,18 +1,16 @@
 # Video and audio
 
 > Owns: src/qml/CameraTile.qml
-> Owns: src/qml/RadioPanel.qml
 > Owns: src/app/Cameras.hpp
 > Owns: src/app/Cameras.cpp
-> Owns: src/app/Radio.hpp
-> Owns: src/app/Radio.cpp
-> See:  docs/scene.md docs/state.md docs/contexts.md qt-hmi-buildroot/docs/build-pipeline.md docs/input.md
+> See:  docs/radio.md docs/app.md docs/scene.md docs/state.md docs/contexts.md qt-hmi-buildroot/docs/build-pipeline.md docs/input.md
 
-Five RTSP tiles from `camera-url` and one internet radio from `radio-m3u`, all through
-QtMultimedia. The tiles reach the cameras directly; nothing sits in between. `VideoOutput` is
-set to `Stretch` and not to a preserved aspect: the cells are cut to the streams' own 16:9 so
-there is nothing to fit, and a black bar down one tile of five reads as a tile that has stopped
-working. A zoomed tile is a little wider than 16:9 and is stretched by that much.
+Five RTSP tiles from `camera-url`, through QtMultimedia. The tiles reach the cameras directly;
+nothing sits in between, and the radio they share an audio sink with is [radio](docs/radio.md).
+`VideoOutput` is set to `Stretch` and not to a preserved aspect: the cells are cut to the
+streams' own 16:9 so there is nothing to fit, and a black bar down one tile of five reads as a
+tile that has stopped working. A zoomed tile is a little wider than 16:9 and is stretched by
+that much.
 
 ## One audio sink, and the radio wins
 
@@ -25,10 +23,6 @@ which — after the radio has already been mixed with a doorway.
 the radio is not wanted and CCTV is the context on screen. Nothing is configured about which
 cameras carry a microphone, because nothing has to be — an unmuted stream with no audio track
 is silent by itself.
-
-**What the radio publishes is what it was asked for, not what its player is doing.**
-`RadioPanel` binds `_wanted` onto `Cctv.radioPlaying`; taken from `playbackState` instead, a
-station that drops mid-song would let a camera into the room until it reconnected.
 
 **The mute is applied in software, not at the sink.** PulseAudio reports these streams as
 unmuted and at 100%, because Qt zeroes the samples before they reach it. Checking a mixer
@@ -55,42 +49,25 @@ tears it down on a timer, forever, and the tiles stay black because nothing surv
 enough to paint.
 
 Two budgets, because connecting and running fail on different timescales. A stream that has
-delivered a frame must keep delivering one every `stallTimeoutMs`. A stream that has not
-delivered its first frame yet gets `connectTimeoutMs`, which is much longer: an RTSP session
-that has to fall back from UDP to TCP takes seconds to hand over a picture. The watchdog also
-stands down while `retry` is pending — it ticks faster than the retry it is waiting for, and
-re-arming that timer on every tick pushes its deadline out of reach and the reconnect never
-happens.
+delivered a frame must keep delivering one every `stallTimeoutMs`. One that has not gets
+`connectTimeoutMs`, which is much longer and is counted from the backend's last word rather
+than from the request: the UDP-to-TCP fallback below takes seconds and happens inside an open
+the watchdog is not allowed to touch. So it stands down entirely while `_loading`, and while
+`retry` is pending — that timer ticks faster than the retry it is waiting for, and re-arming it
+on every tick pushes the deadline out of reach so the reconnect never happens.
 
 Reconnecting is `source = ""` followed by the URL again. A `stop()`/`play()` pair on the same
 source makes the backend seek instead, which on a live stream is an RTSP `PAUSE` the server
 answers with 405 and a tile that never comes back.
 
+**Nothing here may assign `source` while the backend is opening one.** That assignment waits
+for the open on the thread that makes it, and can run the open there outright — the panel stops
+for as long as the camera takes and nothing says so. `_loading` guards every assignment in the
+file, including the teardown below, and the open that is left alone reports its own failure to
+`onErrorOccurred`. Why it blocks is [app](docs/app.md).
+
 `Component.onCompleted` connects and `onUrlChanged` deliberately does not: the `url` binding is
 evaluated during creation and this runs after it, so wiring both opens every stream twice.
-
-## The station list is a file
-
-Stations come from the extended M3U at `radio-m3u`, parsed in `Radio::load()`. A path that
-cannot be read, and a file with no entries, are both an error in the log and a radio with no
-stations. Shipping that file to the board is `qt-hmi-buildroot`'s job; nothing here creates it.
-
-**Qt exposes no now-playing title.** The stations do broadcast one — ICY `StreamTitle` is in
-the stream and `ffprobe` prints it — but Qt's ffmpeg backend maps it onto no key the scene can
-read. `RadioPanel`'s status line stays bound and empty rather than carrying a placeholder for
-something the stream never told us.
-
-## The remembered station
-
-`RadioPanel` persists the station index through QML's `Settings`, which is `QSettings` and
-needs the organisation and application names `main.cpp` sets, plus a writable config location
-on the target. Where it cannot be written the station does not survive a restart and nothing
-else breaks.
-
-`Radio.index` and the persisted value are wired one direction each way rather than bound
-together: a two-way binding fights itself the first time a button moves the station. `Radio`
-clamps the index to the list, so a remembered station from a longer playlist cannot leave the
-panel pointed at a URL that no longer exists.
 
 ## A stream cannot be paused, so leaving a screen is expensive
 

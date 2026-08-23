@@ -17,8 +17,7 @@ compact screen; and the weather on its own on the last. Each forecast screen is 
 one per span it carries - and the two do not carry the same pair. The menu key puts all four
 screens on at once as miniatures to choose between, with a settings screen behind them where
 every key the panel answers is bound. Behind all of it are three clients of the <REDACTED> -
-PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through one seam and
-never touching Qt themselves.
+PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through one seam.
 
 ## Nodes
 
@@ -30,7 +29,8 @@ never touching Qt themselves.
 | [carousel](docs/carousel.md) | The chooser on the menu key: whole screens shrunk into a strip, and the copies that must not overlap the originals |
 | [input](docs/input.md) | Every key press: the action it becomes, the file the bindings are kept in, and the row that swallows the keyboard |
 | [scene](docs/scene.md) | The panels and the charts, the window a forecast is drawn through, and the QML names that are already taken |
-| [media](docs/media.md) | The cameras and the radio: the mute that a mixer cannot see, and the dead stream that reports nothing |
+| [media](docs/media.md) | The five cameras: the mute that a mixer cannot see, and the dead stream that reports nothing |
+| [radio](docs/radio.md) | The internet radio: the station that is assigned and never bound, and the title Qt will not hand over |
 | [integrations](docs/integrations.md) | The three network clients, the logger that drops lines until told where to write, and the settings that fail quietly |
 | [database](docs/database.md) | The archive client: centidegrees, and a table with no index on its timestamp |
 | [rest](docs/rest.md) | The HTTP client: a forecast field that goes missing without an error |

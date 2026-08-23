@@ -4,7 +4,7 @@
 > Owns: src/app/KeyBindings.cpp
 > Owns: src/qml/Actions.qml
 > Owns: src/qml/SettingsScreen.qml
-> See:  docs/contexts.md docs/carousel.md docs/media.md docs/state.md
+> See:  docs/contexts.md docs/carousel.md docs/media.md docs/radio.md docs/state.md
 
 A USB keyboard is the whole of the input; there is no pointer on the board. Every press
 arrives at one handler in `src/qml/Main.qml`, becomes an action id through `KeyBindings`, and
