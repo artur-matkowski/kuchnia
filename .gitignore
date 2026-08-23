@@ -2,11 +2,6 @@
 # here, so an entry per artifact would be noise: the directory is the artifact.
 /build/
 
-# This machine's cross toolchain, written from scripts/toolchain.cmake.example. Never
-# committed: the paths in it are one machine's, and the image's build copies this tree
-# as it stands.
-/scripts/toolchain.cmake
-
 # An in-tree cmake run, which nothing here asks for but everyone does once.
 /CMakeCache.txt
 /CMakeFiles/

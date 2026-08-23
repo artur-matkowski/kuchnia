@@ -34,7 +34,7 @@ PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through o
 | [database](docs/database.md) | The archive client: centidegrees, and a table with no index on its timestamp |
 | [rest](docs/rest.md) | The HTTP client: a forecast field that goes missing without an error |
 | [mqtt](docs/mqtt.md) | The broker client: the callback thread that must not block, and a refusal that names why |
-| [targets](docs/targets.md) | `host` and `board`, one cache each, and what a Qt cross build needs on top of a toolchain |
+| [targets](docs/targets.md) | The desktop build and the package's cross build, and what a Qt cross build needs beyond a compiler |
 | [packaging](docs/packaging.md) | The `.deb`, the two channels it is published to, and the dependencies nothing can see |
 | [session](docs/session.md) | How the application gets on screen: the target that is never reached, and the variable systemd does not have |
 

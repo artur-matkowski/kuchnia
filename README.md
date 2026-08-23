@@ -34,7 +34,6 @@ for this repository are in [CLAUDE.md](CLAUDE.md).
 ```sh
 scripts/build.sh host          # a window on this desktop
 scripts/build.sh host --run
-scripts/build.sh board         # the cross build against a Buildroot sysroot
 scripts/build-deb.sh           # the arm64 .deb, into dist/, in a debian:trixie container
 ```
 
@@ -47,10 +46,9 @@ sudo apt install libpoco-dev libpqxx-dev libpaho-mqttpp-dev libpaho-mqtt-dev
 git submodule update --init --recursive        # deps/, built from source
 ```
 
-`board` reads `scripts/toolchain.cmake`: copy `scripts/toolchain.cmake.example`, point it at
-this machine's cross toolchain, and note the `QT_HOST_PATH` line — a Qt cross build runs
-`moc`, `rcc` and `qmlcachegen` on the build machine and a plain toolchain file names none of
-them. See [docs/targets.md](docs/targets.md).
+The `.deb` is the only cross build, and it needs no toolchain file from you — but a Qt cross
+build runs `moc`, `rcc` and `qmlcachegen` on the build machine, and Debian keeps the host
+package somewhere `QT_HOST_PATH` alone does not reach. See [docs/targets.md](docs/targets.md).
 
 There is no Buildroot, qmake or autotools vocabulary anywhere in this repository. The
 CMakeLists takes its compiler and sysroot from the caller, so it cross-builds unmodified —

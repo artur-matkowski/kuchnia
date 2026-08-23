@@ -146,16 +146,15 @@ Run `docs/check-docs.sh` after touching anything under `docs/`.
 
 ```sh
 scripts/build.sh host          # a window on this desktop
+scripts/build.sh host --clean
 scripts/build.sh host --run
-scripts/build.sh board         # the cross build, into build/board/, against a Buildroot sysroot
-scripts/build.sh board --clean
 
 scripts/build-deb.sh           # the arm64 package, into dist/, in a debian:trixie container
 ```
 
-`scripts/build.sh` takes no toolchain from the environment: copy
-`scripts/toolchain.cmake.example` to `scripts/toolchain.cmake` and put this machine's cross
-compiler in it once. See [docs/targets.md](docs/targets.md) for the `QT_HOST_PATH` trap.
+`scripts/build.sh` builds for this machine only. The board's binary is the package, and its
+cross build carries no toolchain file of yours — see [docs/targets.md](docs/targets.md) for
+the `QT_HOST_PATH` trap.
 
 Qt 6.5 or later, with `Gui`, `Qml` and `Quick`, plus `QtQuick.Shapes` at runtime. Then Poco
 (`Foundation`, `Net`, `NetSSL`, `JSON`), `libpqxx` and `paho-mqtt-cpp`. On Debian:
