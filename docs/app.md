@@ -45,17 +45,17 @@ because reading the settings logs; the settings are read before `QGuiApplication
 
 1. `AppState` — the objects the scene binds to.
 2. `Integrations` — the worker threads, holding callbacks that point at those objects.
-3. `QQmlApplicationEngine`, `registerSingletons()`, `loadFromModule()`.
+3. `QQmlApplicationEngine`, `registerSingletons()`, `setInitialProperties()`, `loadFromModule()`.
 
 Destruction reverses it, which is the point: the engine goes first, then the threads are
 joined, and only then do the objects their callbacks point at go away. Move `AppState` below
 `Integrations` and shutdown becomes a worker queueing onto freed memory — intermittently,
 and only on exit.
 
-**`registerSingletons()` must run before the load.** A singleton registered after the scene
-is built is a name QML has already failed to resolve, and the failure is a binding that
-evaluates to `undefined` rather than an error. Queued calls that arrive before `exec()` are
-harmless; they sit in the event queue.
+**`registerSingletons()` must run before the load.** A singleton registered after the scene is
+built is a name QML has already failed to resolve, and the failure is a binding that evaluates to
+`undefined` rather than an error; queued calls arriving before `exec()` wait. So must
+`setInitialProperties()` — it names `fullscreen`, and a rename in `Main.qml` drops it silently.
 
 **The engine does not exit on a QML error.** `loadFromModule()` returns `void` and a failed
 load leaves a valid engine with no root object, which then runs the event loop forever. On a

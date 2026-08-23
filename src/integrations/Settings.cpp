@@ -28,6 +28,12 @@ std::vector<ParamInitializer> specs()
 		ParamInitializer(STRING, "log-level", "info",
 			"Lowest level that reaches stdout: debug, info, warning or error"),
 
+		// BOOL and not FLAG: a FLAG's default is hardwired false and no config line can turn
+		// it on, and this one has to default to on for the board. The parser is
+		// `value == "true"` exactly, so `fullscreen:True` reads as false without a word.
+		ParamInitializer(BOOL, "fullscreen", true,
+			"Take the whole screen; false is a window the size the scene is composed at"),
+
 		ParamInitializer(STRING, "db-host", "<HOST_REDACTED>", "PostgreSQL host"),
 		ParamInitializer(INT,    "db-port", 0,              "PostgreSQL port"),
 		ParamInitializer(STRING, "db-name", "house_db",    "PostgreSQL database"),
@@ -133,6 +139,7 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 		return SettingsResult::Failed;
 
 	get("log-level", &out->logLevel);
+	get("fullscreen", &out->fullscreen);
 
 	get("db-host", &out->dbHost);
 	get("db-port", &out->dbPort);

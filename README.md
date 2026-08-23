@@ -1,7 +1,7 @@
-# qt-qml-hmi — a QML application on bare DRM/KMS
+# qt-qml-hmi — a QML application on a panel
 
-A Qt Quick application that draws straight onto a display through `eglfs` on KMS, with no
-X11, no Wayland, no compositor and no software rasteriser behind it.
+A Qt Quick application that runs fullscreen in a Raspberry Pi's desktop session, delivered to
+the board as a Debian package and started by the session it draws into.
 
 It shows a house across screens two keys cycle between: five RTSP cameras beside a
 clock and the hot water tank on one, and the gate's state and its controls, the tank over the
@@ -63,15 +63,14 @@ qt-hmi [--configpath <file>] [-platform <qpa>]
 ```
 
 Parameters come from `/etc/qt-hmi.conf`, then the environment, then the command line, each
-overriding the one before; `--help` lists them. On a desktop the default QPA platform is
-whatever the session provides; on the board the systemd unit sets `eglfs`, which takes the
-whole connector and needs the display to itself. Qt's KMS backend becomes DRM master, so
-**it cannot run while anything else owns the display** — including `drm-hmi`.
+overriding the one before; `--help` lists them. The QPA platform is whatever the session
+provides — nothing here selects one. `fullscreen` decides whether the window asks for the
+whole screen; it ships on, and a local run wants it off.
 
 ## Where this runs
 
-A Raspberry Pi 5 on Raspberry Pi OS Lite, installed with `apt` from this Gitea's Debian
-registry:
+A Raspberry Pi 5 on Raspberry Pi OS Desktop, autostarted inside the board's session and
+installed with `apt` from this Gitea's Debian registry:
 
 ```sh
 curl -fsSL https://git.example.com/api/packages/<REDACTED>/debian/repository.key \
@@ -84,7 +83,8 @@ https://git.example.com/api/packages/<REDACTED>/debian trixie main" \
 `main` there is the channel: it and `testing` are two components of the one repository, so a
 board takes whichever it names. An update is `apt upgrade` and a rollback is
 `apt install qt-hmi=<older>`. What to do after the install, and what the package depends on
-that nothing can see, are in [docs/packaging.md](docs/packaging.md).
+that nothing can see, are in [docs/packaging.md](docs/packaging.md); what has to be true of
+the board's session before any of it shows is [docs/session.md](docs/session.md).
 
 The **qt-hmi-buildroot** repository also consumes this tree as a git submodule, building it into
 a purpose-built Buildroot image for the same board. Everything about that image is

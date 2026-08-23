@@ -7,20 +7,24 @@ import QtHmi
 Window {
 	id: root
 
-	// The panel this scene is composed against, 1:1. Under eglfs the size is ignored and the
-	// window takes the whole connector; on a desktop it is pinned rather than merely
-	// suggested, so what is being looked at here is what the board will show.
+	// Set from C++ before this object is completed - see src/main.cpp. The default is what a
+	// scene loaded any other way gets, and the board is the case that matters.
+	property bool fullscreen: true
+
+	// The size the scene is composed against, 1:1, and the windowed size only. The board runs
+	// fullscreen on whatever the panel is, which is not this - Carousel is bound to the real
+	// size below because it is the one thing that has to cut geometry out of it.
 	readonly property int panelWidth: 1366
 	readonly property int panelHeight: 768
 
 	width: panelWidth
 	height: panelHeight
-	minimumWidth: panelWidth
-	maximumWidth: panelWidth
-	minimumHeight: panelHeight
-	maximumHeight: panelHeight
 
-	visible: true
+	// Shown through `visibility` alone - Windowed shows it just as `visible` would, and setting
+	// both leaves two writers on one piece of state. The size must stay unpinned: a minimum
+	// equal to a maximum is a window the compositor cannot resize to the screen, and the
+	// fullscreen request below is then accepted and does nothing.
+	visibility: fullscreen ? Window.FullScreen : Window.Windowed
 	color: Theme.background
 	title: "qt-qml-hmi"
 
@@ -78,8 +82,8 @@ Window {
 			event.accepted = false
 		}
 
-		// The scene's real size, which under eglfs is the connector's and not the 1366x768 the
-		// desktop window is pinned to. Every miniature's geometry is cut out of it.
+		// The scene's real size, which fullscreen is the panel's and not the 1366x768 above.
+		// Every miniature's geometry is cut out of it.
 		Binding { target: Carousel; property: "screenWidth"; value: scene.width }
 		Binding { target: Carousel; property: "screenHeight"; value: scene.height }
 

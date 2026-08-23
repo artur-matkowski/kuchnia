@@ -3,7 +3,7 @@
 # Build the application into build/<target>/ rather than into the source tree.
 #
 #     scripts/build.sh host             a window on this desktop
-#     scripts/build.sh board            the board's binary - cross-compiled, eglfs on KMS
+#     scripts/build.sh board            the board's binary - cross-compiled against a sysroot
 #     scripts/build.sh board --clean
 #     scripts/build.sh host --run
 #

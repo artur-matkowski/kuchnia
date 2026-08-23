@@ -7,6 +7,7 @@
 #include <dlfcn.h>
 #include <link.h>
 
+#include <QCursor>
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QMediaPlayer>
@@ -261,11 +262,21 @@ int main(int argc, char *argv[])
 		integrations.sendGateCommand(command);
 	});
 
+	// A panel has no pointer, and a compositor draws one whenever an input device looks like
+	// a mouse - the touchscreen included. Hiding it is the application's job, not the session's.
+	if (settings.fullscreen)
+		QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+
 	QQmlApplicationEngine engine;
 
 	// Before the load, or the scene resolves none of these names. Queued calls that arrive
 	// in the meantime simply sit in the event queue until exec().
 	state.registerSingletons();
+
+	// Applied to the root object as it is created, so Main.qml's visibility binding is already
+	// right the first time it is evaluated - a Window shown windowed and then made fullscreen
+	// flashes at the composition size on the way.
+	engine.setInitialProperties({{"fullscreen", settings.fullscreen}});
 
 	// A QML error is not an exit. loadFromModule() returns void, and an engine that
 	// created nothing still enters the event loop and stays there - a live process

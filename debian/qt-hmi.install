@@ -1,1 +1,3 @@
 debian/qt-hmi.conf etc/
+debian/qt-hmi.desktop etc/xdg/autostart/
+debian/qt-hmi-autostart usr/libexec/

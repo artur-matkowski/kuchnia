@@ -6,20 +6,19 @@
 > Owns: debian/qt-hmi.conf
 > Owns: debian/qt-hmi.install
 > Owns: debian/qt-hmi.postinst
-> Owns: debian/qt-hmi.service
 > Owns: debian/rules
 > Owns: debian/source/format
 > Owns: .gitea/workflows/deb.yaml
 > Owns: scripts/build-deb.sh
-> See:  docs/targets.md docs/app.md docs/integrations.md
+> See:  docs/session.md docs/targets.md docs/app.md docs/integrations.md
 
-The board runs Raspberry Pi OS Lite, and the application reaches it as a `.deb` from this
+The board runs Raspberry Pi OS Desktop, and the application reaches it as a `.deb` from this
 Gitea's own Debian registry. `apt` is the whole deployment system: an update is
 `apt upgrade`, a rollback is `apt install qt-hmi=<older>`, and a new board is one
 `sources.list` line. Nothing is flashed and no image is built.
 
-Lite is load-bearing. The desktop images run a compositor, and a compositor holds the CRTC
-that `eglfs` needs.
+The desktop session is load-bearing: the package ships no display configuration at all and
+draws as an ordinary client of whatever compositor the board logs into.
 
 ## Putting a board on the repository
 
@@ -31,15 +30,19 @@ https://git.example.com/api/packages/<REDACTED>/debian trixie main" \
   | sudo tee /etc/apt/sources.list.d/qt-hmi.list
 sudo apt update && sudo apt install qt-hmi
 sudoedit /etc/qt-hmi.conf          # the two passwords are empty in the shipped file
-sudo systemctl start qt-hmi
+sudo adduser pi qt-hmi             # whichever account autologs in; postinst cannot guess it
+sudo raspi-config nonint do_boot_behaviour B4    # boot into the session, not the console
 ```
 
 `main` in the last position of that line is the channel. A test board writes `testing`
 there instead, or writes both and always takes the newer.
 
+The last two lines are the difference between an installed package and a running one —
+[session](docs/session.md).
+
 ## What `dh_shlibdeps` cannot find
 
-`debian/control` names nine runtime dependencies by hand. They are not a belt-and-braces
+`debian/control` names ten runtime dependencies by hand. They are not a belt-and-braces
 list: none of them is discoverable from the binary.
 
 The QML imports are the reason. `--as-needed` drops any library the object files do not
@@ -48,50 +51,39 @@ reference, and the scene reaches Quick through the engine rather than through a 
 is the only thing that installs it. The rest of the imports in `src/qml/` follow the same
 path, which is why every one of them is listed.
 
-`libqt6opengl6` is where Debian keeps the `eglfs` platform plugin and its KMS/GBM
-integration, and it pulls `libgbm1`, `libegl1`, `libdrm2` and `libinput10` behind it. It is
-the single package that carries the display path.
+`qt6-wayland` is the platform plugin the session needs, and it is the one dependency whose
+absence degrades instead of failing: with a compositor running and no Wayland plugin, Qt
+falls back to `xcb` over XWayland and draws a working but needlessly indirect picture.
 
 Most of those fail at startup: the engine reports the import, `main.cpp` turns a failed root
 object into `exit(1)`, and `Restart=always` makes that a restart loop with the reason in the
-journal. **`ca-certificates` is the one that does not.** Poco verifies its peer against
-`/etc/ssl/certs`, so without it the process starts, the scene draws, and only the forecast
-stays empty — [docs/rest.md](docs/rest.md).
+journal. **Two do not.** `ca-certificates`: Poco verifies its peer against `/etc/ssl/certs`,
+so without it the process starts, the scene draws, and only the forecast stays empty —
+[docs/rest.md](docs/rest.md). The PulseAudio server is the other, below.
 
-## The service user has nowhere to write
+`pipewire-pulse | pulseaudio` in `Depends`, and an address in the unit — the server itself is
+board configuration, and on this board it is system-wide and shared. Why a server is needed
+at all, and why the address has to be said out loud, is [media](docs/media.md).
 
-`qt-hmi` is a system account with no home, and two things write `QSettings` files while the
-application runs: the key bindings ([docs/input.md](docs/input.md)) and the radio station in
-`src/qml/RadioPanel.qml`. With no writable config location both are accepted, drawn, and
-gone on the next start. `StateDirectory=qt-hmi` and `XDG_CONFIG_HOME=/var/lib/qt-hmi` in the
-unit are what give them somewhere; nothing else in the package refers to that directory.
-
-The unit grants `video`, `render` and `input` through `SupplementaryGroups`, so `postinst`
-only has to create the account.
-
-## What the unit sets for the display
-
-`QT_QPA_PLATFORM` and `QT_QPA_EGLFS_ALWAYS_SET_MODE` are the two without which there is no
-picture or a correctly drawn one at the console's resolution. Beside them the unit ranks the
-V4L2 H.264/H.265 decoders to `NONE` through `GST_PLUGIN_FEATURE_RANK`, which pushes the
-camera tiles onto software decode — that setting is empirical, taken from a deployment where
-it was needed, and the failure it avoids is not recorded anywhere. `Conflicts=lightdm.service`
-is there because `eglfs` cannot take a CRTC a display manager already holds; a board with no
-display manager installed is unaffected.
+How the unit, the autostart entry and the session fit together is
+[session](docs/session.md). Nothing in this node configures a display.
 
 ## The config file
 
 `/etc/qt-hmi.conf` is a dpkg conffile, which is what makes a hand-edited copy survive an
 upgrade, and it is where the passwords go — `postinst` sets it `0640 root:qt-hmi`. Nothing
-in the package or in git ever carries a credential.
+in the package or in git ever carries a credential. `qt-hmi` is a group and not an account:
+the reader is whoever logs into the session, and `postinst` cannot know which account that
+is, so it creates the group and prints the `adduser` line rather than guessing.
 
 Two properties of the parser matter when editing it:
 
 * **An empty value is the same as no line at all.** The parser drops empty fields, so
   `mqtt-user:` does not clear the compiled-in default — it leaves it in place.
 * **An unreadable file is replaced, not reported.** A missing `/etc/qt-hmi.conf` makes the
-  application write a default one; as the `qt-hmi` user it cannot, and it then runs on the
-  compiled-in defaults having said so only at warning level.
+  application write a default one; without the group it cannot, and it then runs on the
+  compiled-in defaults having said so only at warning level. That is what a forgotten
+  `adduser` looks like: a scene that draws, and no camera, database or broker in it.
 
 The path is compiled into `src/integrations/Settings.cpp` and repeated in
 `debian/qt-hmi.install` and `debian/qt-hmi.postinst`. Nothing checks that the three agree.

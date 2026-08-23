@@ -25,9 +25,9 @@ there, is [contexts](docs/contexts.md).
 
 `Main.qml` is only the shell: the geometry, the focus and the keyboard. It owns no layout.
 
-`Window` is pinned to 1366x768, the panel the scene is composed against 1:1, so a desktop
-window shows what the board will show rather than an approximation of it. Under `eglfs` the
-size is ignored entirely and the window takes the whole connector.
+`Window` asks the session for the whole screen through `visibility`, and nothing may pin its size
+again — a `minimumWidth` equal to a `maximumWidth` is a window the compositor cannot resize, so
+the fullscreen request is accepted and does nothing. 1366x768 is the windowed size only.
 
 ## Three names that are already taken
 

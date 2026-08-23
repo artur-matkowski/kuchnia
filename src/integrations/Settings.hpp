@@ -12,6 +12,10 @@
 struct Settings {
 	std::string logLevel;
 
+	// Whether the window asks the session for the whole screen. False is a windowed
+	// composition-sized preview; nothing here reads it - see src/qml/Main.qml.
+	bool fullscreen = true;
+
 	std::string dbHost;
 	int         dbPort = 0;
 	std::string dbName;

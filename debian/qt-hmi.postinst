@@ -3,16 +3,22 @@ set -e
 
 case "$1" in
 	configure)
-		# systemd adds video, render and input at exec, so the account itself needs
-		# nothing but to exist. /var/lib/qt-hmi is StateDirectory=, not this user's.
-		if ! getent passwd qt-hmi >/dev/null; then
-			adduser --system --group --no-create-home \
-				--home /var/lib/qt-hmi --gecos "Qt Quick HMI" qt-hmi
+		# A group and no account: the application runs as whoever is logged into the
+		# session, and this is only what guards the passwords in the file below.
+		if ! getent group qt-hmi >/dev/null; then
+			addgroup --system qt-hmi
 		fi
 
-		# The passwords live in this file, and it is read by the service user.
+		# The passwords live in this file, and it is read by the session user.
 		chown root:qt-hmi /etc/qt-hmi.conf
 		chmod 0640 /etc/qt-hmi.conf
+
+		# The one step this script cannot infer - it does not know which account autologs in,
+		# and reading it out of the display manager's config would be a guess. Without it the
+		# file is unreadable and the application runs on compiled-in defaults, saying so only
+		# at warning level. See docs/packaging.md.
+		echo "qt-hmi: the account that runs the session must be in the qt-hmi group:"
+		echo "qt-hmi:     sudo adduser <user> qt-hmi"
 		;;
 esac
 

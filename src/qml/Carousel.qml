@@ -23,8 +23,8 @@ QtObject {
 	// weather screens are two contexts each and one card each.
 	readonly property var cards: ["cameras", "compact", "weather", "settings"]
 
-	// The scene's size, bound by Main.qml. Under eglfs the window takes the whole connector, so
-	// this cannot be the 1366x768 the desktop window is pinned to.
+	// The scene's size, bound by Main.qml. Fullscreen that is the panel's, so this default is
+	// only what a miniature is cut out of before the binding first fires.
 	property real screenWidth: 1366
 	property real screenHeight: 768
 

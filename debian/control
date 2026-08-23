@@ -24,12 +24,13 @@ Build-Depends: debhelper-compat (= 13),
 
 Package: qt-hmi
 Architecture: any
-# dh_shlibdeps sees none of these: they are QML imports, a dlopen'd platform plugin and a file
-# read off disk. --as-needed drops even libQt6Quick from the binary, so the Quick library
-# arrives through qml6-module-qtquick or not at all - see docs/packaging.md.
+# dh_shlibdeps sees none of these: they are QML imports, a dlopen'd platform plugin, a file
+# read off disk and a server reached over a socket. --as-needed drops even libQt6Quick from the
+# binary, so the Quick library arrives through qml6-module-qtquick or not at all - and the
+# PulseAudio server is a runtime peer no linkage can reveal. See docs/packaging.md.
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         libqt6opengl6,
+         qt6-wayland,
          qml6-module-qtcore,
          qml6-module-qtquick,
          qml6-module-qtquick-layouts,
@@ -37,11 +38,17 @@ Depends: ${shlibs:Depends},
          qml6-module-qtquick-window,
          qml6-module-qtmultimedia,
          ca-certificates,
+         pipewire-pulse | pulseaudio,
          adduser
-Description: Qt Quick HMI for the house, drawn straight onto DRM/KMS
+# A session to draw into, not a library to link against, so a board that already has one
+# declines these. Raspberry Pi OS Desktop provides both and the LXDE-pi-labwc session on top.
+Recommends: lightdm,
+            labwc
+Description: Qt Quick HMI for the house
  A dashboard of the house across five contexts: the cameras beside a
  clock and the hot water tank, the gate and its controls, the tank's
  last day, the weather forecast and an internet radio.
  .
- It draws through eglfs onto KMS with no display server in the path,
- and reaches the <REDACTED> over PostgreSQL, HTTP and MQTT.
+ It runs fullscreen inside the board's desktop session, started by a
+ systemd user unit, and reaches the <REDACTED> over PostgreSQL, HTTP and
+ MQTT.

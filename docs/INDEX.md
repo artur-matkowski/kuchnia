@@ -5,10 +5,9 @@ read the code it names. Paths are repo-relative, resolved from the repository ro
 from the file you are reading; a `qt-hmi-buildroot/` prefix marks a node in the image repository
 that consumes this one.
 
-A QML application on a Raspberry Pi 5, drawn by Qt Quick straight onto KMS through `eglfs`.
-The weight is meant to sit in the application — what it shows and what it does — and not in
-a rendering architecture. The repository next to it, `drm-hmi`, is where that architecture
-lives; when a problem here wants a renderer seam, it belongs there instead.
+A QML application on a Raspberry Pi 5, drawn by Qt Quick fullscreen in the board's desktop
+session. The weight sits in what it shows and what it does, not in a rendering architecture:
+that is `drm-hmi` next door, and a problem here wanting a renderer seam belongs there.
 
 The scene is a dashboard of the house across five contexts the two context keys cycle
 between: five RTSP cameras beside a clock and the hot water tank on one; the gate's state and
@@ -37,6 +36,7 @@ PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through o
 | [mqtt](docs/mqtt.md) | The broker client: the callback thread that must not block, and a refusal that names why |
 | [targets](docs/targets.md) | `host` and `board`, one cache each, and what a Qt cross build needs on top of a toolchain |
 | [packaging](docs/packaging.md) | The `.deb`, the two channels it is published to, and the dependencies nothing can see |
+| [session](docs/session.md) | How the application gets on screen: the target that is never reached, and the variable systemd does not have |
 
 ## Where the rest of the answers are
 

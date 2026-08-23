@@ -97,8 +97,28 @@ Linking `Qt6::Multimedia` is not enough; none of this is resolved until runtime:
 
 * the `QtMultimedia` QML module,
 * a media backend — Qt's ffmpeg backend, or gstreamer with `rtspsrc` (in `gst1-plugins-good`),
-* ALSA userspace and a card for the radio to play through,
+* a reachable PulseAudio server, below,
 * video decode reachable from userspace.
 
 A build that links cleanly still shows five black tiles and plays nothing when any of these
 is missing. The Buildroot side of it is `qt-hmi-buildroot/docs/build-pipeline.md`.
+
+## There is no ALSA path, and no server is silent
+
+Debian's QtMultimedia links `libpulse` and **nothing else** — no `libasound` in
+`libQt6Multimedia.so.6` or `libffmpegmediaplugin.so`. A PulseAudio-protocol server is not one
+way to get sound out; it is the only one, and an `audio` group with an ALSA device is not it.
+
+**An unreachable server is a silent application, not a failed one.** Qt logs
+`pa_context_connect() failed` once at startup, then runs perfectly: the scene draws, the
+tiles play, and the radio connects to its station and decodes it into nothing.
+
+Which server, and the address the unit has to name because Qt will not find it, is
+[session](docs/session.md).
+
+## The tiles must decode in software
+
+On the hardware decoder three of the five streams report `no first frame`, `V4L2 capture poll
+unexpected timeout` repeats, and the GUI thread blocks for tens of seconds — a panel that has
+stopped answering the keyboard, which reads as a hang and never as a decoder. The switch that
+keeps them off it is in the unit: [session](docs/session.md).

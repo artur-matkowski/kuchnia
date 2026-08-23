@@ -1,0 +1,13 @@
+#!/bin/sh
+# Run by /etc/xdg/autostart/qt-hmi.desktop, from inside the session, which is the only place
+# WAYLAND_DISPLAY and DISPLAY exist. The systemd user manager is a separate process started
+# before the compositor and it has neither, so a unit it starts without this import finds no
+# session to draw into and Qt aborts.
+#
+# Raspberry Pi OS ships env-display.desktop to do the same import, but XDG autostart entries
+# have no defined order between them, so relying on that one having already run is a race.
+# Repeating it costs nothing and removes the race.
+set -e
+
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY
+exec systemctl --user start --no-block qt-hmi.service

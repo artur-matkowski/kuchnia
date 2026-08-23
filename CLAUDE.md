@@ -1,15 +1,15 @@
 # Working agreement
 
-A Qt Quick application drawn straight onto DRM/KMS through `eglfs`, with no display server
-anywhere in the path. Three properties shape almost every decision here, and all three are
-deliberate:
+A Qt Quick application that runs fullscreen in the board's desktop session. Three properties
+shape almost every decision here, and all three are deliberate:
 
 * **The application is the work.** Qt owns the scene graph, the render loop and the
   compositing. What this repository adds is what the thing *shows* and what it *does*.
   Effort spent on rendering architecture is effort spent in the wrong repository — that is
   `drm-hmi`, and the split is the point of having two.
-* **There is no fallback path.** No software rasteriser, no compositor, no windowing system
-  on the target. A broken hardware path fails loudly because nothing exists to degrade into.
+* **The display is the session's, not this application's.** It picks no QPA platform, sets no
+  mode and owns no connector; it asks for the screen and draws. The **qt-hmi-buildroot**
+  image is the vertical that owns a display path, and it configures its own.
 * **Nothing here knows what Buildroot is.** `CMakeLists.txt` takes its compiler, sysroot and
   flags from whoever calls it. *Image* packaging belongs to the consumer. The Debian package
   under `debian/` is a different thing and does live here: it names this application's own
@@ -18,7 +18,9 @@ deliberate:
 ## How this reaches a board
 
 As a `.deb`, published from `main` or `testing` to this Gitea's Debian registry and installed
-with `apt` — [docs/packaging.md](docs/packaging.md). The board runs Raspberry Pi OS Lite.
+with `apt` — [docs/packaging.md](docs/packaging.md). The board runs Raspberry Pi OS Desktop,
+and what has to be true of its session before anything shows is
+[docs/session.md](docs/session.md).
 
 This tree is also a submodule of the **qt-hmi-buildroot** image repository, which builds it into
 a Buildroot image. That has one consequence worth stating plainly: a commit here changes
@@ -103,9 +105,9 @@ Run `docs/check-docs.sh` after touching anything under `docs/`.
 
 ## Engineering practices
 
-* **Fail loud.** Never repair a broken hardware path by adding a software one. The absent
-  llvmpipe, X and Wayland are a feature. The same goes for QML: never wrap a binding in a
-  guard that turns a missing value into a plausible-looking default.
+* **Fail loud.** Never repair a broken path by adding a fallback beside it — a second way to
+  get a picture is a first way that can break unnoticed. The same goes for QML: never wrap a
+  binding in a guard that turns a missing value into a plausible-looking default.
 * **Declarative first.** A screen is QML. C++ enters when QML cannot express the thing at
   all — not because a loop reads more familiarly there. New C++ that draws is a sign the
   work belongs in `drm-hmi`.
