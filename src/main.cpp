@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdarg>
 #include <cstring>
 #include <iostream>
@@ -9,8 +10,13 @@
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QMediaPlayer>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QQmlApplicationEngine>
+#include <QQuickWindow>
 #include <QString>
+#include <QThread>
+#include <QThreadPool>
 
 #include "app/AppState.hpp"
 #include "integrations/Integrations.hpp"
@@ -128,6 +134,49 @@ void routeLibavLog()
 	set(routeLibavMessages);
 }
 
+// WHICH GPU IS ACTUALLY DRAWING THIS.
+//
+// The Buildroot image carried no software rasteriser, so a v3d that did not bind was a black
+// screen and an obvious fault. Raspberry Pi OS ships llvmpipe, and there Qt does not fail at
+// all: it renders the whole scene on the CPU and says nothing. The panel still paints, just
+// slowly, and under load the GUI thread blocks on the render thread and the application stops
+// answering the keyboard - which reads as a hang, not as a missing driver.
+//
+// Runs on the render thread, where the context is current; DirectConnection is what puts it
+// there. glGetString needs no more than QOpenGLFunctions, which Gui already provides.
+void reportRenderer()
+{
+	QOpenGLContext* const context = QOpenGLContext::currentContext();
+	if (context == nullptr) {
+		LOG_WARN(applog::App) << "the scene graph came up on no OpenGL context - "
+		                      << "cannot say which renderer is drawing";
+		return;
+	}
+
+	QOpenGLFunctions* const gl = context->functions();
+	const auto text = [gl](GLenum name) {
+		const GLubyte* const value = gl->glGetString(name);
+		return std::string(value ? reinterpret_cast<const char*>(value) : "");
+	};
+
+	const std::string renderer = text(GL_RENDERER);
+	LOG_INFO(applog::App) << "renderer: " << renderer << " (" << text(GL_VENDOR) << "), "
+	                      << "GL " << text(GL_VERSION);
+
+	// Mesa's CPU drivers, by the names they answer with. A match is not a warning: nothing
+	// else in the process will ever complain, and every symptom it produces looks like a bug
+	// somewhere else.
+	for (const char* software : {"llvmpipe", "softpipe", "swrast", "Software Rasterizer"}) {
+		if (renderer.find(software) == std::string::npos)
+			continue;
+		LOG_ERROR(applog::App) << "THE SCENE IS BEING DRAWN ON THE CPU by " << renderer
+		                       << " - the GPU is not in the path. Expect the panel to stall "
+		                       << "under load and to stop answering the keyboard. Check that "
+		                       << "v3d bound and that this user can open /dev/dri/renderD128.";
+		return;
+	}
+}
+
 // The target ships no fonts and has no fontconfig, so a Text item there draws nothing at all
 // and says nothing about it - every label, axis and reading is simply absent. The bundled
 // face is what makes the scene independent of the image; the return value is checked because
@@ -216,6 +265,14 @@ int main(int argc, char *argv[])
 	                 &app, [] { QCoreApplication::exit(1); },
 	                 Qt::QueuedConnection);
 	engine.loadFromModule("QtHmi", "Main");
+
+	// After the load, because the window is what brings the scene graph up, and the scene
+	// graph is what has a context to ask.
+	if (!engine.rootObjects().isEmpty()) {
+		if (auto* const window = qobject_cast<QQuickWindow*>(engine.rootObjects().first()))
+			QObject::connect(window, &QQuickWindow::sceneGraphInitialized,
+			                 window, &reportRenderer, Qt::DirectConnection);
+	}
 
 	return app.exec();
 }

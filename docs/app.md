@@ -2,7 +2,7 @@
 
 > Owns: src/main.cpp
 > Owns: CMakeLists.txt
-> See:  docs/scene.md docs/state.md docs/targets.md docs/integrations.md
+> See:  docs/scene.md docs/state.md docs/targets.md docs/integrations.md docs/media.md docs/radio.md
 
 A `QGuiApplication`, an engine, one QML module compiled into the binary, a bundled font, and
 a set of network clients started beside it. The seam between the clients and the scene is
@@ -67,6 +67,26 @@ call, and in every `qmlRegisterSingletonInstance()` in `AppState.cpp` — and no
 that they agree. A rename in one place builds cleanly and fails at startup with "module
 QtHmi is not installed" or "Gate is not a type", either of which reads as a broken Qt.
 
+## What stops the screen, and how to tell which
+
+Input is on the GUI thread, and in Qt's threaded render loop that thread blocks on the render
+thread every frame — so anything slow in either reads identically from outside: the panel stops
+answering the keyboard. `Main.qml`'s `guiStall` timer ticks on the GUI thread and logs how late
+a tick was, so a freeze leaves a number behind instead of nothing.
+
+**The scene can be drawn on the CPU without a word.** The Buildroot image carried no software
+rasteriser, so a `v3d` that did not bind was a black screen and an obvious fault. Raspberry Pi
+OS ships llvmpipe and Qt simply uses it: the panel paints, slowly, and stalls under load.
+`reportRenderer()` runs on the render thread once the scene graph is up and says so at error
+level, because nothing else in the process ever will.
+
+**`QMediaPlayer::setSource()` is not a setter.** Qt's ffmpeg backend opens the media on
+`QThreadPool::globalInstance()`, waits for that task on the calling thread, and runs a
+not-yet-started open inline. So the pool is sized here against the number of players — one per
+core by default, four on the board against five cameras and the radio — and the scene never
+assigns `source` while `mediaStatus` is `LoadingMedia`: [media](docs/media.md),
+[radio](docs/radio.md). The wait measures about a millisecond; the inline open costs seconds.
+
 ## The font is in the binary
 
 The target has no fonts and no fontconfig. A `Text` item there draws nothing at all and says
@@ -80,7 +100,7 @@ alike, and both produce the same blank screen. The resource lives in its own
 under `:/qt/qml/QtHmi/` and break the path `main.cpp` opens.
 
 `QCoreApplication::setOrganizationName`/`setApplicationName` are set for `QSettings`, which
-the radio's remembered station goes through — see [media](docs/media.md). Without them
+the radio's remembered station goes through — see [radio](docs/radio.md). Without them
 `QSettings` refuses to open a file and says so only as a warning.
 
 ## CMake

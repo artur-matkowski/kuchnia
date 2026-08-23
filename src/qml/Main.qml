@@ -83,6 +83,24 @@ Window {
 		Binding { target: Carousel; property: "screenWidth"; value: scene.width }
 		Binding { target: Carousel; property: "screenHeight"; value: scene.height }
 
+		// A freeze is otherwise unreportable: a scene that has stopped painting cannot say so, and
+		// "it froze for a bit" is not something a log can be searched for. This names the number.
+		// It ticks on the GUI thread, so a tick that is late is time that thread could not run -
+		// it was inside something that blocked it. docs/app.md has the one that does.
+		Timer {
+			id: guiStall
+			property double last: Date.now()
+			interval: 100
+			repeat: true
+			running: true
+			onTriggered: {
+				const late = Date.now() - guiStall.last - guiStall.interval
+				guiStall.last = Date.now()
+				if (late > 250)
+					console.warn("[stall] the gui thread was blocked for " + late + " ms")
+			}
+		}
+
 		// Every context is instantiated once and stays instantiated: a transition animates
 		// elements of both screens at the same time, so both have to exist at the same time -
 		// and in the carousel all four are on screen at once as miniatures.
