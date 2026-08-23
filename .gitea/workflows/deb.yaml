@@ -61,7 +61,7 @@ jobs:
         run: |
           curl --fail --silent --show-error \
             --user "ci:${PACKAGE_TOKEN}" \
-            --upload-file "dist/qt-hmi_${{ steps.channel.outputs.version }}_arm64.deb" \
+            --upload-file "dist/kuchnia_${{ steps.channel.outputs.version }}_arm64.deb" \
             "${GITHUB_SERVER_URL}/api/packages/${GITHUB_REPOSITORY%%/*}/debian/pool/trixie/${{ steps.channel.outputs.component }}/upload"
           echo "==> published to ${{ steps.channel.outputs.component }}"
         env:

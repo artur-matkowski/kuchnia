@@ -5,7 +5,7 @@
 # An in-tree cmake run, which nothing here asks for but everyone does once.
 /CMakeCache.txt
 /CMakeFiles/
-/qt-hmi
+/kuchnia
 config.conf
 # A local agent's workspace. Not this project's, and never committed.
 /.opencode/
@@ -14,7 +14,7 @@ config.conf
 # obj- directory is named for the host architecture, so it is matched rather than listed.
 /obj-*/
 /debian/.debhelper/
-/debian/qt-hmi/
+/debian/kuchnia/
 /debian/debhelper-build-stamp
 /debian/files
 /debian/*.substvars

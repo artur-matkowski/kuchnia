@@ -249,9 +249,9 @@ int main(int argc, char *argv[])
 	// QSettings refuses to open a file without these and says so only as a warning, so the
 	// radio's remembered station would silently never be written. QML's Settings type is the
 	// only thing that reads them.
-	QCoreApplication::setOrganizationName("qt-hmi");
-	QCoreApplication::setOrganizationDomain("qt-hmi.local");
-	QCoreApplication::setApplicationName("qt-hmi");
+	QCoreApplication::setOrganizationName("kuchnia");
+	QCoreApplication::setOrganizationDomain("kuchnia.local");
+	QCoreApplication::setApplicationName("kuchnia");
 
 	loadBundledFont();
 
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
 	QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
 	                 &app, [] { QCoreApplication::exit(1); },
 	                 Qt::QueuedConnection);
-	engine.loadFromModule("QtHmi", "Main");
+	engine.loadFromModule("Kuchnia", "Main");
 
 	// After the load, because the window is what brings the scene graph up, and the scene
 	// graph is what has a context to ask.

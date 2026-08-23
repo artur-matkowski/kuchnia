@@ -1,6 +1,6 @@
 import QtQuick
 import QtMultimedia
-import QtHmi
+import Kuchnia
 
 // One RTSP stream.
 //

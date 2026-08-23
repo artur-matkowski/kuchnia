@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // The chance of rain, pinned to the whole scale. A probability chart that rescales itself puts
 // 40% at the top of the frame, which reads as a downpour from any distance at which the axis

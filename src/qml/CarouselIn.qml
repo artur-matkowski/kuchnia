@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // A SceneElement's way into the carousel, and there is nothing to it on purpose.
 //

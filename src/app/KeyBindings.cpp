@@ -98,7 +98,7 @@ std::unique_ptr<QSettings> KeyBindings::open() const
 	// different file in the same directory.
 	return m_path.isEmpty()
 		? std::make_unique<QSettings>(QSettings::IniFormat, QSettings::UserScope,
-		                              QStringLiteral("qt-hmi"), QStringLiteral("keys"))
+		                              QStringLiteral("kuchnia"), QStringLiteral("keys"))
 		: std::make_unique<QSettings>(m_path, QSettings::IniFormat);
 }
 

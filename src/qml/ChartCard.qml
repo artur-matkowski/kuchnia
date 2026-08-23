@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import QtHmi
+import Kuchnia
 
 // A card holding one forecast chart, drawn through the shared window in ForecastSpan.
 //

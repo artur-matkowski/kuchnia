@@ -49,12 +49,12 @@ void AppState::registerSingletons()
 	//
 	// The engine takes no ownership; every one of these outlives it because AppState is
 	// declared before the engine in main().
-	qmlRegisterSingletonInstance("QtHmi", 1, 0, "Cameras", m_cameras);
-	qmlRegisterSingletonInstance("QtHmi", 1, 0, "Gate", m_gate);
-	qmlRegisterSingletonInstance("QtHmi", 1, 0, "HotWater", m_hotWater);
-	qmlRegisterSingletonInstance("QtHmi", 1, 0, "KeyBindings", m_keys);
-	qmlRegisterSingletonInstance("QtHmi", 1, 0, "Radio", m_radio);
-	qmlRegisterSingletonInstance("QtHmi", 1, 0, "Weather", m_weather);
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Cameras", m_cameras);
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Gate", m_gate);
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "HotWater", m_hotWater);
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "KeyBindings", m_keys);
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Radio", m_radio);
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Weather", m_weather);
 }
 
 void AppState::setGateCommandSink(std::function<void(const std::string&)> sink)

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import QtHmi
+import Kuchnia
 
 Card {
 	id: root

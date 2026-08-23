@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: qt-hmi
-Source: https://git.example.com/<REDACTED>/qt-qml-hmi
+Upstream-Name: kuchnia
+Source: https://git.example.com/<REDACTED>/kuchnia
 
 Files: *
 Copyright: 2026 Artur <15357763+artur-matkowski@users.noreply.github.com>

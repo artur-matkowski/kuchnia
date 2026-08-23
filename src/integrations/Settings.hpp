@@ -67,5 +67,5 @@ enum class SettingsResult {
 
 // Resolves the config file, then the environment, then argv - lowest to highest priority.
 // Writes a default config file when the path cannot be read, which is how a board with no
-// /etc/qt-hmi.conf ends up with a documented one after its first boot.
+// /etc/kuchnia.conf ends up with a documented one after its first boot.
 SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* message);

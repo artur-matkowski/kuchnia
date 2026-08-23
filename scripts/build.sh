@@ -46,8 +46,8 @@ cmake -S "$ROOT" -B "$OUT" -DCMAKE_BUILD_TYPE=Release
 echo "==> build $TARGET"
 cmake --build "$OUT" --parallel "$(nproc)"
 
-echo "==> $OUT/qt-hmi"
+echo "==> $OUT/kuchnia"
 
 if [ "$RUN" = 1 ]; then
-	exec "$OUT/qt-hmi"
+	exec "$OUT/kuchnia"
 fi

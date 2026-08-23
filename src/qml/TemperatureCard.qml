@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import QtHmi
+import Kuchnia
 
 // What it is doing outside, right now. The one card of the six that carries the weather
 // client's error text, because it is the one that is on the screen in every weather context.

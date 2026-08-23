@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
-import QtHmi
+import Kuchnia
 
 // Wind speed, and where it is coming from.
 //

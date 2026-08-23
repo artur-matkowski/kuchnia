@@ -5,7 +5,7 @@
 #include "Config.hpp"
 #include "Log.hpp"
 
-const char* const kDefaultConfigPath = "/etc/qt-hmi.conf";
+const char* const kDefaultConfigPath = "/etc/kuchnia.conf";
 
 namespace {
 
@@ -59,14 +59,14 @@ std::vector<ParamInitializer> specs()
 
 		ParamInitializer(STRING, "mqtt-host", "<HOST_REDACTED>", "Broker address"),
 		ParamInitializer(INT,    "mqtt-port", 0,             "Broker port"),
-		ParamInitializer(STRING, "mqtt-user", "qt-hmi",
+		ParamInitializer(STRING, "mqtt-user", "kuchnia",
 			"Broker account the password authenticates, and not the client id"),
 		ParamInitializer(STRING, "mqtt-password", "",           "Broker password"),
-		ParamInitializer(STRING, "mqtt-client-id", "qt-hmi",
+		ParamInitializer(STRING, "mqtt-client-id", "kuchnia",
 			"Session name, not an account; unique on the broker or both clients flap"),
 		ParamInitializer(STRING_VECTOR, "mqtt-subscribe", kGateTopics,
 			"Topics subscribed on every connect"),
-		ParamInitializer(STRING, "mqtt-status-topic", "qt-hmi/available",
+		ParamInitializer(STRING, "mqtt-status-topic", "kuchnia/available",
 			"Retained online/offline topic, also this client's last will"),
 		ParamInitializer(INT,    "mqtt-heartbeat-ms", 60000,
 			"Milliseconds between heartbeat publishes; 0 disables them"),

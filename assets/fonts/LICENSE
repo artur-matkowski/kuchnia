@@ -5,5 +5,5 @@ software; it forbids selling the font on its own.
 The full licence text ships with the upstream package and is reproduced at
 https://openfontlicense.org/.
 
-These two faces are compiled into the qt-hmi binary so the scene's metrics do not depend on
+These two faces are compiled into the kuchnia binary so the scene's metrics do not depend on
 what the board's fontconfig happens to resolve - see src/main.cpp and docs/app.md.

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import QtHmi
+import Kuchnia
 
 // Five cameras across two rows, and the clock and the tank on a strip under them. The camera
 // cells are cut to 16:9 - the streams' own aspect - and the height that leaves over is what

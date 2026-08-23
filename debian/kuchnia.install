@@ -1,0 +1,3 @@
+debian/kuchnia.conf etc/
+debian/kuchnia.desktop etc/xdg/autostart/
+debian/kuchnia-autostart usr/libexec/

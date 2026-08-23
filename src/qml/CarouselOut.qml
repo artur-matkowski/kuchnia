@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // A SceneElement's way out of the carousel - see CarouselIn.qml for why there is no motion in
 // either.

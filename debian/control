@@ -1,4 +1,4 @@
-Source: qt-hmi
+Source: kuchnia
 Section: misc
 Priority: optional
 Maintainer: Artur <15357763+artur-matkowski@users.noreply.github.com>
@@ -22,7 +22,7 @@ Build-Depends: debhelper-compat (= 13),
                libpaho-mqttpp-dev,
                libpaho-mqtt-dev
 
-Package: qt-hmi
+Package: kuchnia
 Architecture: any
 # dh_shlibdeps sees none of these: they are QML imports, a dlopen'd platform plugin, a file
 # read off disk and a server reached over a socket. --as-needed drops even libQt6Quick from the
@@ -44,7 +44,7 @@ Depends: ${shlibs:Depends},
 # declines these. Raspberry Pi OS Desktop provides both and the LXDE-pi-labwc session on top.
 Recommends: lightdm,
             labwc
-Description: Qt Quick HMI for the house
+Description: Kuchnia - a Qt Quick dashboard of the house
  A dashboard of the house across five contexts: the cameras beside a
  clock and the hot water tank, the gate and its controls, the tank's
  last day, the weather forecast and an internet radio.

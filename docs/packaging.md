@@ -3,9 +3,9 @@
 > Owns: debian/changelog
 > Owns: debian/control
 > Owns: debian/copyright
-> Owns: debian/qt-hmi.conf
-> Owns: debian/qt-hmi.install
-> Owns: debian/qt-hmi.postinst
+> Owns: debian/kuchnia.conf
+> Owns: debian/kuchnia.install
+> Owns: debian/kuchnia.postinst
 > Owns: debian/rules
 > Owns: debian/source/format
 > Owns: .gitea/workflows/deb.yaml
@@ -14,7 +14,7 @@
 
 The board runs Raspberry Pi OS Desktop, and the application reaches it as a `.deb` from this
 Gitea's own Debian registry. `apt` is the whole deployment system: an update is
-`apt upgrade`, a rollback is `apt install qt-hmi=<older>`, and a new board is one
+`apt upgrade`, a rollback is `apt install kuchnia=<older>`, and a new board is one
 `sources.list` line. Nothing is flashed and no image is built.
 
 The desktop session is load-bearing: the package ships no display configuration at all and
@@ -27,10 +27,10 @@ curl -fsSL https://git.example.com/api/packages/<REDACTED>/debian/repository.key
   | sudo tee /etc/apt/keyrings/gitea-<REDACTED>.asc >/dev/null
 echo "deb [signed-by=/etc/apt/keyrings/gitea-<REDACTED>.asc] \
 https://git.example.com/api/packages/<REDACTED>/debian trixie main" \
-  | sudo tee /etc/apt/sources.list.d/qt-hmi.list
-sudo apt update && sudo apt install qt-hmi
-sudoedit /etc/qt-hmi.conf          # the two passwords are empty in the shipped file
-sudo adduser pi qt-hmi             # whichever account autologs in; postinst cannot guess it
+  | sudo tee /etc/apt/sources.list.d/kuchnia.list
+sudo apt update && sudo apt install kuchnia
+sudoedit /etc/kuchnia.conf          # the two passwords are empty in the shipped file
+sudo adduser pi kuchnia             # whichever account autologs in; postinst cannot guess it
 sudo raspi-config nonint do_boot_behaviour B4    # boot into the session, not the console
 ```
 
@@ -70,9 +70,9 @@ How the unit, the autostart entry and the session fit together is
 
 ## The config file
 
-`/etc/qt-hmi.conf` is a dpkg conffile, which is what makes a hand-edited copy survive an
-upgrade, and it is where the passwords go — `postinst` sets it `0640 root:qt-hmi`. Nothing
-in the package or in git ever carries a credential. `qt-hmi` is a group and not an account:
+`/etc/kuchnia.conf` is a dpkg conffile, which is what makes a hand-edited copy survive an
+upgrade, and it is where the passwords go — `postinst` sets it `0640 root:kuchnia`. Nothing
+in the package or in git ever carries a credential. `kuchnia` is a group and not an account:
 the reader is whoever logs into the session, and `postinst` cannot know which account that
 is, so it creates the group and prints the `adduser` line rather than guessing.
 
@@ -80,13 +80,13 @@ Two properties of the parser matter when editing it:
 
 * **An empty value is the same as no line at all.** The parser drops empty fields, so
   `mqtt-user:` does not clear the compiled-in default — it leaves it in place.
-* **An unreadable file is replaced, not reported.** A missing `/etc/qt-hmi.conf` makes the
+* **An unreadable file is replaced, not reported.** A missing `/etc/kuchnia.conf` makes the
   application write a default one; without the group it cannot, and it then runs on the
   compiled-in defaults having said so only at warning level. That is what a forgotten
   `adduser` looks like: a scene that draws, and no camera, database or broker in it.
 
 The path is compiled into `src/integrations/Settings.cpp` and repeated in
-`debian/qt-hmi.install` and `debian/qt-hmi.postinst`. Nothing checks that the three agree.
+`debian/kuchnia.install` and `debian/kuchnia.postinst`. Nothing checks that the three agree.
 
 ## Versions and channels
 
@@ -98,7 +98,7 @@ per repository and only climbs, so a testing build always outranks the last main
 tilde sorts below everything, so the `1.0.7` that eventually promotes `1.0.7~testing`
 outranks it in turn. It has nothing to do with the `VERSION` in `CMakeLists.txt`.
 
-Old versions stay in the pool, which is what makes `apt install qt-hmi=1.0.6` a rollback.
+Old versions stay in the pool, which is what makes `apt install kuchnia=1.0.6` a rollback.
 
 `trixie` is written in `.gitea/workflows/deb.yaml`'s upload URL, in `scripts/build-deb.sh`,
 and in every board's `sources.list`. All three are the same distribution and none of them

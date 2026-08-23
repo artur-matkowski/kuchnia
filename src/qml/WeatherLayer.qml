@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // The three weather cards that are on two screens at once.
 //

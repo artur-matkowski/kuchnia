@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 Card {
 	id: root

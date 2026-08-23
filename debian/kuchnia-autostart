@@ -1,5 +1,5 @@
 #!/bin/sh
-# Run by /etc/xdg/autostart/qt-hmi.desktop, from inside the session, which is the only place
+# Run by /etc/xdg/autostart/kuchnia.desktop, from inside the session, which is the only place
 # WAYLAND_DISPLAY and DISPLAY exist. The systemd user manager is a separate process started
 # before the compositor and it has neither, so a unit it starts without this import finds no
 # session to draw into and Qt aborts.
@@ -10,4 +10,4 @@
 set -e
 
 dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY
-exec systemctl --user start --no-block qt-hmi.service
+exec systemctl --user start --no-block kuchnia.service

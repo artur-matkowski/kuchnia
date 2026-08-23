@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // The weather on its own, over two forecast spans like the compact screen.
 //

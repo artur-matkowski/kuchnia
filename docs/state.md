@@ -16,7 +16,7 @@
 > See:  docs/app.md docs/integrations.md docs/scene.md docs/media.md
 
 Everything the scene binds to is a `QObject` under `src/app/`, registered as a QML singleton
-under the `QtHmi` URI. The network clients under `src/integrations/` know nothing about any
+under the `Kuchnia` URI. The network clients under `src/integrations/` know nothing about any
 of it: they call the plain `std::function`s in `Sinks.hpp`, and `AppState` is where those
 become Qt properties.
 

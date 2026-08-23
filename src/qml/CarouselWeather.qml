@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // The second set of the three weather cards, and it exists for one reason: in the carousel the
 // compact miniature and the weather miniature are on screen at the same time, and both of them

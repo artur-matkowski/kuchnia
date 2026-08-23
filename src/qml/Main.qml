@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Window
-import QtHmi
+import Kuchnia
 
 // The shell. It owns the geometry and the keys, and nothing else: what is on the screen is
 // decided by the contexts below it and by Nav.
@@ -26,7 +26,7 @@ Window {
 	// fullscreen request below is then accepted and does nothing.
 	visibility: fullscreen ? Window.FullScreen : Window.Windowed
 	color: Theme.background
-	title: "qt-qml-hmi"
+	title: "kuchnia"
 
 	Item {
 		id: scene

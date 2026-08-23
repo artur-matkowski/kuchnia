@@ -1,4 +1,4 @@
-qt-hmi (1.0.0) trixie; urgency=medium
+kuchnia (1.0.0) trixie; urgency=medium
 
   * Deliver the application as a Debian package.
 

@@ -1,4 +1,4 @@
-# qt-qml-hmi — a QML application on a panel
+# kuchnia — a Qt Quick dashboard of the house
 
 A Qt Quick application that runs fullscreen in a Raspberry Pi's desktop session, delivered to
 the board as a Debian package and started by the session it draws into.
@@ -14,7 +14,7 @@ is what draws it.
 
 There are two application repositories, and they are deliberately different in kind:
 
-| | `drm-hmi` | `qt-qml-hmi` |
+| | `drm-hmi` | `kuchnia` |
 |---|---|---|
 | What it is | A renderer, written from the DRM device up | An application, written on top of Qt Quick |
 | Where the effort goes | The backend: the seam, the context, the asset database | The product: what it shows and what it does |
@@ -57,10 +57,10 @@ knows nothing about any image.
 ## Run
 
 ```
-qt-hmi [--configpath <file>] [-platform <qpa>]
+kuchnia [--configpath <file>] [-platform <qpa>]
 ```
 
-Parameters come from `/etc/qt-hmi.conf`, then the environment, then the command line, each
+Parameters come from `/etc/kuchnia.conf`, then the environment, then the command line, each
 overriding the one before; `--help` lists them. The QPA platform is whatever the session
 provides — nothing here selects one. `fullscreen` decides whether the window asks for the
 whole screen; it ships on, and a local run wants it off.
@@ -75,12 +75,12 @@ curl -fsSL https://git.example.com/api/packages/<REDACTED>/debian/repository.key
   | sudo tee /etc/apt/keyrings/gitea-<REDACTED>.asc >/dev/null
 echo "deb [signed-by=/etc/apt/keyrings/gitea-<REDACTED>.asc] \
 https://git.example.com/api/packages/<REDACTED>/debian trixie main" \
-  | sudo tee /etc/apt/sources.list.d/qt-hmi.list
+  | sudo tee /etc/apt/sources.list.d/kuchnia.list
 ```
 
 `main` there is the channel: it and `testing` are two components of the one repository, so a
 board takes whichever it names. An update is `apt upgrade` and a rollback is
-`apt install qt-hmi=<older>`. What to do after the install, and what the package depends on
+`apt install kuchnia=<older>`. What to do after the install, and what the package depends on
 that nothing can see, are in [docs/packaging.md](docs/packaging.md); what has to be true of
 the board's session before any of it shows is [docs/session.md](docs/session.md).
 

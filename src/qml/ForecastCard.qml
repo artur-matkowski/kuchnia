@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // The temperature forecast, drawn through the window ForecastSpan owns.
 //

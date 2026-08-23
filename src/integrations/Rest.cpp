@@ -191,7 +191,7 @@ void Rest::step()
 
 	Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, path,
 	                               Poco::Net::HTTPMessage::HTTP_1_1);
-	request.set("User-Agent", "qt-hmi");
+	request.set("User-Agent", "kuchnia");
 	session->sendRequest(request);
 
 	Poco::Net::HTTPResponse response;

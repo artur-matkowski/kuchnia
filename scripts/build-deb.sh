@@ -79,8 +79,8 @@ DEB_BUILD_OPTIONS="${DEB_BUILD_OPTIONS:-} noautodbgsym" \
 
 # dpkg-buildpackage writes beside the source tree, which for a bind mount is outside it.
 mkdir -p "$ROOT/dist"
-mv "$ROOT"/../qt-hmi_*_"$HOST_ARCH".deb "$ROOT/dist/"
-rm -f "$ROOT"/../qt-hmi_*.buildinfo "$ROOT"/../qt-hmi_*.changes
+mv "$ROOT"/../kuchnia_*_"$HOST_ARCH".deb "$ROOT/dist/"
+rm -f "$ROOT"/../kuchnia_*.buildinfo "$ROOT"/../kuchnia_*.changes
 
 # Everything below is a bind mount written by root. Left alone the developer gets a tree
 # they cannot delete, so the build tree goes and the artifact takes the tree's ownership.

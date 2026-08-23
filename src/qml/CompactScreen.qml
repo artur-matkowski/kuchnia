@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // Everything that is not a camera: the weather, the gate, the tank's history and the radio.
 // Each panel is its own SceneElement, so the way this screen assembles itself is written

@@ -1,6 +1,6 @@
 pragma Singleton
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // What an action does. `KeyBindings` says which key runs which id; this says what the id means,
 // and the two are the whole of the input path.

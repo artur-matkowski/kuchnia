@@ -2,7 +2,7 @@ import QtCore
 import QtQuick
 import QtQuick.Layouts
 import QtMultimedia
-import QtHmi
+import Kuchnia
 
 // The internet radio. It shares one audio sink with the cameras and wins whenever it is
 // playing, which is what the Binding below publishes.

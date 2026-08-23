@@ -1,8 +1,8 @@
 # The session the application is drawn into
 
-> Owns: debian/qt-hmi.user.service
-> Owns: debian/qt-hmi.desktop
-> Owns: debian/qt-hmi-autostart
+> Owns: debian/kuchnia.user.service
+> Owns: debian/kuchnia.desktop
+> Owns: debian/kuchnia-autostart
 > See:  docs/packaging.md docs/scene.md docs/media.md docs/integrations.md
 
 The application is an ordinary client of whatever compositor the board logs into. It picks no
@@ -18,16 +18,16 @@ why. `raspi-config nonint do_boot_behaviour B4` is what puts it back.
 **`graphical-session.target` is never reached.** `/usr/bin/labwc-pi` execs the compositor and
 starts no systemd target, leaving the user manager on `basic`, `default`, `paths`, `sockets`
 and `timers`. The `WantedBy=` in the unit is correct where that target exists and inert here,
-so what actually starts the unit is `debian/qt-hmi.desktop` in `/etc/xdg/autostart`.
+so what actually starts the unit is `debian/kuchnia.desktop` in `/etc/xdg/autostart`.
 
 **The user manager has no `WAYLAND_DISPLAY`.** It was started before the compositor, and a
-unit started without that variable has no session to draw into. `debian/qt-hmi-autostart`
+unit started without that variable has no session to draw into. `debian/kuchnia-autostart`
 exists only to push it in before starting the unit. Raspberry Pi OS ships
 `env-display.desktop` doing the same import, but XDG autostart entries have no defined order
 between them, so relying on it is a race.
 
 Which account the display manager autologs in decides who this runs as, and that account has
-to be in the `qt-hmi` group to read the config — [packaging](docs/packaging.md). It is also
+to be in the `kuchnia` group to read the config — [packaging](docs/packaging.md). It is also
 what gives `QSettings` a home: the key bindings ([docs/input.md](docs/input.md)) and the
 radio station in `src/qml/RadioPanel.qml` land in that user's `~/.config`.
 

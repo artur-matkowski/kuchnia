@@ -74,7 +74,7 @@ variable and orphans whatever was exporting the old one.
 * **An unknown `--parameter` on the command line is skipped without a word.** A typo in an
   argument changes nothing and reports nothing. `specs()` is also one half of a pair with the
   shipped config file: a parameter added or removed here has to be added or removed in
-  `debian/qt-hmi.conf`, which nothing checks — [packaging](docs/packaging.md).
+  `debian/kuchnia.conf`, which nothing checks — [packaging](docs/packaging.md).
 * **`radio-url` and `radio-name` are one list read with one index.** `loadSettings()` refuses
   a pair of unequal length rather than letting the scene index past the end of one of them.
   Both split on commas, so a station name containing one becomes two names.

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import QtHmi
+import Kuchnia
 
 // The three readings the weather screen's top row would otherwise have nowhere to put: how
 // much cloud there is and how much is falling out of it, both right now. The charts under

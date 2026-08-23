@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(qt-qml-hmi VERSION 1.0 LANGUAGES CXX)
+project(kuchnia VERSION 1.0 LANGUAGES CXX)
 
 # Gui rather than Widgets: the scene is Quick end to end and there is no widget anywhere in
 # it. Quick pulls the scene graph; Qml pulls the engine main.cpp drives.
@@ -35,20 +35,20 @@ foreach(module Module-cpp-config Module-cpp-logger)
 	endif()
 endforeach()
 
-add_library(qt-hmi-modules STATIC
+add_library(kuchnia-modules STATIC
 	deps/Module-cpp-config/src/Config.cpp
 	deps/Module-cpp-logger/src/Logger.cpp
 	deps/Module-cpp-logger/src/TIme.cpp
 )
 
-target_include_directories(qt-hmi-modules PUBLIC
+target_include_directories(kuchnia-modules PUBLIC
 	deps/Module-cpp-config/src
 	deps/Module-cpp-logger/src
 )
 
-set_target_properties(qt-hmi-modules PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(kuchnia-modules PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-qt_add_executable(qt-hmi
+qt_add_executable(kuchnia
 	src/main.cpp
 	src/app/AppState.cpp
 	src/app/Cameras.cpp
@@ -68,7 +68,7 @@ qt_add_executable(qt-hmi
 	src/integrations/Settings.cpp
 )
 
-set(QT_HMI_QML
+set(KUCHNIA_QML
 	src/qml/Actions.qml
 	src/qml/Button.qml
 	src/qml/Card.qml
@@ -108,10 +108,10 @@ set(QT_HMI_QML
 )
 
 # Each QML file keeps its path relative to this file inside the module unless aliased,
-# so Main.qml would answer to qrc:/qt/qml/QtHmi/src/qml/Main.qml and the generated
+# so Main.qml would answer to qrc:/qt/qml/Kuchnia/src/qml/Main.qml and the generated
 # qmldir would carry this repository's directory layout. It resolves either way; the
 # alias is what keeps the module's public shape independent of where the sources sit.
-foreach(qml IN LISTS QT_HMI_QML)
+foreach(qml IN LISTS KUCHNIA_QML)
 	get_filename_component(name "${qml}" NAME)
 	set_source_files_properties("${qml}" PROPERTIES QT_RESOURCE_ALIAS "${name}")
 endforeach()
@@ -125,20 +125,20 @@ set_source_files_properties(src/qml/Theme.qml src/qml/Nav.qml src/qml/ForecastSp
 	src/qml/Cells.qml src/qml/Carousel.qml src/qml/Cctv.qml src/qml/Actions.qml
 	PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
-# URI QtHmi is the string main.cpp passes to loadFromModule() and the one AppState registers
+# URI Kuchnia is the string main.cpp passes to loadFromModule() and the one AppState registers
 # its singletons under; they are one fact in three places and nothing checks that they agree -
 # a mismatch is a runtime "module is not installed" or "is not a type", not a build failure.
-qt_add_qml_module(qt-hmi
-	URI QtHmi
+qt_add_qml_module(kuchnia
+	URI Kuchnia
 	VERSION 1.0
-	QML_FILES ${QT_HMI_QML}
+	QML_FILES ${KUCHNIA_QML}
 )
 
 # A plain resource rather than the QML module's RESOURCES, which would put these under
-# :/qt/qml/QtHmi/. main.cpp opens :/fonts/LiberationSans-Regular.ttf by that name, and
+# :/qt/qml/Kuchnia/. main.cpp opens :/fonts/LiberationSans-Regular.ttf by that name, and
 # addApplicationFont() reports a path that does not exist exactly as it reports a corrupt
 # font: -1, and a screen with no text on it.
-qt_add_resources(qt-hmi "fonts"
+qt_add_resources(kuchnia "fonts"
 	PREFIX "/fonts"
 	BASE assets/fonts
 	FILES
@@ -148,14 +148,14 @@ qt_add_resources(qt-hmi "fonts"
 
 # src/ on the path, so an include reads the same wherever it is written: src/app/ and
 # src/integrations/ include each other by their repo-relative names rather than by "../".
-target_include_directories(qt-hmi PRIVATE src)
+target_include_directories(kuchnia PRIVATE src)
 
-target_link_libraries(qt-hmi PRIVATE
+target_link_libraries(kuchnia PRIVATE
 	Qt6::Gui
 	Qt6::Multimedia
 	Qt6::Qml
 	Qt6::Quick
-	qt-hmi-modules
+	kuchnia-modules
 	Poco::Foundation
 	Poco::Net
 	Poco::NetSSL
@@ -169,4 +169,4 @@ target_link_libraries(qt-hmi PRIVATE
 )
 
 include(GNUInstallDirs)
-install(TARGETS qt-hmi RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS kuchnia RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

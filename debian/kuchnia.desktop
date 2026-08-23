@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Qt Quick HMI
+Name=Kuchnia
 Comment=Start the house dashboard in this session
-Exec=/usr/libexec/qt-hmi-autostart
+Exec=/usr/libexec/kuchnia-autostart
 Terminal=false
 NoDisplay=true

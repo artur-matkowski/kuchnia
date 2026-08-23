@@ -62,10 +62,10 @@ load leaves a valid engine with no root object, which then runs the event loop f
 board that is a live process painting nothing — the same symptom as a GPU that never bound.
 The `objectCreationFailed` connection is the only thing turning that into an exit code.
 
-**`URI QtHmi` is written three times** — in `qt_add_qml_module()`, in the `loadFromModule()`
+**`URI Kuchnia` is written three times** — in `qt_add_qml_module()`, in the `loadFromModule()`
 call, and in every `qmlRegisterSingletonInstance()` in `AppState.cpp` — and nothing checks
 that they agree. A rename in one place builds cleanly and fails at startup with "module
-QtHmi is not installed" or "Gate is not a type", either of which reads as a broken Qt.
+Kuchnia is not installed" or "Gate is not a type", either of which reads as a broken Qt.
 
 ## What stops the screen, and how to tell which
 
@@ -97,7 +97,7 @@ the face out of `:/fonts/` and makes it the application font. It checks the resu
 `addApplicationFont` answers `-1` for a missing resource path and a corrupt face alike, and
 neither is visible afterwards: the scene just draws in whatever fontconfig picked. The
 resource lives in its own `qt_add_resources()` call rather than in the QML module's
-`RESOURCES`, which would put it under `:/qt/qml/QtHmi/` and break the path `main.cpp` opens.
+`RESOURCES`, which would put it under `:/qt/qml/Kuchnia/` and break the path `main.cpp` opens.
 
 `QCoreApplication::setOrganizationName`/`setApplicationName` are set for `QSettings`, which
 the radio's remembered station goes through — see [radio](docs/radio.md). Without them

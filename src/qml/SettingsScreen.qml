@@ -1,5 +1,5 @@
 import QtQuick
-import QtHmi
+import Kuchnia
 
 // The key bindings, one row per action. The rows are drawn in the order KeyBindings lists its
 // actions and nothing checks that they agree: drawn in another order, the selection appears to
