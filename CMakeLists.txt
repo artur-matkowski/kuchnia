@@ -171,3 +171,15 @@ target_link_libraries(kuchnia PRIVATE
 
 include(GNUInstallDirs)
 install(TARGETS kuchnia RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# The RTSP diagnostic tool, which is not part of the application: it plays the same streams
+# through the same VideoOutput with Qt's decoder taken out of the path, to answer whether a
+# camera that will not come up is the stream or the backend. See docs/rtsp.md.
+#
+# OFF by default because debian/rules configures with nothing but its own options - a default
+# of ON would build it into every package run, and one install() rule away from shipping it.
+option(KUCHNIA_TOOLS "Build the diagnostic tools under tools/" OFF)
+
+if(KUCHNIA_TOOLS)
+	add_subdirectory(tools/rtsp-probe)
+endif()
