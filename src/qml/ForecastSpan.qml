@@ -25,8 +25,10 @@ Item {
 	// documents. Once a minute is finer than a pixel at any of these spans.
 	property real now: Date.now()
 
-	readonly property real windowStart: span.now
-	readonly property real windowEnd: span.now + span.ms
+	// The window as ONE value - x is where it starts, y is where it ends. Two properties are
+	// assigned one after the other, and a chart that reads them between the two assignments
+	// draws a window that starts at the epoch; see LineChart.qml.
+	readonly property point window: Qt.point(span.now, span.now + span.ms)
 
 	// Which span is showing, taken from the context id so it changes on the key press rather
 	// than following the range as it eases.

@@ -74,13 +74,12 @@ itself. Panels anchor below `contentTop` instead.
 
 ## Charts draw nothing when they have nothing
 
-`LineChart` renders `no data` for an empty or single-point series. It must never fall back to
-a flat line at zero: that is indistinguishable from a real reading, and the panel's status
-badge is the only thing that would contradict it.
+`LineChart` renders `no data` for an empty or single-point series, and must never fall back
+to a flat line at zero: that is indistinguishable from a real reading.
 
-`_plot()` reads `plot.width` and `plot.height` instead of taking them as arguments, and that
-is what re-evaluates the `PathPolyline` binding on a resize — QML records every property read
-during an evaluation, called functions included. Passed in, the line draws once and never again.
+`_plot()` reads `plot.width`/`plot.height` instead of taking them as arguments, and that is
+what re-evaluates the `PathPolyline` binding on a resize — QML records every property read
+during an evaluation, called functions included. Passed in, the line draws once and no more.
 
 **`_range()` and `_plot()` run on every frame of a span change, on every visible chart, so
 neither may touch `series.points`.** It is a `QVariantList` of `QPointF` and every element
@@ -91,29 +90,30 @@ they binary-search the window rather than scanning. A series that stopped ascend
 drawn truncated at the first step backwards, with nothing anywhere saying so.
 
 The grid is gated on `hasVisible` for the same reason the axes are: a full grid with no line
-in it is the "empty frame" that `no data` exists to prevent. Its horizontals land on round
-values, so the step is taken from a range that moves while a span animates - a line arriving
-or leaving at an edge mid-transition is that, and not a fault.
+in it is the "empty frame" that `no data` exists to prevent.
 
 **Neither grid may be a `Repeater` over a list.** A `Repeater` handed a new model tears down
 every delegate and builds a fresh set, on the GUI thread, inside the binding that moved it -
 a grid that follows the range stops the panel. `_levels()` and `_days()` answer a count and a
 delegate works out its own value from `index`, because a count holds still while values move.
 
-`minimumSpan` forces the vertical range open when the data is nearly flat, so a tank holding
-steady renders as a steady line rather than as sensor noise magnified across the whole
-height.
-
-`fixedLow`/`fixedHigh` take the vertical range away from the data - the precipitation chart
-is pinned to 0-100% and the tank to its 20-65 degrees, the same bounds its gauge carries. A
-fixed range does not change what `hasVisible` means: the point count is still taken over the
-window, so an empty window still draws `no data` rather than an empty frame with axes.
+`minimumSpan` opens the vertical range when the data is nearly flat, so a tank holding steady
+is a steady line and not sensor noise magnified. `fixedLow`/`fixedHigh` take the range away
+from the data altogether, and neither changes what `hasVisible` means: the point count is
+still taken over the window, so an empty window draws `no data` and not an empty frame.
 
 ## The chart's window is what the forecast spans animate
 
-`windowStart`/`windowEnd` left at zero means "the whole series", which is what the hot water
-history wants. The weather panel drives them instead, and animating `windowEnd` is the whole
-of the compression between the forecast spans - see [contexts](docs/contexts.md).
+`window` left at `0,0` means "the whole series", which is what the hot water history wants.
+The weather panel drives it instead, and animating `y` is the whole of the compression
+between the forecast spans - see [contexts](docs/contexts.md).
+
+**It is one property because two would be assigned one after the other.** A chart that has
+never been visible has no window at all, so the evaluation between the first assignment and
+the second sees an end and no start - a window running from the epoch, whose day grid is
+twenty thousand `Rectangle`s built on the GUI thread. That was four and a half seconds on the
+first menu press, from `CarouselWeather`'s copies, and it is why `ForecastSpan` publishes a
+point rather than two reals.
 
 **A `ChartCard` follows the window only while it can be seen.** An invisible item stops
 rendering but not evaluating, and four of the six charts are off screen at any moment - the

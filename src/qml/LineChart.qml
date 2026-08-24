@@ -20,11 +20,16 @@ Item {
 	property int decimals: 1
 	property string unit: ""
 
-	// The visible time range, in milliseconds since the epoch. Left at zero, the chart draws
-	// the whole series - which is what the hot water history wants. The weather panel drives
-	// them instead, and animating windowEnd is what compresses the forecast horizontally.
-	property real windowStart: 0
-	property real windowEnd: 0
+	// The visible time range, in milliseconds since the epoch: x is where it starts and y is
+	// where it ends. Left at 0,0 the chart draws the whole series - which is what the hot water
+	// history wants. The weather panel drives it instead, and animating y is what compresses
+	// the forecast horizontally.
+	//
+	// ONE property and not two. Two are assigned one after the other, and the evaluation
+	// between the two assignments sees an end with no start - a window running from the epoch,
+	// whose day grid is twenty thousand lines that this file will faithfully build. See
+	// ChartCard.qml, which is where that happened.
+	property point window: Qt.point(0, 0)
 
 	// DaylightBand gadgets: .from and .to, milliseconds. Drawn behind the line, so night is
 	// the bare surface and day is washed.
@@ -53,8 +58,10 @@ Item {
 
 	readonly property bool hasData: _flat.xs.length > 1
 
-	readonly property real xLow: windowEnd > windowStart ? windowStart : (hasData ? series.xMin : 0)
-	readonly property real xHigh: windowEnd > windowStart ? windowEnd : (hasData ? series.xMax : 0)
+	readonly property real xLow:
+		root.window.y > root.window.x ? root.window.x : (hasData ? series.xMin : 0)
+	readonly property real xHigh:
+		root.window.y > root.window.x ? root.window.y : (hasData ? series.xMax : 0)
 
 	// Where the window falls in the series: `first` is the first point at or after xLow, `last`
 	// the first one past xHigh. Everything below works on that slice and not on the whole

@@ -60,15 +60,14 @@ Card {
 	// RestoreNone leaves the parked window in place instead of reverting it to zero. The
 	// binding is back on the frame opacity first rises above zero, which is before the card
 	// has been drawn, so a chart never arrives showing the span it left on.
+	//
+	// ONE Binding, and that is not a tidying. Two of them take effect one after the other, so
+	// a chart being made visible for the first time - the carousel's copies, and only ever on
+	// the first press - had an end and no start for one evaluation: a window from 1970 to next
+	// week, and a day grid of twenty thousand lines built on the GUI thread.
 	Binding {
-		target: chart; property: "windowStart"
-		value: ForecastSpan.windowStart
-		when: chart.visible
-		restoreMode: Binding.RestoreNone
-	}
-	Binding {
-		target: chart; property: "windowEnd"
-		value: ForecastSpan.windowEnd
+		target: chart; property: "window"
+		value: ForecastSpan.window
 		when: chart.visible
 		restoreMode: Binding.RestoreNone
 	}
