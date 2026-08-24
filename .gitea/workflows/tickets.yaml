@@ -1,0 +1,37 @@
+# Refuse a pull request that closes a ticket in the wrong place, or that leaves one
+# unaccounted for. The rule, and what each refusal is protecting, are docs/delivery.md.
+#
+# The workflow name and the job id spell the status context that both branch protection
+# rules require - `tickets / gate (pull_request)`. Rename either and Gitea waits for a
+# context that never arrives: every pull request stays unmergeable and nothing says why.
+name: tickets
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    # A clone and a regex. It is its own workflow rather than a job in deb.yaml so that the
+    # thing standing between a person and the merge button never waits on an arm64 build.
+    container:
+      image: debian:trixie
+
+    steps:
+      - name: Tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git ca-certificates python3
+
+      # A plain clone rather than actions/checkout, as in deb.yaml: no node in the container
+      # and no reachable action registry. The checkout is the pull request's own head, so a
+      # change to the check runs against itself.
+      - name: Checkout
+        run: |
+          git config --global --add safe.directory '*'
+          git clone --quiet "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+          git checkout --quiet "${GITHUB_SHA}"
+
+      - name: Check
+        run: python3 scripts/check-pr.py

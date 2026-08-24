@@ -122,9 +122,13 @@ Run `docs/check-docs.sh` after touching anything under `docs/`.
   3) Every public comment and commit states that it was written by an LLM, and which one, so
      human and AI authorship stay distinguishable.
   4) When solving a ticket, always push to a branch and hand over by creating a PR.
-  5) Every PR body names its ticket. Based on `main`: `Closes #N`. Based on anything else:
-     `Refs #N`, because a closing keyword closes the ticket on *that* merge whatever the base
-     is, reporting the work done before `main` has it; the `main`-bound PR carries the close.
+  5) A closing keyword — `closes`, `fixes`, `resolves` — may exist in exactly one place: the
+     body of a PR based on `main`. Not in a commit, not in a `testing`-bound PR, and not in
+     prose: *"it would be wrong to close #36 on this anyway"* closed #36 on a `testing` merge.
+     Everywhere else a ticket is named `Refs #N` — in the PR body and in a commit message
+     both, because a promotion reads its list from the commits — and a PR that carries no
+     ticket says `No ticket`. `tickets / gate` refuses the rest and takes the merge button
+     with it: [docs/delivery.md](docs/delivery.md).
   6) When reviewing a PR, hand findings over as PR comments — do not fix them yourself.
   7) **Only a human merges a PR.**
   8) Only human review application visuals, anything that requires screenshoting has to be 

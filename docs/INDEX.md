@@ -38,6 +38,7 @@ PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through o
 | [session](docs/session.md) | How the application gets on screen: the target that is never reached, and the variable systemd does not have |
 | [rtsp](docs/rtsp.md) | Whether a tile that will not come up is the stream, the network or Qt: the two tools that tell them apart |
 | [diagnostics](docs/diagnostics.md) | Where the GUI thread was when it stopped answering: the watchdog that reports mid-freeze, and how one is captured |
+| [delivery](docs/delivery.md) | How a ticket closes: the one place a closing keyword may live, and the gate that refuses the rest |
 
 ## Navigating
 
