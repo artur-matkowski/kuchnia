@@ -26,7 +26,8 @@ std::vector<ParamInitializer> specs()
 {
 	return {
 		ParamInitializer(STRING, "log-level", "info",
-			"Lowest level that reaches stdout: debug, info, warning or error"),
+			"Lowest level that reaches stdout: debug, info, warning or error. A topic can be "
+			"raised on its own after it - info,QT=debug,PERF=debug"),
 
 		// BOOL and not FLAG: a FLAG's default is hardwired false and no config line can turn
 		// it on, and this one has to default to on for the board. The parser is

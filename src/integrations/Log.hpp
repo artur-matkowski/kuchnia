@@ -25,6 +25,10 @@ inline constexpr const char* Db   = "DB";
 inline constexpr const char* Rest = "REST";
 inline constexpr const char* Mqtt = "MQTT";
 
+// Where the GUI thread was when it stopped answering - see docs/diagnostics.md. Silent at
+// info: the spans are debug lines and only the watchdog's stall reports are warnings.
+inline constexpr const char* Perf = "PERF";
+
 // Everything Qt itself says - the scene graph, QML warnings, the media backend and libav
 // under it. main.cpp installs the handler that routes them here; without it they go to
 // stderr, which on the board is not the file anybody reads.
@@ -38,8 +42,10 @@ inline constexpr const char* Gui  = "QT";
 // what they turned out to say.
 void init();
 
-// Raises the minimum level on every topic. An unrecognised name is reported and leaves the
-// level where it was.
+// The minimum level, either for every topic - "info" - or for every topic and then some of
+// them by name: "info,QT=debug,PERF=debug". Fields are applied LEFT TO RIGHT, so a bare level
+// after a topic's own wipes it. An unrecognised level or topic is reported and changes
+// nothing.
 void setLevel(const std::string& level);
 
 // The logger's own stream for one level, for handing to a library that logs into a
@@ -55,6 +61,9 @@ std::ostream& stream(debug::LogLevel level, const char* topic);
 // '\n'. Writing through it directly makes a forgotten newline into a line that never
 // appears, and two threads on one topic into interleaved bytes - both silent. Going
 // through this type makes each line atomic and terminated by construction.
+//
+// It is also what puts a wall clock time on the line. The logger writes none, and a log with
+// no times in it cannot answer the only question a freeze asks: how long was the gap.
 class Line {
 public:
 	Line(debug::LogLevel level, const char* topic);

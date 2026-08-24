@@ -29,19 +29,19 @@ discards every line written before that — including its own complaints. `applo
 therefore the first statement in `main()`, ahead of reading the settings, because reading
 them logs.
 
-**And it writes into `cout`'s buffer without ever flushing it.** A redirected stdout is
-fully buffered, which is exactly how the board runs this — `S99app` appends to
-`/var/log/app.log`. Without the `setvbuf` line-buffering call in `init()` the log stays
-empty until 4K accumulates, and a process that is killed rather than returning from `main`
-loses all of it. That is every case worth reading a log for. Delete that line and the
-symptom is an empty log file on a board that is plainly running.
+**And it writes into `cout`'s buffer without ever flushing it.** A stdout that is not a
+terminal is fully buffered, which is how the board runs this — the unit's is a pipe into the
+journal. Without the `setvbuf` line-buffering call in `init()` the log stays empty until 4K
+accumulates, and a process killed rather than returning from `main` loses all of it. That is
+every case worth reading a log for.
 
 Its stream flushes on `'\n'` and on nothing else, and hands out **one shared buffer per
 (level, topic)**. Writing to it directly makes a forgotten newline a line that never appears
 and two threads a line that interleaves — both silent. `applog::Line` exists so neither is
 possible: it assembles the text, then emits it terminated and under a lock in its
 destructor. Use the `LOG_*` macros, or construct a `Line` directly when a loop has to build
-one line across several statements.
+one line across several statements. It is also what puts the wall clock time on the line —
+the logger writes none, and a log with no times in it cannot answer how long a gap was.
 
 `applog::stream()` hands out the raw stream for a library that logs into a `std::ostream`.
 It bypasses the lock, so it suits only a library that logs from one thread —
@@ -50,7 +50,11 @@ It bypasses the lock, so it suits only a library that logs from one thread —
 An unregistered topic makes the logger complain to `cerr` **per line**. Topics live in
 `kTopics` in `Log.cpp` and in the constants atop `Log.hpp`; adding one means both. `QT` is
 one of them and is written to only by the message handler `main.cpp` installs — see
-[app](docs/app.md).
+[app](docs/app.md); `PERF` is the other, and is [diagnostics](docs/diagnostics.md).
+
+`log-level` raises every topic, or every topic and then some of them by name —
+`info,QT=debug,PERF=debug`. **The fields are applied in the order they are written**, so a
+bare level after a topic's own quietly wipes it.
 
 ## Two headers that pollute the global namespace
 
