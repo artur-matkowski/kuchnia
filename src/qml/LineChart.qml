@@ -174,6 +174,16 @@ Item {
 		return out
 	}
 
+	// The two grids, as counts and not as lists, and this is the whole reason the two functions
+	// below answer an object. A Repeater handed a list rebuilds EVERY delegate the moment any
+	// value in it moves - clear() destroys them and regenerate() incubates a fresh set, on the
+	// GUI thread, inside whatever binding made the change. Handed a count it rebuilds only when
+	// the NUMBER of lines changes, and the lines that already exist slide to their new values
+	// through their own bindings. The count is what stays still while the window moves, so the
+	// price of a range that eases is a few numbers and not a few hundred QQuickItems.
+	readonly property var _levelGrid: _levels()
+	readonly property var _dayGrid: _days()
+
 	// The grid step: the smallest of 1, 2 or 5 times a power of ten that leaves about five
 	// divisions across the range, so a line lands on a value that can be named - every ten
 	// degrees across the tank's range, every twenty percent across a cloud cover chart.
@@ -187,38 +197,51 @@ Item {
 		return 10 * magnitude
 	}
 
-	// Every round value strictly inside the vertical range. The range follows the window and
-	// the window animates, so a line can arrive or leave at an edge part-way through a span
-	// change - which is the price of lines that mean something over lines at fixed fractions.
+	// Every round value strictly inside the vertical range, as the first of them, the step
+	// between them and how many there are. The range follows the window and the window
+	// animates, so a line can arrive or leave at an edge part-way through a span change - which
+	// is the price of lines that mean something over lines at fixed fractions.
 	function _levels() {
 		const span = yHigh - yLow
 		if (!hasVisible || span <= 0)
-			return []
+			return { first: 0, step: 0, count: 0 }
 
 		const step = _step(span)
-		const out = []
-		for (let v = Math.ceil(yLow / step) * step; v < yHigh; v += step)
-			if (v > yLow)
-				out.push(v)
-		return out
+
+		// Strictly inside, at both ends: a line sitting exactly on an edge is the frame drawn
+		// a second time, in the grid's colour.
+		let first = Math.ceil(yLow / step) * step
+		if (first <= yLow)
+			first += step
+
+		return { first: first, step: step, count: Math.max(0, Math.ceil((yHigh - first) / step)) }
 	}
 
-	// Local midnight inside the window. Stepped with setDate and never by adding 86400000: the
-	// clock changes twice a year, and a day of fixed milliseconds puts every line after the
-	// change an hour off the midnight it claims to be - which reads as a forecast that is
-	// wrong rather than as a grid that is.
+	// Local midnight inside the window, as the first one and how many follow it. Stepped with
+	// setDate and never by adding 86400000: the clock changes twice a year, and a day of fixed
+	// milliseconds puts every line after the change an hour off the midnight it claims to be -
+	// which reads as a forecast that is wrong rather than as a grid that is. `_dayAfter` is
+	// that same calendar step, and it is what a delegate walks to reach its own line.
 	function _days() {
 		if (!hasVisible)
-			return []
+			return { first: 0, count: 0 }
 
-		const out = []
 		const at = new Date(xLow)
 		at.setHours(24, 0, 0, 0)
+
+		const first = at.getTime()
+		let count = 0
 		while (at.getTime() < xHigh) {
-			out.push(at.getTime())
+			++count
 			at.setDate(at.getDate() + 1)
 		}
-		return out
+		return { first: first, count: count }
+	}
+
+	function _dayAfter(first, n) {
+		const at = new Date(first)
+		at.setDate(at.getDate() + n)
+		return at.getTime()
 	}
 
 	// The format follows the width of the window rather than being fixed: a week labelled
@@ -283,16 +306,20 @@ Item {
 			}
 		}
 
-		// The grid, over the daylight wash and under the line. Both models answer empty while the
-		// chart has nothing to draw, which is what keeps a window past the end of the forecast
-		// reading as "no data" rather than as a frame with nothing happening in it.
+		// The grid, over the daylight wash and under the line. Both models answer a count of
+		// zero while the chart has nothing to draw, which is what keeps a window past the end
+		// of the forecast reading as "no data" rather than as a frame with nothing happening
+		// in it. Each line works out its own value from `index`, because a model that is a
+		// count is a model that does not change when the range merely moves - see _levels.
 		Repeater {
-			model: root._levels()
+			model: root._levelGrid.count
 
 			Rectangle {
+				readonly property real level:
+					root._levelGrid.first + index * root._levelGrid.step
 				readonly property real span: Math.max(1e-6, root.yHigh - root.yLow)
 
-				y: Math.round(plot.height - (modelData - root.yLow) / span * plot.height)
+				y: Math.round(plot.height - (level - root.yLow) / span * plot.height)
 				width: plot.width
 				height: 1
 				color: Theme.grid
@@ -300,12 +327,13 @@ Item {
 		}
 
 		Repeater {
-			model: root._days()
+			model: root._dayGrid.count
 
 			Rectangle {
+				readonly property real at: root._dayAfter(root._dayGrid.first, index)
 				readonly property real span: Math.max(1, root.xHigh - root.xLow)
 
-				x: Math.round((modelData - root.xLow) / span * plot.width)
+				x: Math.round((at - root.xLow) / span * plot.width)
 				width: 1
 				height: plot.height
 				color: Theme.grid

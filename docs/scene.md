@@ -45,25 +45,21 @@ QML accepts a redeclared property silently and then behaves oddly somewhere else
 ## Sizes come from Theme
 
 `Theme` carries the type scale — `fontLabel`, `fontBody`, `fontReading`, `fontHero` — and
-every size in the scene is one of them. The panel is read from two to three metres, which is
-the whole reason: a literal pixel size written while looking at a desktop window is always
-too small, and nothing on screen says so.
+every size in the scene is one of them. A literal pixel size written while looking at a
+desktop window is too small on a panel read from two to three metres, and nothing says so.
 
 ## The status detail needs a width
 
 `StatusBadge`'s text elides, and elide needs a width. `Card` gives it whatever its title
 leaves through `maximumWidth`; unbounded, a connection error prints straight across the
-card's own title, which is the one line saying which panel it is. The narrow card on the
-camera screen also passes `status` without `statusDetail`, because what fits there is not
-worth reading.
+card's own title, which is the one line saying which panel it is.
 
 ## A button has no size of its own
 
 `Button` sets implicit sizes and never `width`/`height`: the panels put their controls in a
 layout and let it stretch them across the card, and a button that assigns its own size never
 fills the box it was given. `SegmentedBar` is the same control for a set of commands that
-belong together - the gate's Open/Stop/Close - drawn as one bar, with only the two outer
-corners rounded and each section squared off against its neighbour.
+belong together - the gate's Open/Stop/Close - drawn as one bar.
 
 Both take their **height** from the type scale and not from what the card has left over. A
 `Layout.fillHeight` on either hands it every pixel the readings above it did not use, which
@@ -82,10 +78,9 @@ itself. Panels anchor below `contentTop` instead.
 a flat line at zero: that is indistinguishable from a real reading, and the panel's status
 badge is the only thing that would contradict it.
 
-`_plot()` reads `plot.width` and `plot.height`, which is what makes the `PathPolyline`
-binding re-evaluate on a resize — QML records every property read during an evaluation,
-inside called functions included, so the dependency does not have to be named anywhere. A
-version of that function that took the size as arguments would draw once and never again.
+`_plot()` reads `plot.width` and `plot.height` instead of taking them as arguments, and that
+is what re-evaluates the `PathPolyline` binding on a resize — QML records every property read
+during an evaluation, called functions included. Passed in, the line draws once and never again.
 
 **`_range()` and `_plot()` run on every frame of a span change, on every visible chart, so
 neither may touch `series.points`.** It is a `QVariantList` of `QPointF` and every element
@@ -99,6 +94,11 @@ The grid is gated on `hasVisible` for the same reason the axes are: a full grid 
 in it is the "empty frame" that `no data` exists to prevent. Its horizontals land on round
 values, so the step is taken from a range that moves while a span animates - a line arriving
 or leaving at an edge mid-transition is that, and not a fault.
+
+**Neither grid may be a `Repeater` over a list.** A `Repeater` handed a new model tears down
+every delegate and builds a fresh set, on the GUI thread, inside the binding that moved it -
+a grid that follows the range stops the panel. `_levels()` and `_days()` answer a count and a
+delegate works out its own value from `index`, because a count holds still while values move.
 
 `minimumSpan` forces the vertical range open when the data is nearly flat, so a tank holding
 steady renders as a steady line rather than as sensor noise magnified across the whole
