@@ -2,7 +2,7 @@
 
 > Owns: src/main.cpp
 > Owns: CMakeLists.txt
-> See:  docs/scene.md docs/state.md docs/targets.md docs/integrations.md docs/media.md docs/radio.md
+> See:  docs/scene.md docs/state.md docs/targets.md docs/integrations.md docs/media.md docs/radio.md docs/diagnostics.md
 
 A `QGuiApplication`, an engine, one QML module compiled into the binary, a bundled font, and
 a set of network clients started beside it. The seam between the clients and the scene is
@@ -71,8 +71,7 @@ Kuchnia is not installed" or "Gate is not a type", either of which reads as a br
 
 Input is on the GUI thread, and in Qt's threaded render loop that thread blocks on the render
 thread every frame — so anything slow in either reads identically from outside: the panel stops
-answering the keyboard. `Main.qml`'s `guiStall` timer ticks on the GUI thread and logs how late
-a tick was, so a freeze leaves a number behind instead of nothing.
+answering the keyboard. Which of the two it was is [diagnostics](docs/diagnostics.md).
 
 **The scene can be drawn on the CPU without a word.** Raspberry Pi OS ships llvmpipe, so a
 `v3d` that does not bind is not a black screen and not an error — Qt simply renders the whole

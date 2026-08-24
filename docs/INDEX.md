@@ -36,6 +36,7 @@ PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through o
 | [targets](docs/targets.md) | The desktop build and the package's cross build, and what a Qt cross build needs beyond a compiler |
 | [packaging](docs/packaging.md) | The `.deb`, the two channels it is published to, and the dependencies nothing can see |
 | [session](docs/session.md) | How the application gets on screen: the target that is never reached, and the variable systemd does not have |
+| [diagnostics](docs/diagnostics.md) | Where the GUI thread was when it stopped answering: the watchdog that reports mid-freeze, and how one is captured |
 
 ## Navigating
 

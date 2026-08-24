@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Shapes
+import Kuchnia
 
 // One line, drawn from a ChartSeries. Used by the weather forecast and the hot water history.
 //
@@ -70,7 +71,18 @@ Item {
 	readonly property real yLow: range.low
 	readonly property real yHigh: range.high
 
+	// The three below are timed behind `Trace.enabled`, and it is CONSTANT for that reason: a
+	// NOTIFYable property read here would become a dependency of every binding these serve.
 	function _flatten() {
+		if (Trace.enabled) Trace.begin("chart.flatten")
+		try {
+			return _flattenSeries()
+		} finally {
+			if (Trace.enabled) Trace.end("chart.flatten")
+		}
+	}
+
+	function _flattenSeries() {
 		const points = (series !== null && series.points !== undefined) ? series.points : []
 		const xs = new Array(points.length)
 		const ys = new Array(points.length)
@@ -115,6 +127,15 @@ Item {
 	}
 
 	function _range() {
+		if (Trace.enabled) Trace.begin("chart.range")
+		try {
+			return _rangeInWindow()
+		} finally {
+			if (Trace.enabled) Trace.end("chart.range")
+		}
+	}
+
+	function _rangeInWindow() {
 		const empty = { count: 0, low: 0, high: 0 }
 		if (!hasData)
 			return empty
@@ -153,6 +174,15 @@ Item {
 	// a resize: QML records every property read during an evaluation, called functions
 	// included, so the dependency does not have to be named anywhere.
 	function _plot() {
+		if (Trace.enabled) Trace.begin("chart.plot")
+		try {
+			return _plotPoints()
+		} finally {
+			if (Trace.enabled) Trace.end("chart.plot")
+		}
+	}
+
+	function _plotPoints() {
 		if (!hasVisible || plot.width <= 0 || plot.height <= 0)
 			return []
 

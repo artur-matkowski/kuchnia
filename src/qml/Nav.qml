@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Kuchnia
 
 // The context machine. Exactly one context is ON; everything else is OFF, and nothing draws
 // a tab bar for it - the only evidence a context exists is what it puts on the screen.
@@ -100,7 +101,13 @@ QtObject {
 		// twice never snaps and never queues.
 		nav.leaving = nav.current
 		settle.restart()
+
+		// The assignment is not a store. Every element's `state`, every Context's `on` and
+		// `live` - and therefore every camera's `active` - are resolved before it returns, so
+		// this span is the state machine's whole cost, with whatever it reaches nested inside it.
+		Trace.begin("nav.current." + id)
 		nav.current = id
+		Trace.end("nav.current." + id)
 	}
 
 	// The two context keys. A context off the ring - settings, and the carousel itself - is

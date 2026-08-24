@@ -20,3 +20,6 @@ config.conf
 /debian/*.substvars
 /debian/*.debhelper.log
 /dist/
+
+# The capture directory. One run per directory, and the report beside its log.
+/logs/

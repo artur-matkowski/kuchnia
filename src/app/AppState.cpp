@@ -11,6 +11,7 @@
 #include "HotWater.hpp"
 #include "KeyBindings.hpp"
 #include "Radio.hpp"
+#include "Trace.hpp"
 #include "Weather.hpp"
 #include "integrations/Log.hpp"
 
@@ -55,6 +56,11 @@ void AppState::registerSingletons()
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "KeyBindings", m_keys);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Radio", m_radio);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Weather", m_weather);
+
+	// Not one of these objects and not built from the settings: a process-level facility that
+	// happens to be reached from QML. It is registered here so that every name the scene
+	// resolves is registered in one file - see docs/app.md.
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Trace", &Trace::instance());
 }
 
 void AppState::setGateCommandSink(std::function<void(const std::string&)> sink)

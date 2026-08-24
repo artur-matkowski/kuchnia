@@ -58,6 +58,7 @@ qt_add_executable(kuchnia
 	src/app/Panel.cpp
 	src/app/Radio.cpp
 	src/app/Series.cpp
+	src/app/Trace.cpp
 	src/app/Weather.cpp
 	src/integrations/Database.cpp
 	src/integrations/Integrations.cpp

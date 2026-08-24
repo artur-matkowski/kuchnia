@@ -47,7 +47,9 @@ Card {
 			root._stationPending = true
 			return
 		}
+		Trace.begin("radio.source")
 		player.source = Radio.url
+		Trace.end("radio.source")
 	}
 
 	MediaPlayer {

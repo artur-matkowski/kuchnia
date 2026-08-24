@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Kuchnia
 
 // The chooser. One animated number - where the strip stands - and every miniature's geometry
 // is a function of it.
@@ -124,10 +125,14 @@ QtObject {
 	// has to be standing where the scene is arriving from, or every miniature slides sideways
 	// during the zoom out.
 	function open(fromContextId) {
+		// anchorCard moves six cards between two screens, so this is not the cheap half of the
+		// menu key even though it draws nothing.
+		Trace.begin("carousel.open")
 		carousel.anchorCard = carousel.cardOf(fromContextId) === "weather" ? "weather" : "compact"
 		slide.enabled = false
 		carousel.position = carousel.cards.indexOf(carousel.cardOf(fromContextId))
 		slide.enabled = true
+		Trace.end("carousel.open")
 	}
 
 	function step(delta) {
@@ -146,9 +151,11 @@ QtObject {
 	// sees is a screen growing out of the miniature it was pointing at, rather than three cards
 	// arriving from the miniature next to it.
 	function confirm() {
+		Trace.begin("carousel.confirm")
 		var card = carousel.cards[carousel.selected]
 		if (card === "compact" || card === "weather")
 			carousel.anchorCard = card
 		Nav.goTo(Nav.spanId(card))
+		Trace.end("carousel.confirm")
 	}
 }

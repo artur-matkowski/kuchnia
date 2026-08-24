@@ -1,4 +1,5 @@
 import QtQuick
+import Kuchnia
 
 // A thing that is animated in and out of a context, on its own terms.
 //
@@ -49,6 +50,13 @@ Item {
 	height: box.height
 
 	state: Nav.current
+
+	// Eighteen of these apply on one context change, and which one is slow is not otherwise
+	// visible from anywhere - see docs/diagnostics.md. An element is named by the card it is on
+	// and the corner it sits in, because it has no name of its own.
+	onStateChanged: if (Trace.enabled)
+		Trace.mark("element " + element.parent.card + " at " + Math.round(element.box.x) +
+			"," + Math.round(element.box.y) + " -> " + element.state)
 
 	// An element that has faded out costs nothing further.
 	visible: opacity > 0

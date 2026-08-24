@@ -61,6 +61,10 @@ Rectangle {
 	// docs/app.md. Everything below defers instead of interrupting.
 	readonly property bool _loading: player.mediaStatus === MediaPlayer.LoadingMedia
 
+	// One tag per tile, and no space in it: a report reads these as fields. See
+	// docs/diagnostics.md.
+	readonly property string _tag: root.label.replace(" ", "-")
+
 	property int _retryMs: minimumRetryMs
 	property string _health: "connecting"
 	property string _detail: ""
@@ -104,9 +108,20 @@ Rectangle {
 		root._setHealth("connecting", "")
 		// Clearing the source is the reconnect: it tears the session down without a stop(),
 		// which the backend turns into a seek and an RTSP PAUSE the server answers with 405.
+		//
+		// Three spans and not one: each of the three assignments can wait on the backend's
+		// thread pool by itself, and which of them did says something different about the pool.
+		Trace.begin(root._tag + ".source-clear")
 		player.source = ""
+		Trace.end(root._tag + ".source-clear")
+
+		Trace.begin(root._tag + ".source-set")
 		player.source = root.url
+		Trace.end(root._tag + ".source-set")
+
+		Trace.begin(root._tag + ".play")
 		player.play()
+		Trace.end(root._tag + ".play")
 	}
 
 	function _retryLater() {
@@ -203,7 +218,18 @@ Rectangle {
 		}
 	}
 
+	// Bound to the screen's `live`, which the context assignment resolves inline - so whatever
+	// this reaches is inside `nav.current` and stops the panel with it.
 	onActiveChanged: {
+		Trace.begin(root._tag + ".active")
+		try {
+			root._activeChanged()
+		} finally {
+			Trace.end(root._tag + ".active")
+		}
+	}
+
+	function _activeChanged() {
 		if (root.active) {
 			hold.stop()
 			// Only reconnect if the hold actually expired. Coming back inside it means the
@@ -226,8 +252,11 @@ Rectangle {
 			root._down = true
 			// Not while an open is in flight: clearing the source waits for it here, and the
 			// screen stops with it. onMediaStatusChanged finishes the teardown when it lands.
-			if (!root._loading)
+			if (!root._loading) {
+				Trace.begin(root._tag + ".hold-clear")
 				player.source = ""
+				Trace.end(root._tag + ".hold-clear")
+			}
 			root._frames = 0
 			root._setHealth("connecting", "off screen")
 		}

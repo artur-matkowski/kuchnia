@@ -1,4 +1,5 @@
 import QtQuick
+import Kuchnia
 
 // A whole screen, and where it stands.
 //
@@ -43,6 +44,12 @@ Item {
 	]
 
 	state: Nav.current
+
+	// Which frame the state machine is on, and when. The context assignment applies six of
+	// these one after another, and the gaps between the marks are where its cost sits - see
+	// docs/diagnostics.md. Guarded because the string is built before the call, whether or not
+	// anything is listening.
+	onStateChanged: if (Trace.enabled) Trace.mark("frame " + frame.card + " -> " + frame.state)
 
 	// Every id, because a state name a StateGroup cannot find is a state group with nothing
 	// applied and a Transition that never matches - a screen that snaps into its card instead

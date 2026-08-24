@@ -20,6 +20,7 @@
 #include <QThreadPool>
 
 #include "app/AppState.hpp"
+#include "app/Trace.hpp"
 #include "integrations/Integrations.hpp"
 #include "integrations/Log.hpp"
 #include "integrations/Settings.hpp"
@@ -233,6 +234,11 @@ int main(int argc, char *argv[])
 
 	QGuiApplication app(argc, argv);
 
+	// After the settings, which is what fixes the PERF topic's level, and after the application
+	// object, because the heartbeat is a QTimer. From here on a GUI thread that stops answering
+	// says so from another thread, while it is still blocked - see docs/diagnostics.md.
+	Trace::instance().watch();
+
 	// Needs the application object for the plugin paths to resolve, and goes in here so that
 	// nothing has decoded a frame yet by the time libav's log has somewhere to go.
 	routeLibavLog();
@@ -296,5 +302,10 @@ int main(int argc, char *argv[])
 			                 window, &reportRenderer, Qt::DirectConnection);
 	}
 
-	return app.exec();
+	const int code = app.exec();
+
+	// Before the objects above are destroyed, because the watchdog thread reads a span stack
+	// that belongs to one of them.
+	Trace::instance().stop();
+	return code;
 }
