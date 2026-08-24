@@ -61,9 +61,18 @@ kuchnia [--configpath <file>] [-platform <qpa>]
 ```
 
 Parameters come from `/etc/kuchnia.conf`, then the environment, then the command line, each
-overriding the one before; `--help` lists them. The QPA platform is whatever the session
-provides — nothing here selects one. `fullscreen` decides whether the window asks for the
-whole screen; it ships on, and a local run wants it off.
+overriding the one before; `--help` lists them. That file is where the board's copy reads its
+database, broker and camera addresses from, and who is allowed to read it is
+[docs/packaging.md](docs/packaging.md). `--configpath` takes a different file instead, which
+is what a run on this desktop wants:
+
+```sh
+kuchnia --configpath ./config.conf
+```
+
+The QPA platform is whatever the session provides — nothing here selects one. `fullscreen`
+decides whether the window asks for the whole screen; it ships on, and a local run wants it
+off.
 
 ## Where this runs
 
@@ -83,6 +92,32 @@ board takes whichever it names. An update is `apt upgrade` and a rollback is
 `apt install kuchnia=<older>`. What to do after the install, and what the package depends on
 that nothing can see, are in [docs/packaging.md](docs/packaging.md); what has to be true of
 the board's session before any of it shows is [docs/session.md](docs/session.md).
+
+## Starting it, and reading it
+
+The package ships a systemd **user** unit, so every command carries `--user` and runs as the
+account that logs into the session:
+
+```sh
+systemctl --user start kuchnia
+systemctl --user stop kuchnia
+systemctl --user status kuchnia
+```
+
+`systemctl --user enable kuchnia` is not what makes it come back at the next login. The unit
+is `WantedBy=graphical-session.target`, and the compositor this board runs never activates
+that target, so the enable takes and does nothing; `/etc/xdg/autostart/kuchnia.desktop` is
+what actually starts it, and the package installs it already.
+[docs/session.md](docs/session.md) is why.
+
+The log goes to stdout, and the unit hands stdout to the journal:
+
+```sh
+sudo journalctl _COMM=kuchnia -f
+```
+
+`journalctl -u kuchnia` finds nothing at all — there is no *system* unit by that name, and
+the message says so no more clearly than an application that logged nothing would.
 
 Nothing here depends on that board. The application builds and runs on any Linux machine
 with Qt 6.
