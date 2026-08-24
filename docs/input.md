@@ -53,6 +53,10 @@ its row. `run` warns about an id it does not know and `BindingRow` warns about o
 does not have; a table entry that no `case` handles is the silent one - its key is simply a
 key that does nothing.
 
+The `label` beside it is what the settings screen prints, and it is Polish where the id is
+not: `labels()` decodes the label with `fromUtf8` and the id with `fromLatin1`. Latin-1 on a
+Polish label is a decode and not an error, so it is a screen of mojibake and no warning.
+
 ## The camera keys navigate; the one that goes back does not
 
 `camera-1` to `camera-5` fill the CCTV screen with one camera and `camera-grid` drops back to

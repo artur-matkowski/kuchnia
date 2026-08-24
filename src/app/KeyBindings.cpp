@@ -21,25 +21,25 @@ struct Definition {
 };
 
 const Definition kActions[] = {
-	{"radio-play-stop",  "play / stop",      0},
-	{"radio-next",       "next station",     0},
-	{"radio-previous",   "previous station", 0},
+	{"radio-play-stop",  "graj / stop",       0},
+	{"radio-next",       "następna stacja",   0},
+	{"radio-previous",   "poprzednia stacja", 0},
 
-	{"gate-open",        "open",             0},
-	{"gate-stop",        "stop",             0},
-	{"gate-close",       "close",            0},
+	{"gate-open",        "otwórz",            0},
+	{"gate-stop",        "stop",              0},
+	{"gate-close",       "zamknij",           0},
 
-	{"camera-1",         "camera 1",         Qt::Key_1},
-	{"camera-2",         "camera 2",         Qt::Key_2},
-	{"camera-3",         "camera 3",         Qt::Key_3},
-	{"camera-4",         "camera 4",         Qt::Key_4},
-	{"camera-5",         "camera 5",         Qt::Key_5},
-	{"camera-grid",      "back to the grid", Qt::Key_0},
+	{"camera-1",         "kamera 1",          Qt::Key_1},
+	{"camera-2",         "kamera 2",          Qt::Key_2},
+	{"camera-3",         "kamera 3",          Qt::Key_3},
+	{"camera-4",         "kamera 4",          Qt::Key_4},
+	{"camera-5",         "kamera 5",          Qt::Key_5},
+	{"camera-grid",      "powrót do siatki",  Qt::Key_0},
 
-	{"context-previous", "previous context", Qt::Key_Left},
-	{"context-next",     "next context",     Qt::Key_Right},
-	{"menu",             "menu",             Qt::Key_Space},
-	{"confirm",          "confirm",          Qt::Key_Return},
+	{"context-previous", "poprzedni widok",   Qt::Key_Left},
+	{"context-next",     "następny widok",    Qt::Key_Right},
+	{"menu",             "menu",              Qt::Key_Space},
+	{"confirm",          "zatwierdź",         Qt::Key_Return},
 };
 
 const char* const kGroup = "keys/";
@@ -152,8 +152,11 @@ QStringList KeyBindings::actions() const
 QVariantMap KeyBindings::labels() const
 {
 	QVariantMap out;
+	// fromUtf8 on the label and fromLatin1 on the id: the labels carry Polish and this file is
+	// UTF-8, and a Latin-1 decode of one is mojibake on the settings screen with no error
+	// anywhere - see docs/input.md. The ids are ASCII keys and stay Latin-1.
 	for (const Definition& action : kActions)
-		out.insert(QString::fromLatin1(action.id), QString::fromLatin1(action.label));
+		out.insert(QString::fromLatin1(action.id), QString::fromUtf8(action.label));
 	return out;
 }
 
@@ -215,7 +218,7 @@ void KeyBindings::apply(int key)
 	// this constantly: a consumer-control node emits far more usages than a keymap names.
 	if (key == Qt::Key_unknown) {
 		LOG_WARN(applog::App) << "a key with no name on this system cannot be bound";
-		setRefused(QStringLiteral("no name for that key"));
+		setRefused(QStringLiteral("klawisz bez nazwy"));
 		return;
 	}
 
@@ -230,7 +233,7 @@ void KeyBindings::apply(int key)
 
 	if (!holder.isEmpty() && holder != m_capturing) {
 		// Still armed: the next key can simply be tried without arming the row again.
-		setRefused(QStringLiteral("held by ") + labels().value(holder).toString());
+		setRefused(QStringLiteral("zajęty przez ") + labels().value(holder).toString());
 		return;
 	}
 
