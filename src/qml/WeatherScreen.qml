@@ -137,7 +137,7 @@ Context {
 
 		ChartCard {
 			anchors.fill: parent
-			title: "Cloud cover"
+			title: "Zachmurzenie"
 			series: Weather.cloudCoverForecast
 			stroke: Theme.textDim
 			unit: "%"
@@ -191,7 +191,7 @@ Context {
 		// what tell them apart.
 		ChartCard {
 			anchors.fill: parent
-			title: "Rain & snow"
+			title: "Deszcz i śnieg"
 			series: Weather.precipitationAmountForecast
 			stroke: Theme.cool
 			unit: "mm"

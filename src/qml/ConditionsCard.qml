@@ -9,7 +9,7 @@ import Kuchnia
 Card {
 	id: root
 
-	title: "Cloud & precipitation"
+	title: "Chmury i opady"
 	status: Weather.status
 
 	RowLayout {
@@ -36,7 +36,7 @@ Card {
 			}
 
 			Text {
-				text: "cloud %"
+				text: "chmury %"
 				color: Theme.textDim
 				font.pixelSize: Theme.fontLabel
 			}
@@ -55,7 +55,7 @@ Card {
 			}
 
 			Text {
-				text: "rain mm"
+				text: "deszcz mm"
 				color: Theme.textDim
 				font.pixelSize: Theme.fontLabel
 			}
@@ -76,7 +76,7 @@ Card {
 			}
 
 			Text {
-				text: "snow cm"
+				text: "śnieg cm"
 				color: Theme.textDim
 				font.pixelSize: Theme.fontLabel
 			}

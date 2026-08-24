@@ -13,7 +13,7 @@ import Kuchnia
 Card {
 	id: root
 
-	title: "Wind"
+	title: "Wiatr"
 	status: Weather.status
 
 	// Eight points and not sixteen: NNW is two more glyphs and no more information at the
@@ -112,7 +112,7 @@ Card {
 
 			Text {
 				visible: Weather.live
-				text: "from " + root._from(Weather.windDirection)
+				text: "z " + root._from(Weather.windDirection)
 				color: Theme.text
 				font.pixelSize: Theme.fontBody
 			}

@@ -7,7 +7,7 @@ import Kuchnia
 //
 // Its own file for the reason ForecastCard.qml is.
 ChartCard {
-	title: "Rain chance"
+	title: "Szansa opadów"
 	series: Weather.precipitationForecast
 	stroke: Theme.accent
 	unit: "%"

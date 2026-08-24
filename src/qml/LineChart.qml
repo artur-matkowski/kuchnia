@@ -162,7 +162,7 @@ Item {
 		}
 
 		// count stays the number of points inside the window even when the range is fixed:
-		// it is what hasVisible - and therefore "no data" - is decided on, and a fixed range
+		// it is what hasVisible - and therefore "brak danych" - is decided on, and a fixed range
 		// must not turn an empty window into a frame with axes and nothing in it.
 		if (!isNaN(fixedLow))
 			low = fixedLow
@@ -295,7 +295,7 @@ Item {
 	Text {
 		anchors.centerIn: parent
 		visible: !root.hasVisible
-		text: "no data"
+		text: "brak danych"
 		color: Theme.textDim
 		font.pixelSize: Theme.fontBody
 	}
@@ -345,7 +345,7 @@ Item {
 
 		// The grid, over the daylight wash and under the line. Both models answer a count of
 		// zero while the chart has nothing to draw, which is what keeps a window past the end
-		// of the forecast reading as "no data" rather than as a frame with nothing happening
+		// of the forecast reading as "brak danych" rather than as a frame with nothing happening
 		// in it. Each line works out its own value from `index`, because a model that is a
 		// count is a model that does not change when the range merely moves - see _levels.
 		Repeater {

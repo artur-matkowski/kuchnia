@@ -57,7 +57,7 @@ Context {
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 0 ? Cameras.urls[0] : ""
-			label: "camera 1"
+			label: "kamera 1"
 			active: screen.live
 			audible: screen.listening && Cctv.audible === 1
 		}
@@ -120,7 +120,7 @@ Context {
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 1 ? Cameras.urls[1] : ""
-			label: "camera 2"
+			label: "kamera 2"
 			active: screen.live
 			audible: screen.listening && Cctv.audible === 2
 		}
@@ -189,7 +189,7 @@ Context {
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 2 ? Cameras.urls[2] : ""
-			label: "camera 3"
+			label: "kamera 3"
 			active: screen.live
 			audible: screen.listening && Cctv.audible === 3
 		}
@@ -258,7 +258,7 @@ Context {
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 3 ? Cameras.urls[3] : ""
-			label: "camera 4"
+			label: "kamera 4"
 			active: screen.live
 			audible: screen.listening && Cctv.audible === 4
 		}
@@ -327,7 +327,7 @@ Context {
 		CameraTile {
 			anchors.fill: parent
 			url: Cameras.urls.length > 4 ? Cameras.urls[4] : ""
-			label: "camera 5"
+			label: "kamera 5"
 			active: screen.live
 			audible: screen.listening && Cctv.audible === 5
 		}
@@ -392,7 +392,7 @@ Context {
 		Card {
 			id: readoutCard
 			anchors.fill: parent
-			title: "Now"
+			title: "Teraz"
 			// Status without the detail: the badge's text is not width-constrained, and
 			// a connection error runs across this card's own title. The full detail is on
 			// the hot water panel, which is wide enough to hold it.
@@ -418,7 +418,7 @@ Context {
 					}
 
 					Text {
-						text: "hot water"
+						text: "ciepła woda"
 						color: Theme.textDim
 						font.pixelSize: Theme.fontBody
 					}

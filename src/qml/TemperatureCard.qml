@@ -7,7 +7,7 @@ import Kuchnia
 Card {
 	id: root
 
-	title: "Temperature"
+	title: "Temperatura"
 	status: Weather.status
 	statusDetail: Weather.statusDetail
 
@@ -15,16 +15,16 @@ Card {
 	// one; the codes are grouped rather than enumerated, because the difference between a
 	// slight and a moderate drizzle is not readable from a sofa either.
 	function _sky(code) {
-		if (code === 0) return "clear"
-		if (code <= 2) return "some cloud"
-		if (code === 3) return "overcast"
-		if (code <= 48) return "fog"
-		if (code <= 57) return "drizzle"
-		if (code <= 67) return "rain"
-		if (code <= 77) return "snow"
-		if (code <= 82) return "showers"
-		if (code <= 86) return "snow showers"
-		return "thunderstorm"
+		if (code === 0) return "bezchmurnie"
+		if (code <= 2) return "małe zachmurzenie"
+		if (code === 3) return "pochmurno"
+		if (code <= 48) return "mgła"
+		if (code <= 57) return "mżawka"
+		if (code <= 67) return "deszcz"
+		if (code <= 77) return "śnieg"
+		if (code <= 82) return "przelotny deszcz"
+		if (code <= 86) return "przelotny śnieg"
+		return "burza"
 	}
 
 	RowLayout {
@@ -56,7 +56,7 @@ Card {
 
 			Text {
 				visible: Weather.live
-				text: Weather.humidity.toFixed(0) + "% humidity"
+				text: Weather.humidity.toFixed(0) + "% wilgotności"
 				color: Theme.textDim
 				font.pixelSize: Theme.fontBody
 			}

@@ -88,9 +88,9 @@ Context {
 				anchors { fill: parent; margins: Theme.gap / 2 }
 				horizontalAlignment: Text.AlignHCenter
 				verticalAlignment: Text.AlignVCenter
-				text: !row.capturing ? (row.key.length > 0 ? row.key : "unbound")
+				text: !row.capturing ? (row.key.length > 0 ? row.key : "nieprzypisany")
 				    : KeyBindings.refused.length > 0 ? KeyBindings.refused
-				    : "press a key"
+				    : "naciśnij klawisz"
 				color: !row.capturing ? (row.key.length > 0 ? Theme.text : Theme.textDim)
 				     : KeyBindings.refused.length > 0 ? Theme.failed : Theme.accent
 				font.pixelSize: Theme.fontLabel
@@ -141,7 +141,7 @@ Context {
 		Card {
 			id: gateKeysCard
 			anchors.fill: parent
-			title: "Gate"
+			title: "Brama"
 
 			Column {
 				anchors { fill: parent; margins: Theme.gap; topMargin: gateKeysCard.contentTop }
@@ -176,7 +176,7 @@ Context {
 		Card {
 			id: cameraKeysCard
 			anchors.fill: parent
-			title: "Cameras"
+			title: "Kamery"
 
 			Column {
 				anchors { fill: parent; margins: Theme.gap; topMargin: cameraKeysCard.contentTop }
@@ -214,7 +214,7 @@ Context {
 		Card {
 			id: navKeysCard
 			anchors.fill: parent
-			title: "Navigation"
+			title: "Nawigacja"
 
 			Column {
 				anchors { fill: parent; margins: Theme.gap; topMargin: navKeysCard.contentTop }

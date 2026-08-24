@@ -5,9 +5,22 @@ import Kuchnia
 Card {
 	id: root
 
-	title: "Gate"
+	title: "Brama"
 	status: Gate.status
 	statusDetail: Gate.statusDetail
+
+	// The bridge's signal names as words. Gate.state stays the bridge's own string - it is what
+	// canOpen/canClose/canStop are decided on - so the Polish lives here and nowhere else. A
+	// signal this does not know draws as itself rather than as the nearest guess.
+	readonly property var _states: ({
+		"GateOpened":       "Otwarta",
+		"GateClosed":       "Zamknięta",
+		"GateOpening":      "Otwieranie",
+		"GateClosing":      "Zamykanie",
+		"GateStopped":      "Zatrzymana",
+		"GateStuckOpening": "Zacięta przy otwieraniu",
+		"GateStuckClosing": "Zacięta przy zamykaniu"
+	})
 
 	ColumnLayout {
 		anchors { fill: parent; margins: Theme.gap; topMargin: root.contentTop }
@@ -17,9 +30,9 @@ Card {
 			Layout.fillWidth: true
 			// Empty after the broker is live means the bridge has never published, not that
 			// the connection is slow: every gate topic is retained and arrives on subscribe.
-			text: Gate.state.length > 0 ? Gate.state
-			    : Gate.live ? "no signal published yet"
-			                : "waiting for the broker"
+			text: Gate.state.length > 0 ? (root._states[Gate.state] || Gate.state)
+			    : Gate.live ? "brak sygnału z bramy"
+			                : "czekam na brokera"
 			color: Gate.state.length > 0 ? Theme.text : Theme.textDim
 			font.pixelSize: Gate.state.length > 0 ? Theme.fontReading : Theme.fontBody
 			font.bold: Gate.state.length > 0
@@ -47,9 +60,9 @@ Card {
 			Layout.preferredHeight: Theme.fontBody * 2
 
 			model: [
-				{ text: "Open",  enabled: Gate.canOpen },
-				{ text: "Stop",  enabled: Gate.canStop },
-				{ text: "Close", enabled: Gate.canClose }
+				{ text: "Otwórz",  enabled: Gate.canOpen },
+				{ text: "Stop",    enabled: Gate.canStop },
+				{ text: "Zamknij", enabled: Gate.canClose }
 			]
 
 			onActivated: function(index) {

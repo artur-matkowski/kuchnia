@@ -33,6 +33,21 @@ motor — can always be stopped.
 and any signal the bridge has learned since, are not guessed at. The names live in two
 places — here and `mqtt-subscribe` in `Settings.cpp` — and nothing checks that they agree.
 
+## What the scene says, and what it compares
+
+The panel text is Polish, written in place - there is no translation machinery anywhere in
+this repository. Two of the strings that reach the scene are not text, though, and both are
+compared rather than read: `Gate::state` is the bridge's own signal name, matched by
+`canOpen`/`canClose`/`canStop` above, and `Panel::status` is one of three fixed words, matched
+by `live()` here and by the badge's colour in `src/qml/StatusBadge.qml`. Translate either at
+its source and the controls stay dark or every panel paints itself failed, with nothing
+anywhere saying why.
+
+`src/qml/GatePanel.qml` therefore holds the only Polish the gate's signals ever get, and a
+signal it does not know draws as its raw name rather than as the nearest one it does.
+`Panel`'s three words are left English wherever they are drawn, along with every
+`statusDetail` beside them: they report a service, not a reading.
+
 ## The invariant
 
 **Every sink callback runs on a worker thread, and every one of them does nothing but

@@ -59,7 +59,7 @@ card's own title, which is the one line saying which panel it is.
 `Button` sets implicit sizes and never `width`/`height`: the panels put their controls in a
 layout and let it stretch them across the card, and a button that assigns its own size never
 fills the box it was given. `SegmentedBar` is the same control for a set of commands that
-belong together - the gate's Open/Stop/Close - drawn as one bar.
+belong together - the gate's Otwórz/Stop/Zamknij - drawn as one bar.
 
 Both take their **height** from the type scale and not from what the card has left over. A
 `Layout.fillHeight` on either hands it every pixel the readings above it did not use, which
@@ -74,7 +74,7 @@ itself. Panels anchor below `contentTop` instead.
 
 ## Charts draw nothing when they have nothing
 
-`LineChart` renders `no data` for an empty or single-point series, and must never fall back
+`LineChart` renders `brak danych` for an empty or single-point series, and must never fall back
 to a flat line at zero: that is indistinguishable from a real reading.
 
 `_plot()` reads `plot.width`/`plot.height` instead of taking them as arguments, and that is
@@ -90,7 +90,7 @@ they binary-search the window rather than scanning. A series that stopped ascend
 drawn truncated at the first step backwards, with nothing anywhere saying so.
 
 The grid is gated on `hasVisible` for the same reason the axes are: a full grid with no line
-in it is the "empty frame" that `no data` exists to prevent.
+in it is the "empty frame" that `brak danych` exists to prevent.
 
 **Neither grid may be a `Repeater` over a list.** A `Repeater` handed a new model tears down
 every delegate and builds a fresh set, on the GUI thread, inside the binding that moved it -
@@ -100,7 +100,7 @@ delegate works out its own value from `index`, because a count holds still while
 `minimumSpan` opens the vertical range when the data is nearly flat, so a tank holding steady
 is a steady line and not sensor noise magnified. `fixedLow`/`fixedHigh` take the range away
 from the data altogether, and neither changes what `hasVisible` means: the point count is
-still taken over the window, so an empty window draws `no data` and not an empty frame.
+still taken over the window, so an empty window draws `brak danych` and not an empty frame.
 
 ## The chart's window is what the forecast spans animate
 

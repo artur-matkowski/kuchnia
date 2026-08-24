@@ -4,7 +4,7 @@ import Kuchnia
 Card {
 	id: root
 
-	title: "Hot water"
+	title: "Ciepła woda"
 	status: HotWater.status
 	statusDetail: HotWater.statusDetail
 

@@ -194,21 +194,21 @@ Card {
 			Button {
 				Layout.fillWidth: true
 				Layout.preferredHeight: Theme.fontBody * 2
-				text: "Prev"
+				text: "Poprz."
 				enabled: Radio.count > 1
 				onClicked: Radio.previous()
 			}
 			Button {
 				Layout.fillWidth: true
 				Layout.preferredHeight: Theme.fontBody * 2
-				text: root._wanted ? "Stop" : "Play"
+				text: root._wanted ? "Stop" : "Graj"
 				enabled: Radio.count > 0
 				onClicked: root._toggle()
 			}
 			Button {
 				Layout.fillWidth: true
 				Layout.preferredHeight: Theme.fontBody * 2
-				text: "Next"
+				text: "Nast."
 				enabled: Radio.count > 1
 				onClicked: Radio.next()
 			}
