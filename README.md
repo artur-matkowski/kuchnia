@@ -34,7 +34,7 @@ for this repository are in [CLAUDE.md](CLAUDE.md).
 ```sh
 scripts/build.sh host          # a window on this desktop
 scripts/build.sh host --run
-scripts/build-deb.sh           # the arm64 .deb, into dist/, in a debian:trixie container
+scripts/build-deb.sh           # the arm64 .deb, into dist/, in the published builder image
 ```
 
 Needs Qt 6.5 or later with the `Gui`, `Qml` and `Quick` modules, and `QtQuick.Shapes` at

@@ -8,9 +8,8 @@
 > Owns: debian/kuchnia.postinst
 > Owns: debian/rules
 > Owns: debian/source/format
-> Owns: .gitea/workflows/deb.yaml
 > Owns: scripts/build-deb.sh
-> See:  docs/session.md docs/targets.md docs/app.md docs/integrations.md
+> See:  docs/ci.md docs/session.md docs/targets.md docs/app.md docs/integrations.md
 
 The board runs Raspberry Pi OS Desktop, and the application reaches it as a `.deb` from this
 Gitea's own Debian registry. `apt` is the whole deployment system: an update is
@@ -94,12 +93,8 @@ The path is compiled into `src/integrations/Settings.cpp` and repeated in
 ## Versions and channels
 
 Branch `main` publishes to component `main`, branch `testing` to component `testing`, and
-every other branch builds without publishing. Promotion is a merge.
-
-The version is `1.0.<run number>`, with `~testing` appended off `main`. The run number is
-per repository and only climbs, so a testing build always outranks the last main build; the
-tilde sorts below everything, so the `1.0.7` that eventually promotes `1.0.7~testing`
-outranks it in turn. It has nothing to do with the `VERSION` in `CMakeLists.txt`.
+every other branch builds without publishing. Promotion is a merge — how a version is
+numbered, and what the run costs, is [ci](docs/ci.md).
 
 Old versions stay in the pool, which is what makes `apt install kuchnia=1.0.6` a rollback.
 
@@ -109,13 +104,7 @@ reads the others.
 
 ## Building it
 
-`scripts/build-deb.sh` runs the same build CI runs — `--here` inside a `debian:trixie`
-container, plain in a throwaway one. The build dependencies are never written twice:
-`apt-get build-dep` reads them out of `debian/control`. The cross build itself, and the
-`QT_HOST_PATH` pair `debian/rules` passes, are in [docs/targets.md](docs/targets.md).
-
-Publishing needs a `PACKAGE_TOKEN` secret holding a Gitea token with `write:package`. Gitea
-authenticates the token and ignores the username beside it, so the workflow sends a
-placeholder. Nothing else in the run is authenticated — the checkout clones anonymously and
-a board's `apt` reads the registry anonymously, both of which stop working the moment this
-repository or the `<REDACTED>` organisation stops being public.
+`scripts/build-deb.sh` runs the same build CI runs, in the same image — [ci](docs/ci.md).
+The build dependencies are never written twice: `apt-get build-dep` reads them out of
+`debian/control`. The cross build itself, and the `QT_HOST_PATH` pair `debian/rules` passes,
+are in [docs/targets.md](docs/targets.md).

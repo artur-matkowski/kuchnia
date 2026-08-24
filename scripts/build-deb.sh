@@ -1,12 +1,13 @@
 #!/bin/bash
 #
 # Build the Debian package. Nothing here is CI-specific: the workflow runs this script
-# with --here inside a debian:trixie container, and a developer runs it without arguments
-# to get the same build in a throwaway one.
+# with --here inside the builder image, and a developer runs it without arguments to get
+# the same build in a throwaway container of the same image.
 #
-#     scripts/build-deb.sh                 in a debian:trixie container, into dist/
+#     scripts/build-deb.sh                 in the builder image, into dist/
 #     scripts/build-deb.sh --here          in this environment, installing what it needs
 #     scripts/build-deb.sh --here --version 1.0.42~testing
+#     scripts/build-deb.sh --deps-only     install the build dependencies and stop
 #
 # --here installs packages and is meant for a container. Running it on a workstation
 # changes that workstation. --version rewrites debian/changelog, which for the default
@@ -18,21 +19,26 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE=debian:trixie
+IMAGE=git.example.com/<REDACTED>/kuchnia-builder:trixie
 HOST_ARCH=arm64
+# $HOST_ARCH's toolchain prefix, spelled out because dpkg-architecture is itself one of the
+# packages the check below runs before anything is installed.
+HOST_GNU=aarch64-linux-gnu
 
 die()   { echo "error: $*" >&2; exit 1; }
-usage() { sed -n '3,13p' "${BASH_SOURCE[0]}" | sed 's/^# \?//' >&2; exit 1; }
+usage() { sed -n '3,14p' "${BASH_SOURCE[0]}" | sed 's/^# \?//' >&2; exit 1; }
 
 HERE=0
+DEPS_ONLY=0
 VERSION=""
 
 while [ $# -gt 0 ]; do
 	case "$1" in
-		--here)     HERE=1 ;;
-		--version)  shift; [ $# -gt 0 ] || die "--version needs a value"; VERSION=$1 ;;
-		-h|--help)  usage ;;
-		*)          echo "error: unknown argument $1" >&2; usage ;;
+		--here)       HERE=1 ;;
+		--deps-only)  HERE=1; DEPS_ONLY=1 ;;
+		--version)    shift; [ $# -gt 0 ] || die "--version needs a value"; VERSION=$1 ;;
+		-h|--help)    usage ;;
+		*)            echo "error: unknown argument $1" >&2; usage ;;
 	esac
 	shift
 done
@@ -51,13 +57,31 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
+# The builder image already carries all of this, because scripts/builder.Dockerfile bakes it
+# in by running this same step. dpkg-checkbuilddeps reads the debian/control that
+# apt-get build-dep reads, so an image that has fallen behind the package installs the delta
+# and says so in the log rather than building against a set nobody declared. See docs/ci.md.
+build_deps_present() {
+	command -v dpkg-checkbuilddeps >/dev/null || return 1
+	command -v "$HOST_GNU-g++"     >/dev/null || return 1
+	(cd "$ROOT" && dpkg-checkbuilddeps -a "$HOST_ARCH" >/dev/null 2>&1)
+}
+
 echo "==> dependencies"
-dpkg --add-architecture "$HOST_ARCH"
-apt-get update -qq
-apt-get install -y -qq --no-install-recommends \
-	build-essential devscripts dpkg-dev git "crossbuild-essential-$HOST_ARCH"
-apt-get build-dep -y -qq --no-install-recommends \
-	--host-architecture "$HOST_ARCH" "$ROOT"
+if build_deps_present; then
+	echo "    satisfied by this environment"
+else
+	dpkg --add-architecture "$HOST_ARCH"
+	apt-get update -qq
+	apt-get install -y -qq --no-install-recommends \
+		build-essential devscripts dpkg-dev git "crossbuild-essential-$HOST_ARCH"
+	apt-get build-dep -y -qq --no-install-recommends \
+		--host-architecture "$HOST_ARCH" "$ROOT"
+fi
+
+if [ "$DEPS_ONLY" = 1 ]; then
+	exit 0
+fi
 
 # dpkg-buildpackage takes the version from the changelog and nowhere else. --force-bad-version
 # is what lets CI hand it a version older than the entry already there, which happens on any

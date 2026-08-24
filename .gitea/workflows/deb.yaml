@@ -4,6 +4,11 @@
 # sources.list names one of them. Everything else builds and publishes nothing.
 name: deb
 
+# A second push to the same ref makes the first one's package obsolete before it is built.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main, testing]
@@ -12,17 +17,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # The label's own image is whatever the runner was registered with. Naming the image
-    # here is what makes the build environment the same one scripts/build-deb.sh expects.
+    # The build environment is a published image and not the label's own, because every
+    # dependency is already in it - see docs/ci.md. The volume is the ccache, and the runner
+    # only permits it because its config.yaml names the path in container.valid_volumes; a
+    # runner that does not fails the job here, before a step runs.
     container:
-      image: debian:trixie
+      image: git.example.com/<REDACTED>/kuchnia-builder:trixie
+      options: -v /srv/ci-cache/kuchnia:/ccache
 
     steps:
-      - name: Tools
-        run: |
-          apt-get update -qq
-          apt-get install -y -qq --no-install-recommends git ca-certificates curl
-
       # A plain clone rather than actions/checkout: this needs no node in the container and
       # no reachable action registry. The repository is public; a private one would fail here.
       - name: Checkout
@@ -53,6 +56,11 @@ jobs:
 
       - name: Build
         run: scripts/build-deb.sh --here --version "${{ steps.channel.outputs.version }}"
+
+      # A cache that is not being hit is a build that is merely slow, which is the one
+      # failure here that reports nothing. This is where it says so.
+      - name: Cache
+        run: ccache --show-stats --verbose
 
       # Gitea authenticates a token by the token, not by the name beside it, so the
       # username here is a placeholder and only PACKAGE_TOKEN has to exist.

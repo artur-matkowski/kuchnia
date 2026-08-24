@@ -142,7 +142,7 @@ scripts/build.sh host          # a window on this desktop
 scripts/build.sh host --clean
 scripts/build.sh host --run
 
-scripts/build-deb.sh           # the arm64 package, into dist/, in a debian:trixie container
+scripts/build-deb.sh           # the arm64 package, into dist/, in the published builder image
 ```
 
 `scripts/build.sh` builds for this machine only. The board's binary is the package, and its

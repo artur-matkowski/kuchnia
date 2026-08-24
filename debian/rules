@@ -5,8 +5,10 @@ include /usr/share/dpkg/architecture.mk
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+# cmake+ninja rather than cmake: the default generator is recursive make, which serialises
+# at every target boundary, and ninja-build is already a Build-Depends.
 %:
-	dh $@ --buildsystem=cmake
+	dh $@ --buildsystem=cmake+ninja
 
 # Qt puts an $ORIGIN RUNPATH on anything it installs. From /usr/bin it resolves to the
 # multiarch directory the loader already searches, so it buys nothing and adds /usr/bin to a
@@ -23,3 +25,8 @@ endif
 
 override_dh_auto_configure:
 	dh_auto_configure -- $(CONFIGURE_OPTS)
+
+# There is no test suite, and an arm64 binary could not be run here if there were. The make
+# generator probed for a `test` target and skipped when it found none; ninja does not probe,
+# and `ninja test` is an error that fails the package rather than a no-op.
+override_dh_auto_test:
