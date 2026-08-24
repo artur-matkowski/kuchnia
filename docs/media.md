@@ -3,7 +3,7 @@
 > Owns: src/qml/CameraTile.qml
 > Owns: src/app/Cameras.hpp
 > Owns: src/app/Cameras.cpp
-> See:  docs/radio.md docs/app.md docs/scene.md docs/state.md docs/contexts.md docs/packaging.md docs/input.md
+> See:  docs/radio.md docs/app.md docs/scene.md docs/state.md docs/contexts.md docs/packaging.md docs/input.md docs/rtsp.md
 
 Five RTSP tiles from `camera-url`, through QtMultimedia. The tiles reach the cameras directly;
 nothing sits in between, and the radio they share an audio sink with is [radio](docs/radio.md).
@@ -41,12 +41,11 @@ Three different things happen when a stream goes away, and only one of them is a
   picture for as long as the process runs.
 
 The third is the one that matters and the `watchdog` timer is the only thing that catches
-it. Liveness is counted in frames delivered to `VideoOutput.videoSink`, and nothing else is
-a substitute: on a live stream whose container declares no duration — every camera here —
-`position` never leaves 0 and `playbackState` is `PlayingState` from the moment `play()`
-returns. A watchdog reading either of those calls a perfectly healthy camera stalled and
-tears it down on a timer, forever, and the tiles stay black because nothing survives long
-enough to paint.
+it. **Liveness is counted in frames delivered to `VideoOutput.videoSink`, and nothing the
+player says about itself is a substitute.** `playbackState` is `PlayingState` from the moment
+`play()` returns, and `mediaStatus` reaches `BufferedMedia` on a stream that goes on to
+deliver nothing at all. A watchdog reading either tears a healthy camera down on a timer, or
+never fires on a dead one.
 
 Two budgets, because connecting and running fail on different timescales. A stream that has
 delivered a frame must keep delivering one every `stallTimeoutMs`. One that has not gets
@@ -87,9 +86,10 @@ Two things a tile must not do while it is torn down, and neither announces itsel
 * **The watchdog stops with it.** A tile that was asked to stop is otherwise reported stalled,
   and the backoff climbs while nothing is looking at it.
 
-`method SETUP failed: 461 Unsupported transport` on startup is not a failure at all: the
-camera refuses UDP, ffmpeg retries over TCP by itself and succeeds. The line is permanent,
-one per camera, and Qt exposes no way to ask for TCP up front.
+`method SETUP failed: 461 Unsupported transport` is a peer refusing UDP, after which ffmpeg
+retries over TCP by itself and succeeds. **None of these cameras emits it** — it is what the
+go2rtc proxy answers, and Qt exposes no way to ask for TCP up front. Which peers say it, and
+what else a stream costs outside this application, is [rtsp](docs/rtsp.md).
 
 ## What the image has to carry
 
