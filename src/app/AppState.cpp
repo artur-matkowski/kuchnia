@@ -6,6 +6,7 @@
 #include <QQmlEngine>
 #include <QString>
 
+#include "CameraFeed.hpp"
 #include "Cameras.hpp"
 #include "Gate.hpp"
 #include "HotWater.hpp"
@@ -30,7 +31,8 @@ QStringList toStringList(const std::vector<std::string>& values)
 
 AppState::AppState(const Settings& settings, QObject* parent)
 	: QObject(parent)
-	, m_cameras(new Cameras(toStringList(settings.cameraUrls), settings.cameraHoldMs, this))
+	, m_cameras(new Cameras(toStringList(settings.cameraUrls), settings.cameraHoldMs,
+	                        QString::fromStdString(settings.cameraTransport), this))
 	, m_gate(new Gate(this))
 	, m_hotWater(new HotWater(this))
 	, m_keys(new KeyBindings(QString::fromStdString(settings.keyBindings),
@@ -56,6 +58,11 @@ void AppState::registerSingletons()
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "KeyBindings", m_keys);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Radio", m_radio);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Weather", m_weather);
+
+	// The one instantiable type, and not a singleton: there is one of these per tile and each
+	// owns its own child processes. Registered here anyway, so that every name the scene
+	// resolves is registered in one file - see docs/app.md.
+	qmlRegisterType<CameraFeed>("Kuchnia", 1, 0, "CameraFeed");
 
 	// Not one of these objects and not built from the settings: a process-level facility that
 	// happens to be reached from QML. It is registered here so that every name the scene

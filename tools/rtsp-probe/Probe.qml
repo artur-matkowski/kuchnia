@@ -65,9 +65,7 @@ Window {
 							// audible on others - docs/media.md.
 							audioOutput: AudioOutput { muted: true }
 							source: tile.modelData.url
-							// The clock starts where the stream is asked for, so the number is
-							// comparable with the ffmpeg backend's.
-							Component.onCompleted: { tile.modelData.noteAsked(); player.play() }
+							Component.onCompleted: player.play()
 							onErrorOccurred: function(error, text) {
 								console.info("[feed] " + tile.modelData.label + ": failed (" + text + ")")
 							}

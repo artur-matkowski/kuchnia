@@ -3,8 +3,6 @@
 > Owns: scripts/probe-rtsp.sh
 > Owns: tools/rtsp-probe/CMakeLists.txt
 > Owns: tools/rtsp-probe/main.cpp
-> Owns: tools/rtsp-probe/Feed.hpp
-> Owns: tools/rtsp-probe/Feed.cpp
 > Owns: tools/rtsp-probe/Probe.qml
 > See:  docs/media.md docs/diagnostics.md docs/app.md docs/targets.md
 
@@ -28,61 +26,50 @@ build/host/rtsp-probe --backend qt      --config ./config.conf
 
 `probe-rtsp.sh` measures the stream with no Qt in the picture at all: the handshake, the open
 to a first decoded frame over several cycles, and a fixed-length run that says whether the
-stream keeps arriving. Every URL is measured on all three transports, because `auto` is what
-Qt's backend asks for and it is not always what answers.
+stream keeps arriving. Every URL is measured on all three transports.
 
-`rtsp-probe` draws the same tiles through the same `VideoOutput` two ways. Under `--backend
-qt` a `MediaPlayer` fills it, which is the application's own path. Under `--backend ffmpeg`
-an ffmpeg child process writes raw `yuv420p` down a pipe and `Feed` wraps each frame in a
-`QVideoFrame` — Qt demuxes nothing, decodes nothing and opens no socket. The difference
-between the two runs is the backend and nothing else.
+`rtsp-probe` draws the same tiles through the same `VideoOutput` two ways. `--backend ffmpeg`
+builds a `CameraFeed` — **the application's own path**, the same source file, so a fix here is a
+fix on the panel. `--backend qt` puts a `MediaPlayer` on the same sink instead, and is the only
+place left in the repository where Qt opens a camera. That makes it the regression instrument:
+it is what a change to the decode path is measured against.
 
-**It is not a claim that libav is absent.** `import QtMultimedia` loads the media backend
-whichever `--backend` is chosen, because `VideoOutput` comes out of it. What `ffmpeg` removes
-is Qt *using* it.
+Under `--backend qt` the feed is never started. It holds the sink and counts what arrives,
+which is why `CameraFeed::noteFrame()` tolerates a clock that was never started.
+
+**Neither backend proves libav is absent.** `import QtMultimedia` loads Qt's media backend
+whichever is chosen, because `VideoOutput` comes out of it.
 
 ## What fails silently in these tools
 
-* **The pipe's geometry comes from ffmpeg's own output header and from nowhere else.** A
-  configured size, or one carried over from an earlier `ffprobe`, is an assumption — and a
-  frame size that disagrees with the bytes arriving is a sheared, rolling picture that
-  reports nothing. The regex needs two digits on each side or the FourCC in `rawvideo (I420 /
-  0x30323449)` is read as the resolution and every frame is zero bytes long.
-* **`-fps_mode passthrough` is not a tuning knob.** A rawvideo pipe carries no timestamps, so
-  ffmpeg's default pads it to a constant rate. The tile still looks correct and the frame
-  count — the one number the two backends are compared on — is inflated by the duplicates.
-* **Frames are counted in exactly one place**: `Feed::attach()` connecting to the sink's
-  `videoFrameChanged`. A second counter beside it counts the ffmpeg backend's frames twice,
-  and the obvious QML spelling of it lands *inside* the `Loader` that builds the Qt backend,
-  where it silently never fires.
-* **`Feed::start()` runs after the scene is loaded**, because `attach()` is a
-  `Component.onCompleted`. Earlier, ffmpeg writes frames with nowhere to put them.
-  `noteAsked()` exists for the same reason on the other side: the Qt backend's clock starts
-  where `play()` is called, or the first-frame number is really a window-construction number.
-* **The harness redacts on the way in.** Every `camera-url` carries a password and a capture
-  is pasted into a ticket, so nothing under `logs/rtsp-<stamp>/` ever holds a credential —
+* **The harness redacts on the way in.** Every `camera-url` carries a password and a capture is
+  pasted into a ticket, so nothing under `logs/rtsp-<stamp>/` ever holds a credential —
   redaction at report time would be one forgotten path away from publishing one.
-
-`rtsp-probe` never retries. The application does; what a retry costs is the question, and a
-stream silently reopened is the measurement erased.
+* **`rtsp-probe` never retries and the application does.** A stream silently reopened is the
+  measurement erased; what a retry costs is usually the question being asked.
+* Everything about slicing the pipe — the geometry read off ffmpeg's own header,
+  `-fps_mode passthrough`, the single place frames are counted — belongs to `CameraFeed` and
+  is [media](docs/media.md).
 
 ## What they established, measured on a desktop
 
-Against the five configured cameras and the same picture proxied through go2rtc:
+Against the five configured cameras and the same picture proxied through go2rtc, **before** the
+application's decode path was changed:
 
-* **ffmpeg alone opens every one of them in 2.5–3.1 s** and holds them at their full rate
-  with no errors. No transport is meaningfully faster than another.
-* **Qt's `MediaPlayer` takes 5.3–6.3 s on those same cameras** — roughly double, on the same
-  machine, in the same window. The five to six seconds in [media](docs/media.md) is Qt's
-  cost, not the cameras'.
-* **Qt cannot play the go2rtc-proxied stream at all.** ffmpeg opens it in 2.5 s and holds it;
-  `MediaPlayer` sits in `PlayingState` at `BufferedMedia` with `position` pinned to 0 and
-  delivers no frame ever, reporting no error — confirmed in `kuchnia` itself, which retries
-  the 20 s connect budget forever. **A `camera-url` moved to the proxy is a black tile.**
+* **ffmpeg alone opened every one of them in 2.5–3.1 s** and held them at their full rate with
+  no errors. No transport was meaningfully faster than another.
+* **Qt's `MediaPlayer` took 5.3–6.3 s on those same cameras** — roughly double, on the same
+  machine, in the same window.
+* **Qt could not play the go2rtc-proxied stream at all**: `PlayingState`, `BufferedMedia`,
+  `position` pinned at 0, no frame ever, and no error. ffmpeg opened it in 2.5 s.
 * `method SETUP failed: 461 Unsupported transport` is go2rtc refusing UDP. The cameras never
   emit it, on any transport.
 * The `H265/ch1/sub/av_stream` paths carry H.264 Main, and the proxy is a repack: same codec,
   size, pixel format and rate as the camera behind it.
 
-A desktop is not the board. None of the above is a statement about the Pi until it has been
+Those three findings are why `CameraFeed` exists. The application now opens all five in
+2.6–3.3 s and plays the proxied stream, which is what `--backend qt` is kept to re-measure
+against.
+
+A desktop is not the board. None of the above is a statement about the Pi 4 until it has been
 run there — [targets](docs/targets.md), and `CLAUDE.md` on hardware being the oracle.

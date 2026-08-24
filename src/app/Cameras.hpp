@@ -3,22 +3,25 @@
 #include <QObject>
 #include <QStringList>
 
-// The camera-url list and how long a tile holds its stream off screen.
+// The camera-url list, how long a tile holds its stream off screen, and which RTSP transport
+// is asked for.
 //
-// Everything about actually playing a stream lives in CameraTile.qml; see docs/media.md for
-// why the audio on these is muted rather than simply unconnected, and what holdMs buys.
+// Playing a stream is CameraFeed's; drawing one is CameraTile.qml's. See docs/media.md.
 class Cameras : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QStringList urls READ urls CONSTANT)
 	Q_PROPERTY(int holdMs READ holdMs CONSTANT)
+	Q_PROPERTY(QString transport READ transport CONSTANT)
 
 public:
-	Cameras(QStringList urls, int holdMs, QObject* parent = nullptr);
+	Cameras(QStringList urls, int holdMs, QString transport, QObject* parent = nullptr);
 
 	QStringList urls() const { return m_urls; }
 	int holdMs() const { return m_holdMs; }
+	QString transport() const { return m_transport; }
 
 private:
 	QStringList m_urls;
 	int         m_holdMs;
+	QString     m_transport;
 };

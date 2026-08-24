@@ -80,7 +80,13 @@ std::vector<ParamInitializer> specs()
 			"HC-12 node id the gate command addresses"),
 
 		ParamInitializer(STRING_VECTOR, "camera-url", std::vector<std::string>(),
-			"RTSP stream per camera tile, comma separated; audio from these is always muted"),
+			"RTSP stream per camera tile, comma separated; the tile filling the screen is the "
+			"only one ever heard"),
+		// tcp and not auto, which is what ffmpeg does unasked: auto tries UDP first, and a peer
+		// that refuses it answers 461 and costs a round trip. Every stream here opens as fast
+		// on TCP, and the go2rtc proxy opens on nothing else.
+		ParamInitializer(STRING, "camera-transport", "tcp",
+			"RTSP transport asked for: tcp, udp, or auto to let ffmpeg choose"),
 		ParamInitializer(INT, "camera-hold-ms", 60000,
 			"How long a camera keeps its stream after its context leaves the screen; "
 			"negative never disconnects"),
@@ -167,6 +173,7 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 	get("gate-target", &out->gateTarget);
 
 	get("camera-url", &out->cameraUrls);
+	get("camera-transport", &out->cameraTransport);
 	get("camera-hold-ms", &out->cameraHoldMs);
 	get("radio-m3u", &out->radioM3u);
 	get("key-bindings", &out->keyBindings);

@@ -41,6 +41,7 @@ struct Settings {
 	int         gateTarget = 0;
 
 	std::vector<std::string> cameraUrls;
+	std::string              cameraTransport;
 	int                      cameraHoldMs = 0;
 
 	// The playlist the stations are read from. Nothing here parses it - see src/app/Radio.cpp.

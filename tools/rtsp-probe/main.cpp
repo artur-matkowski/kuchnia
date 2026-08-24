@@ -15,7 +15,8 @@
 
 #include <cstdio>
 
-#include "Feed.hpp"
+#include "app/CameraFeed.hpp"
+#include "integrations/Log.hpp"
 
 namespace {
 
@@ -31,7 +32,7 @@ void usage()
 		"                          them; qt is a MediaPlayer, the application's own path\n"
 		"    --url URL             repeatable; overrides --config\n"
 		"    --config PATH         take every camera-url from this file\n"
-		"    --transport auto|tcp|udp   ffmpeg backend only (default auto)\n"
+		"    --transport auto|tcp|udp   ffmpeg backend only (default tcp)\n"
 		"    --fullscreen          take the screen rather than a 1366x768 window\n",
 		stderr);
 }
@@ -71,7 +72,7 @@ int main(int argc, char* argv[])
 	QGuiApplication app(argc, argv);
 
 	QString     backend   = "ffmpeg";
-	QString     transport = "auto";
+	QString     transport = "tcp";
 	QString     config;
 	QStringList urls;
 	bool        fullscreen = false;
@@ -109,10 +110,17 @@ int main(int argc, char* argv[])
 		return 2;
 	}
 
-	QVariantList feeds;
-	QList<Feed*> owned;
+	// CameraFeed logs through applog, which drops every line until it is pointed somewhere.
+	applog::init();
+	applog::setLevel("debug");
+
+	QVariantList       feeds;
+	QList<CameraFeed*> owned;
 	for (int i = 0; i < urls.size(); ++i) {
-		auto* feed = new Feed(urls.at(i).trimmed(), labelFor(urls.at(i), i), transport, &app);
+		auto* feed = new CameraFeed(&app);
+		feed->setUrl(urls.at(i).trimmed());
+		feed->setLabel(labelFor(urls.at(i), i));
+		feed->setTransport(transport);
 		owned << feed;
 		feeds << QVariant::fromValue(static_cast<QObject*>(feed));
 	}
@@ -131,8 +139,10 @@ int main(int argc, char* argv[])
 	// After the load and not before it: attaching the sink is the scene's Component.onCompleted,
 	// and a feed started ahead of that decodes frames with nowhere to put them - which shows up
 	// as a first-frame time that includes however long the window took to build.
+	// Under `qt` these are never started: the MediaPlayer in the scene fills the same sink, and
+	// the feed is left holding it purely to count what arrives.
 	if (backend == "ffmpeg")
-		for (Feed* feed : owned)
+		for (CameraFeed* feed : owned)
 			feed->start();
 
 	return app.exec();

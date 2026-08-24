@@ -60,8 +60,10 @@ half seconds on the first menu press turned out to be three of the eighteen.
 millisecond is mostly the cost of saying so, and a capture with `PERF` at debug is not a
 measurement of the panel at rest.
 
-The tags are what `scripts/collect-freeze.sh` greps for. They carry no spaces — a report reads
-them as fields — and a camera's is built from its label, so renaming a tile renames its spans.
+The tags are what `scripts/collect-freeze.sh` greps for, and they carry no spaces — a report
+reads them as fields. The camera tiles carry none: they had spans only around the assignments
+that could run an RTSP open on this thread, and nothing there opens anything any more
+([media](docs/media.md)).
 
 ## Capturing one
 

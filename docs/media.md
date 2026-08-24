@@ -1,113 +1,120 @@
 # Video and audio
 
 > Owns: src/qml/CameraTile.qml
+> Owns: src/app/CameraFeed.hpp
+> Owns: src/app/CameraFeed.cpp
 > Owns: src/app/Cameras.hpp
 > Owns: src/app/Cameras.cpp
 > See:  docs/radio.md docs/app.md docs/scene.md docs/state.md docs/contexts.md docs/packaging.md docs/input.md docs/rtsp.md
 
-Five RTSP tiles from `camera-url`, through QtMultimedia. The tiles reach the cameras directly;
-nothing sits in between, and the radio they share an audio sink with is [radio](docs/radio.md).
+Five RTSP tiles from `camera-url`. **Qt neither demuxes nor decodes any of them**: `CameraFeed`
+runs `ffmpeg` as a child process, reads raw `yuv420p` frames off its stdout and hands each to
+the `QVideoSink` the tile's `VideoOutput` gave it. Qt's part is the blit. Why the streams are
+not Qt's to open, and the tools that established it, are [rtsp](docs/rtsp.md).
+
 `VideoOutput` is set to `Stretch` and not to a preserved aspect: the cells are cut to the
 streams' own 16:9 so there is nothing to fit, and a black bar down one tile of five reads as a
 tile that has stopped working. A zoomed tile is a little wider than 16:9 and is stretched by
 that much.
 
-## One audio sink, and the radio wins
+## Two children, and why not one
 
-Every `CameraTile` assigns an `AudioOutput` whether or not it is wanted, and mutes it when it
-is not. Leaving `audioOutput` unset is not equivalent: it is silent on some backends and
-audible on others, and the cameras that carry sound are exactly the ones that would establish
-which — after the radio has already been mixed with a doorway.
+A pipe carries one output. Video is on the pipe that must never be made to wait, so audio gets
+its own child process and its own RTSP session rather than a second output on the first one — a
+fifo nobody drains blocks the writer, and the writer is the picture.
 
-`Cctv.audible` decides, and at most one camera is ever heard: the one filling the screen, while
-the radio is not wanted and CCTV is the context on screen. Nothing is configured about which
-cameras carry a microphone, because nothing has to be — an unmuted stream with no audio track
-is silent by itself.
+The audio child exists **only while `audible`**, which is at most one camera in the whole
+application (`Cctv.audible`, and the radio wins — [radio](docs/radio.md)). There is no mute:
+silence is the absence of a process. The cost is that sound arrives about two to three seconds
+after a camera is zoomed, because that is a fresh RTSP open.
 
-**The mute is applied in software, not at the sink.** PulseAudio reports these streams as
-unmuted and at 100%, because Qt zeroes the samples before they reach it. Checking a mixer
-therefore proves nothing; measuring the output does.
+`-map 0:a:0?` carries a trailing question mark and it is load-bearing: three of these cameras
+have no microphone, and without it ffmpeg exits with an error on a camera that is behaving
+perfectly. A camera with no audio track ends its child immediately and the picture is
+unaffected.
+
+**The `QAudioSink` is opened on the first byte, not when the child starts.** It pulls, and one
+started against a process still opening its stream spends the whole open in underrun.
+
+## The pipe's geometry is ffmpeg's to declare
+
+`CameraFeed` reads the frame size out of ffmpeg's own output header and from nowhere else — not
+from a prior `ffprobe`, not from a setting. **A frame size that disagrees with the bytes on the
+pipe is a sheared, rolling picture and never an error.** The match needs two digits on each
+side, or the FourCC in `rawvideo (I420 / 0x30323449)` is read as the resolution and every frame
+after it is zero bytes long.
+
+Planes are copied row by row. The mapped `QVideoFrame`'s stride is Qt's and the pipe's is the
+picture's, so a straight `memcpy` of a whole plane shears every frame on any width Qt padded.
+
+**`-fps_mode passthrough` is not a tuning knob.** A rawvideo pipe carries no timestamps, so
+ffmpeg's default pads it to a constant rate: a camera sending 10 fps at a declared 25 arrives
+as 25 fps of which 15 are duplicates, each decoded, copied and uploaded for nothing. The
+picture looks correct either way.
+
+`camera-transport` is **`tcp`** and not `auto`. Every stream here opens as fast on TCP as on
+anything else; `auto` tries UDP first, and a peer that refuses it costs a round trip and a
+`method SETUP failed: 461 Unsupported transport` in the log. None of these cameras refuses UDP.
+The go2rtc proxy does, and answers on TCP alone.
 
 ## A dead camera does not report itself
 
-Three different things happen when a stream goes away, and only one of them is an error:
+Three different things happen when a stream goes away, and only one of them announces itself:
 
-* **The peer refuses the connection.** `onErrorOccurred` fires. Easy.
-* **The peer closes the stream.** No error at all — `mediaStatus` becomes `EndOfMedia`,
-  playback stops, and the tile paints its last frame. This is what a camera reboot looks
-  like.
-* **The peer stops sending.** *Nothing* fires. `playbackState` stays `PlayingState`,
-  `mediaStatus` stays put, and the tile keeps its green "live" badge over an hour-old
-  picture for as long as the process runs.
+* **The peer refuses the connection.** ffmpeg exits non-zero and says why.
+* **The peer closes the stream.** ffmpeg exits zero. Indistinguishable from a clean end, which
+  is what a camera reboot looks like from here.
+* **The peer stops sending.** *Nothing* happens. The child stays alive, its pipe goes quiet,
+  and the tile paints its last frame under a green "live" badge for as long as it runs.
 
-The third is the one that matters and the `watchdog` timer is the only thing that catches
-it. **Liveness is counted in frames delivered to `VideoOutput.videoSink`, and nothing the
-player says about itself is a substitute.** `playbackState` is `PlayingState` from the moment
-`play()` returns, and `mediaStatus` reaches `BufferedMedia` on a stream that goes on to
-deliver nothing at all. A watchdog reading either tears a healthy camera down on a timer, or
-never fires on a dead one.
+The third is the one that matters, and the watchdog is the only thing that catches it.
+**Liveness is counted in frames delivered to the sink, and nothing else is a substitute.**
+Frames are counted in exactly one place — `attach()`'s connection to `videoFrameChanged` — and
+a second counter anywhere counts every frame twice.
 
-Two budgets, because connecting and running fail on different timescales. A stream that has
-delivered a frame must keep delivering one every `stallTimeoutMs`. One that has not gets
-`connectTimeoutMs`, which is much longer and is counted from the backend's last word rather
-than from the request: the UDP-to-TCP fallback below takes seconds and happens inside an open
-the watchdog is not allowed to touch. So it stands down entirely while `_loading`, and while
-`retry` is pending — that timer ticks faster than the retry it is waiting for, and re-arming it
-on every tick pushes the deadline out of reach so the reconnect never happens.
+Two budgets, because connecting and stalling fail on different timescales: a stream that has
+delivered a frame must keep delivering one every five seconds, and one that has not gets
+twenty, which has to clear the two to three seconds an open actually takes. The watchdog stands
+down while a retry is pending — it ticks faster than the retry it is waiting for, and re-arming
+on every tick pushes that deadline out of reach so the reconnect never happens.
 
-Reconnecting is `source = ""` followed by the URL again. A `stop()`/`play()` pair on the same
-source makes the backend seek instead, which on a live stream is an RTSP `PAUSE` the server
-answers with 405 and a tile that never comes back.
+Reconnecting is killing the child and starting another. The backoff doubles to thirty seconds
+so a camera that is genuinely gone does not reconnect in a tight loop for days, and the first
+frame that arrives resets it.
 
-**Nothing here may assign `source` while the backend is opening one.** That assignment waits
-for the open on the thread that makes it, and can run the open there outright — the panel stops
-for as long as the camera takes and nothing says so. `_loading` guards every assignment in the
-file, including the teardown below, and the open that is left alone reports its own failure to
-`onErrorOccurred`. Why it blocks is [app](docs/app.md).
+## Leaving a screen still costs a reconnect
 
-`Component.onCompleted` connects and `onUrlChanged` deliberately does not: the `url` binding is
-evaluated during creation and this runs after it, so wiring both opens every stream twice.
+A tile that goes off screen has one way to stop decoding: kill the child and start a fresh one
+on the way back, which costs **two to three seconds**. That is the number `camera-hold-ms` is
+weighed against: a tile keeps its stream for that long after its context leaves the screen, so
+a glance at another screen costs nothing and only a real stay pays the reconnect. **Negative
+never disconnects** — a decoder running for a context nobody is looking at, which costs exactly
+as much as one that is. Zero disconnects as soon as the transition settles.
 
-## A stream cannot be paused, so leaving a screen is expensive
-
-A tile that goes off screen has only one way to stop decoding: tear the session down and open a
-fresh one on the way back. Reopening one of these cameras takes **five to six seconds**,
-measured, and that is the number `camera-hold-ms` is weighed against: a tile keeps its stream
-for that long after its context leaves the screen, so a glance at another screen costs nothing
-and only a real stay pays the reconnect. **Negative never disconnects.** Zero disconnects as
-soon as the transition settles, which is the setting that makes every return cost six seconds
-of black tiles.
-
-Two things a tile must not do while it is torn down, and neither announces itself:
-
-* **`_retryLater()` returns early when `_down`.** Clearing the source is itself reported as
-  `EndOfMedia`, so without that guard the teardown arms a retry that reopens the stream off
-  screen — the decoder this was meant to stop, running anyway.
-* **The watchdog stops with it.** A tile that was asked to stop is otherwise reported stalled,
-  and the backoff climbs while nothing is looking at it.
-
-`method SETUP failed: 461 Unsupported transport` is a peer refusing UDP, after which ffmpeg
-retries over TCP by itself and succeeds. **None of these cameras emits it** — it is what the
-go2rtc proxy answers, and Qt exposes no way to ask for TCP up front. Which peers say it, and
-what else a stream costs outside this application, is [rtsp](docs/rtsp.md).
+`start()` and `stop()` are both idempotent, and `start()` runs after `attach()`: a feed started
+before it has a sink decodes frames with nowhere to put them. The scene does both in
+`Component.onCompleted`, in that order.
 
 ## What the image has to carry
 
-Linking `Qt6::Multimedia` is not enough; none of this is resolved until runtime:
+**`ffmpeg` is a package dependency and nothing in the binary reveals it.** A board without it
+shows five tiles that fail with "No such file or directory" and retry forever. It is named in
+`debian/control` by hand with the rest — [packaging](docs/packaging.md).
 
-* the `QtMultimedia` QML module,
-* a media backend — Qt's ffmpeg backend, or gstreamer with `rtspsrc` (in `gst1-plugins-good`),
-* a reachable PulseAudio server, below,
-* video decode reachable from userspace.
+Linking `Qt6::Multimedia` is not enough either; none of this is resolved until runtime:
 
-A build that links cleanly still shows five black tiles and plays nothing when any of these
-is missing. `debian/control` is where the first three are named — [packaging](docs/packaging.md).
+* the `QtMultimedia` QML module, for `VideoOutput` and for the radio's player,
+* a reachable PulseAudio server, below.
+
+Nothing here needs Qt's media *backend* for a camera any more, and nothing here needs video
+decode reachable from userspace: ffmpeg decodes in software, in its own process, where a
+decoder that hangs cannot take the GUI thread with it.
 
 ## There is no ALSA path, and no server is silent
 
 Debian's QtMultimedia links `libpulse` and **nothing else** — no `libasound` in
-`libQt6Multimedia.so.6` or `libffmpegmediaplugin.so`. A PulseAudio-protocol server is not one
-way to get sound out; it is the only one, and an `audio` group with an ALSA device is not it.
+`libQt6Multimedia.so.6`. A PulseAudio-protocol server is not one way to get sound out; it is
+the only one, and an `audio` group with an ALSA device is not it.
 
 **An unreachable server is a silent application, not a failed one.** Qt logs
 `pa_context_connect() failed` once at startup, then runs perfectly: the scene draws, the
@@ -115,10 +122,3 @@ tiles play, and the radio connects to its station and decodes it into nothing.
 
 Which server, and the address the unit has to name because Qt will not find it, is
 [session](docs/session.md).
-
-## The tiles must decode in software
-
-On the hardware decoder three of the five streams report `no first frame`, `V4L2 capture poll
-unexpected timeout` repeats, and the GUI thread blocks for tens of seconds — a panel that has
-stopped answering the keyboard, which reads as a hang and never as a decoder. The switch that
-keeps them off it is in the unit: [session](docs/session.md).

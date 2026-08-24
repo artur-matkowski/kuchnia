@@ -51,6 +51,7 @@ set_target_properties(kuchnia-modules PROPERTIES POSITION_INDEPENDENT_CODE ON)
 qt_add_executable(kuchnia
 	src/main.cpp
 	src/app/AppState.cpp
+	src/app/CameraFeed.cpp
 	src/app/Cameras.cpp
 	src/app/Gate.cpp
 	src/app/HotWater.cpp

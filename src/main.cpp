@@ -75,9 +75,6 @@ void routeLibavMessages(void* avcl, int level, const char* fmt, va_list args)
 	int prefix = 1;
 	avLogFormatLine(avcl, level, fmt, args, line, sizeof(line), &prefix);
 
-	if (std::strstr(line, "deprecated pixel format used") != nullptr)
-		return;
-
 	std::string text(line);
 	while (!text.empty() && (text.back() == '\n' || text.back() == '\r'))
 		text.pop_back();

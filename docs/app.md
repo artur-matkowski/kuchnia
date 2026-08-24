@@ -33,11 +33,10 @@ A `[swscaler @ 0x…]` prefix is the tell: nothing in Qt's own logging puts one 
   exactly what was replaced — so the replacement has to make it. Without `av_log_get_level()`
   every decoder debug line, one per NAL, is formatted before `applog` discards it.
 
-One line is dropped by name, `deprecated pixel format used`. The cameras encode full-range
-H.264, so the decoder hands Qt `yuvj420p`, and Qt frees the `SwsContext` after every frame —
-libswscale warns per frame rather than once per stream, and buries the log. Nothing here
-chooses either. Everything else libav says is kept at its own level, and `QT_FFMPEG_DEBUG`
-still works, now landing in `applog` with the rest.
+Everything libav says is kept at its own level, and `QT_FFMPEG_DEBUG` still works, landing in
+`applog` with the rest. **Only the radio reaches libav through Qt now** — the cameras carry
+their own ffmpeg in a child process, whose output arrives as ordinary child stderr and not
+through this at all ([media](docs/media.md)).
 
 **Order in `main()` is load-bearing, and so is declaration order.** Logging is up first
 because reading the settings logs; the settings are read before `QGuiApplication` so that
@@ -62,10 +61,11 @@ load leaves a valid engine with no root object, which then runs the event loop f
 board that is a live process painting nothing — the same symptom as a GPU that never bound.
 The `objectCreationFailed` connection is the only thing turning that into an exit code.
 
-**`URI Kuchnia` is written three times** — in `qt_add_qml_module()`, in the `loadFromModule()`
-call, and in every `qmlRegisterSingletonInstance()` in `AppState.cpp` — and nothing checks
-that they agree. A rename in one place builds cleanly and fails at startup with "module
-Kuchnia is not installed" or "Gate is not a type", either of which reads as a broken Qt.
+**`URI Kuchnia` is written in four places** — in `qt_add_qml_module()`, in the
+`loadFromModule()` call, and in every `qmlRegisterSingletonInstance()` and the one
+`qmlRegisterType()` in `AppState.cpp` — and nothing checks that they agree. A rename in one
+place builds cleanly and fails at startup with "module Kuchnia is not installed" or "Gate is
+not a type", either of which reads as a broken Qt.
 
 ## What stops the screen, and how to tell which
 
@@ -82,10 +82,11 @@ will.
 
 **`QMediaPlayer::setSource()` is not a setter.** Qt's ffmpeg backend opens the media on
 `QThreadPool::globalInstance()`, waits for that task on the calling thread, and runs a
-not-yet-started open inline. So the pool is sized here against the number of players — one per
-core by default, four on the board against five cameras and the radio — and the scene never
-assigns `source` while `mediaStatus` is `LoadingMedia`: [media](docs/media.md),
-[radio](docs/radio.md). The wait measures about a millisecond; the inline open costs seconds.
+not-yet-started open inline — so assigning it can run an RTSP open on the GUI thread and stop
+the panel for as long as the peer takes. **The radio is the only player left in the process**;
+the cameras are child processes now and `QProcess::start()` returns immediately
+([media](docs/media.md)). Why the radio assigns `source` rather than binding it, and how it
+holds an assignment off while one is in flight, is [radio](docs/radio.md).
 
 ## The font is in the binary
 
@@ -113,9 +114,9 @@ shape from tracking where the sources happen to sit.
 the pragma the generated `qmldir` does not declare it and every `Theme.` in the scene
 evaluates to `undefined` — an unstyled screen, not an error.
 
-`Qt6::Multimedia` links, but the `QtMultimedia` QML import and the backend that decodes
-anything are both loaded at runtime. A build that links fine still plays nothing on a board
-missing either; [media](docs/media.md) lists what has to be installed.
+`Qt6::Multimedia` links, but the `QtMultimedia` QML import is loaded at runtime and `ffmpeg`
+is a program forked at runtime. A build that links fine still shows five failing tiles on a
+board missing either; [media](docs/media.md) lists what has to be installed.
 
 `QtQuick.Shapes` and `QtQuick.Layouts` are imported by QML and named in no CMake target.
 Both are part of `qt6declarative`, so they are present whenever Quick is — but a Qt built
