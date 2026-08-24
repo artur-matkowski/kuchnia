@@ -76,7 +76,7 @@ off.
 
 ## Where this runs
 
-A Raspberry Pi 5 on Raspberry Pi OS Desktop, autostarted inside the board's session and
+A Raspberry Pi 4 on Raspberry Pi OS Desktop, autostarted inside the board's session and
 installed with `apt` from this Gitea's Debian registry:
 
 ```sh

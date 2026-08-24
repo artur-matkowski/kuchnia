@@ -24,12 +24,14 @@ Build-Depends: debhelper-compat (= 13),
 
 Package: kuchnia
 Architecture: any
-# dh_shlibdeps sees none of these: they are QML imports, a dlopen'd platform plugin, a file
-# read off disk and a server reached over a socket. --as-needed drops even libQt6Quick from the
-# binary, so the Quick library arrives through qml6-module-qtquick or not at all - and the
-# PulseAudio server is a runtime peer no linkage can reveal. See docs/packaging.md.
+# dh_shlibdeps sees none of these: they are QML imports, a dlopen'd platform plugin, a program
+# forked at runtime, a file read off disk and a server reached over a socket. --as-needed drops
+# even libQt6Quick from the binary, so the Quick library arrives through qml6-module-qtquick or
+# not at all - and ffmpeg and the PulseAudio server are runtime peers no linkage can reveal.
+# See docs/packaging.md.
 Depends: ${shlibs:Depends},
          ${misc:Depends},
+         ffmpeg,
          qt6-wayland,
          qml6-module-qtcore,
          qml6-module-qtquick,

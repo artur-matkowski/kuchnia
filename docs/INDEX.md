@@ -4,7 +4,7 @@ The map of this repository. **Start every task here**, follow the link, read the
 read the code it names. Paths are repo-relative, resolved from the repository root and not
 from the file you are reading.
 
-A QML application on a Raspberry Pi 5, drawn by Qt Quick fullscreen in the board's desktop
+A QML application on a Raspberry Pi 4, drawn by Qt Quick fullscreen in the board's desktop
 session. The weight sits in what it shows and what it does, not in a rendering architecture:
 that is `drm-hmi` next door, and a problem here wanting a renderer seam belongs there.
 

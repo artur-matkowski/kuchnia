@@ -42,8 +42,11 @@ The last two lines are the difference between an installed package and a running
 
 ## What `dh_shlibdeps` cannot find
 
-`debian/control` names ten runtime dependencies by hand. They are not a belt-and-braces
-list: none of them is discoverable from the binary.
+`debian/control` names eleven runtime dependencies by hand. They are not a belt-and-braces
+list: none of them is discoverable from the binary. **`ffmpeg` is the one that is not a
+library at all** — it is a program the application forks once per camera tile, so no linkage
+and no QML import can reveal it, and a board without it draws five tiles that fail with "No
+such file or directory" and retry forever ([media](docs/media.md)).
 
 The QML imports are the reason. `--as-needed` drops any library the object files do not
 reference, and the scene reaches Quick through the engine rather than through a symbol — so

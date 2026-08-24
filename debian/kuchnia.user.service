@@ -10,12 +10,6 @@ ExecStart=/usr/bin/kuchnia
 Restart=always
 RestartSec=2
 
-# Empty, and the empty value is the point: it leaves Qt's ffmpeg backend no hardware device
-# type to choose, so the camera tiles decode in software. Unset, the backend picks
-# h264_v4l2m2m, three of the five streams never produce a first frame, and the GUI thread
-# blocks for tens of seconds at a time. See docs/media.md.
-Environment=QT_FFMPEG_DECODING_HW_DEVICE_TYPES=
-
 # The sound server on this board is system-wide and shared with another service, so it is not
 # the per-user one Qt looks for by default. See docs/media.md.
 Environment=PULSE_SERVER=unix:/run/pipewire/pulse-native

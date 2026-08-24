@@ -34,13 +34,12 @@ radio station in `src/qml/RadioPanel.qml` land in that user's `~/.config`.
 Fullscreen is the application's own request and not compositor configuration — the window is
 [scene](docs/scene.md), the parameter behind it [integrations](docs/integrations.md).
 
-## The two things the unit does set
+## The one thing the unit does set
 
-`QT_FFMPEG_DECODING_HW_DEVICE_TYPES` is **empty**, and empty is the value: it leaves the
-ffmpeg backend no hardware device type to choose, so the camera tiles decode in software.
-Unset, the backend picks `h264_v4l2m2m` and the tiles stall — [media](docs/media.md).
-`GST_PLUGIN_FEATURE_RANK` is the same intent aimed at the wrong backend and does nothing
-here, which is worse than doing nothing elsewhere: it looks exactly like the fix.
+Nothing here steers a video decoder any more. The camera tiles decode in an ffmpeg child
+process which is asked for no hardware acceleration, so a `QT_FFMPEG_*` or
+`GST_PLUGIN_FEATURE_RANK` line added here would reach only the radio, which decodes no video
+at all — a variable that looks exactly like the fix and does nothing.
 
 `PULSE_SERVER` names the sound server because this board's is system-wide and shared with
 `audio-host`, not the per-user one Qt looks for. The address is written in three places that do
