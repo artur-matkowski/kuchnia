@@ -80,11 +80,14 @@ applied to the floored span rather than to the raw one.
 drops a person for being old — somebody vanishing off this map should mean they stopped
 sharing, not that their phone slept. The age is carried on the row for the panel to show.
 
-**Two runtime dependencies nothing can see.** `qml6-module-qtlocation` and
-`qml6-module-qtpositioning` are QML imports, so `dh_shlibdeps` finds neither, exactly like the
-other QML modules in `debian/control` — [packaging](docs/packaging.md). A board without them
-does not fail to start: `main.cpp` does not exit on a QML error, so the other five contexts
-draw and this one is a warning in the journal.
+**Two runtime dependencies nothing can see, and they take the whole scene with them.**
+`qml6-module-qtlocation` and `qml6-module-qtpositioning` are QML imports, so `dh_shlibdeps`
+finds neither, exactly like the other QML modules in `debian/control` —
+[packaging](docs/packaging.md). It is tempting to assume one context's import failing costs
+one context: it does not. `MapScreen` is instantiated by `Main.qml`, so an import it cannot
+resolve fails the root object, and `main.cpp` turns that into `exit(1)` — a board missing
+either module restart-loops with a blank screen, and the five contexts that have nothing to
+do with the map never draw.
 
 ## The screen
 

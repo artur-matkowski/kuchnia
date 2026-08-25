@@ -53,11 +53,6 @@ reference, and the scene reaches Quick through the engine rather than through a 
 is the only thing that installs it. The rest of the imports in `src/qml/` follow the same
 path, which is why every one of them is listed.
 
-`qml6-module-qtlocation` and `qml6-module-qtpositioning` are the newest two and the ones
-whose absence is quietest: they carry a single context rather than the whole scene, so a
-board without them starts, draws the other five, and says so only in the journal —
-[map](docs/map.md).
-
 `qt6-wayland` is the platform plugin the session needs, and it is the one dependency whose
 absence degrades instead of failing: with a compositor running and no Wayland plugin, Qt
 falls back to `xcb` over XWayland and draws a working but needlessly indirect picture.
