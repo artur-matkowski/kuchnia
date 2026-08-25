@@ -26,7 +26,7 @@ QtObject {
 	// screens is the one that carries three cards across rather than fading them, and it reads
 	// as a step only if it is a step.
 	readonly property var cycle: ["cameras", "compact-24h", "compact-72h",
-	                              "weather-72h", "weather-7d"]
+	                              "weather-72h", "weather-7d", "map"]
 
 	// Every id `goTo` accepts. `settings` and `carousel` are off the ring on purpose: the
 	// carousel is the only way into settings and the only way out of it, and the carousel

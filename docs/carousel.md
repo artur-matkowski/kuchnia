@@ -7,7 +7,7 @@
 > Owns: src/qml/CarouselOut.qml
 > See:  docs/contexts.md docs/scene.md docs/input.md
 
-The chooser on the menu key. All four screens are on at once, laid out at full size and put
+The chooser on the menu key. All five screens are on at once, laid out at full size and put
 through one Scale each into a strip of miniatures; the two context keys slide the strip, always
 looping, with the selected card centred; confirm opens the centred one. There is no cancel -
 the menu key inside the carousel does nothing.
@@ -16,7 +16,7 @@ the menu key inside the carousel does nothing.
 
 This is the whole of the design and the reason `CardFrame` exists. Everywhere else an element
 animates itself in and out of a context on its own terms, and if that were left to run here the
-four screens would assemble out of loose parts: a gauge arriving from the left, a camera zooming
+five screens would assemble out of loose parts: a gauge arriving from the left, a camera zooming
 at the viewer, three weather cards crossing the screen, none of them agreeing on where their
 screen is. In the carousel a screen moves as a screen.
 

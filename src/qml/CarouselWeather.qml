@@ -46,6 +46,7 @@ CardFrame {
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings" },
+			State { name: "map" },
 			State {
 				name: "carousel"
 				PropertyChanges { target: temperature; opacity: 1 }
@@ -94,6 +95,7 @@ CardFrame {
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings" },
+			State { name: "map" },
 			State {
 				name: "carousel"
 				PropertyChanges { target: forecast; opacity: 1 }
@@ -142,6 +144,7 @@ CardFrame {
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings" },
+			State { name: "map" },
 			State {
 				name: "carousel"
 				PropertyChanges { target: rain; opacity: 1 }

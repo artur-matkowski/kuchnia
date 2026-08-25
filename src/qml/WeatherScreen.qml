@@ -15,7 +15,7 @@ Context {
 
 	// Every id that is not this screen. The cards this file owns are off screen in all of them
 	// and travel the same way in and out of each.
-	readonly property string away: "cameras,compact-24h,compact-72h,settings"
+	readonly property string away: "cameras,compact-24h,compact-72h,settings,map"
 	readonly property string spans: "weather-72h,weather-7d"
 
 	// Everything inside the margin.
@@ -62,6 +62,7 @@ Context {
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
+			State { name: "map"; PropertyChanges { target: wind; offsetX: 900; opacity: 0 } },
 			State { name: "carousel" }
 		]
 
@@ -103,6 +104,7 @@ Context {
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings"; PropertyChanges { target: conditions; offsetX: 900; opacity: 0 } },
+			State { name: "map"; PropertyChanges { target: conditions; offsetX: 900; opacity: 0 } },
 			State { name: "carousel" }
 		]
 
@@ -153,6 +155,7 @@ Context {
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
+			State { name: "map"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
 			State { name: "carousel" }
 		]
 
@@ -207,6 +210,7 @@ Context {
 			State { name: "weather-72h" },
 			State { name: "weather-7d" },
 			State { name: "settings"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
+			State { name: "map"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
 			State { name: "carousel" }
 		]
 

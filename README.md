@@ -4,9 +4,10 @@ A Qt Quick application that runs fullscreen in a Raspberry Pi's desktop session,
 the board as a Debian package and started by the session it draws into.
 
 It shows a house across screens two keys cycle between: five RTSP cameras beside a
-clock and the hot water tank on one, and the gate's state and its controls, the tank over the
-last day, the weather forecast and an internet radio on the other. Behind it
-are three clients of the <REDACTED> — PostgreSQL, HTTP and MQTT — each on its own thread. This
+clock and the hot water tank on one, the gate's state and its controls, the tank over the
+last day, the weather forecast and an internet radio on the next, and a map of everyone
+sharing a location on the last. Behind it are four clients of the <REDACTED> — PostgreSQL, two
+HTTP services and MQTT — each on its own thread. This
 repository is where the *application* is built — screens, state, interaction — and Qt Quick
 is what draws it.
 

@@ -22,7 +22,7 @@ QtObject {
 
 	// The strip, in order, looped. These are card names and not context ids: the compact and
 	// weather screens are two contexts each and one card each.
-	readonly property var cards: ["cameras", "compact", "weather", "settings"]
+	readonly property var cards: ["cameras", "compact", "weather", "map", "settings"]
 
 	// The scene's size, bound by Main.qml. Fullscreen that is the panel's, so this default is
 	// only what a miniature is cut out of before the binding first fires.
@@ -104,6 +104,8 @@ QtObject {
 			return "weather"
 		if (contextId === "settings")
 			return "settings"
+		if (contextId === "map")
+			return "map"
 		return "cameras"
 	}
 

@@ -14,7 +14,7 @@
 
 Exactly one context is ON; the two context keys cycle. Nothing draws a tab bar and
 nothing is meant to: the only evidence a context exists is what it puts on the screen. The one
-context where that is not true is [the carousel](docs/carousel.md), where all four screens are
+context where that is not true is [the carousel](docs/carousel.md), where all five screens are
 on at once as miniatures and every screen therefore names `carousel` among its `contextIds`.
 
 `Nav.cycle` is the ring those two keys walk and `Nav.contexts` is everything `goTo` accepts.
@@ -22,7 +22,7 @@ The two differ by `settings` and `carousel`, which are off the ring: `next()`/`p
 answer -1 for a context that is not on it and do nothing, which is what makes them inert
 in settings rather than jumping somewhere arbitrary.
 
-Seven ids and four screens, five of the ids on the ring. Two of the screens are two ids each -
+Eight ids and five screens, six of the ids on the ring. Two of the screens are two ids each -
 `compact-24h`/`compact-72h` and `weather-72h`/`weather-7d` are one screen seen over two forecast
 spans, which is why `Context.contextIds` is a list. Every element outside the weather charts
 gives both ids of its screen the same pose, and that is the requirement rather than a shortcut:

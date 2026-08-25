@@ -61,6 +61,7 @@ Item {
 		State { name: "weather-72h" },
 		State { name: "weather-7d" },
 		State { name: "settings" },
+		State { name: "map" },
 		State {
 			name: "carousel"
 			// Bindings, not values: the strip slides while the carousel is on, and every

@@ -99,6 +99,8 @@ set(KUCHNIA_QML
 	src/qml/HotWaterPanel.qml
 	src/qml/LineChart.qml
 	src/qml/Main.qml
+	src/qml/MapPanel.qml
+	src/qml/MapScreen.qml
 	src/qml/Nav.qml
 	src/qml/RadioPanel.qml
 	src/qml/RainChanceCard.qml

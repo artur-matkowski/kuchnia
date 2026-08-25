@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QString>
 
 #include "Panel.hpp"
 #include "PeopleModel.hpp"
@@ -17,6 +18,10 @@
 class People : public Panel {
 	Q_OBJECT
 	Q_PROPERTY(QAbstractListModel* model READ model CONSTANT)
+
+	// The map's one setting, carried here because the map has no object of its own and one
+	// singleton for one string would be a worse trade. Cameras carries its URLs the same way.
+	Q_PROPERTY(QString tileUrl READ tileUrl CONSTANT)
 	Q_PROPERTY(int count READ count NOTIFY boundsChanged)
 	Q_PROPERTY(bool hasBounds READ hasBounds NOTIFY boundsChanged)
 	Q_PROPERTY(double minLatitude READ minLatitude NOTIFY boundsChanged)
@@ -25,9 +30,10 @@ class People : public Panel {
 	Q_PROPERTY(double maxLongitude READ maxLongitude NOTIFY boundsChanged)
 
 public:
-	explicit People(QObject* parent = nullptr);
+	explicit People(QString tileUrl, QObject* parent = nullptr);
 
 	QAbstractListModel* model() { return &m_model; }
+	QString             tileUrl() const { return m_tileUrl; }
 
 	int    count() const { return m_count; }
 	bool   hasBounds() const { return m_count > 0; }
@@ -44,6 +50,7 @@ signals:
 
 private:
 	PeopleModel m_model;
+	QString     m_tileUrl;
 
 	int    m_count = 0;
 	double m_minLatitude  = 0.0;

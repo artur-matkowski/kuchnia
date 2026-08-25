@@ -1,0 +1,103 @@
+# The map context, and where its positions come from
+
+> Owns: src/qml/MapScreen.qml
+> Owns: src/qml/MapPanel.qml
+> Owns: src/app/People.hpp
+> Owns: src/app/People.cpp
+> Owns: src/app/PeopleModel.hpp
+> Owns: src/app/PeopleModel.cpp
+> Owns: src/integrations/Location.hpp
+> Owns: src/integrations/Location.cpp
+> See:  docs/contexts.md docs/integrations.md docs/state.md docs/packaging.md docs/rest.md
+
+One screen showing everyone who shares a location, framed so all of them fit with a tenth of
+the span to spare. `Location` fetches, `PeopleModel` holds the rows, `People` is what QML
+binds to, `MapPanel` draws.
+
+## The scrape is not here, and must not be
+
+There is no official Google API for location sharing. The only thing that works is a private
+RPC read with a logged-in cookie jar, and Google rotates `__Secure-1PSIDTS` on nearly every
+authenticated visit — a client that does not persist the rotated cookie is dead within the
+hour. That is a supervising daemon, and it holds a credential that is full account access.
+
+So it runs in the <REDACTED> and `people-url` points at it, the same way `rest-url` points at
+`openmeteo-cache` and not at open-meteo. **A change that starts logging into Google from this
+process is a change in the wrong repository.**
+
+The contract, which is the whole coupling:
+
+```json
+{"people":[{"id":"…","name":"Ala","lat":<COORD_REDACTED>,"lon":<COORD_REDACTED>,
+            "accuracy_m":25,"seen_at":1756100000,"battery":73}]}
+```
+
+`seen_at` is epoch **seconds**, like everything in `Sinks.hpp`; `PeopleModel` is where it
+becomes the milliseconds QML wants. `battery` may be absent and arrives as `-1`, which is out
+of range on purpose — a phone at 0% and a phone that did not say are different facts.
+
+`id` is load-bearing. `PeopleModel::set` matches incoming rows against it, so a stable id is a
+marker that moves and an unstable one is every marker on screen destroyed and rebuilt.
+
+## Why this is the only QAbstractListModel in the repository
+
+Everything else exposes lists as `QVariantList` read by a `Repeater`, which is right for a set
+replaced wholesale and wrong for one that moves: a `Repeater` handed a fresh list destroys and
+re-incubates **every** delegate when any value in it changes — `src/qml/LineChart.qml` says so
+at the point that caused it. A map delegate is a `MapQuickItem`, so one person moving would
+tear down every marker.
+
+`set()` therefore removes absent ids, appends new ones, and emits `dataChanged` for only the
+roles that actually moved. Rows are never reordered; the map does not care about order, and
+reordering would cost exactly what the model exists to avoid.
+
+Coordinates cross the seam as plain doubles rather than as `QGeoCoordinate`. That is what
+keeps `Qt6::Positioning` off the link line and out of `Build-Depends` — the delegate calls
+`QtPositioning.coordinate()` itself. Adding a geo type to `src/app/` puts it back.
+
+## What is silent here
+
+**`activeMapType` must be the `CustomMap` entry.** The osm plugin only reaches
+`osm.mapping.custom.host` through that map type. Left on the default it draws Qt's own
+hardcoded providers instead: tiles arrive, the map works, and they are not the tiles that
+were configured. `MapPanel` takes the last of `supportedMapTypes`, which is where the plugin
+appends it — and if the host parameter is ever dropped, that list is one shorter and the map
+falls back with no error.
+
+**`osm.mapping.providersrepository.disabled` must stay true.** Enabled, the plugin fetches
+provider metadata from `maps-redirect.qt.io` at startup — an internet dependency at boot that
+nothing in `debian/control` declares and nothing in this tree mentions.
+
+**Empty bounds are a real place.** `People.hasBounds` is false when nobody is sharing, and the
+viewport is then left alone. Four zeroes is a coordinate in the Gulf of Guinea; a map framed
+on empty bounds is not blank, it is confidently wrong.
+
+**One person has no bounding box.** So does a household at one address: zero span asks the map
+for infinite zoom. `MapPanel.minimumSpan` floors it at 0.01 degrees, and the padding is
+applied to the floored span rather than to the raw one.
+
+**A stale fix looks exactly like a fresh one.** The service reports `seen_at` and nothing
+drops a person for being old — somebody vanishing off this map should mean they stopped
+sharing, not that their phone slept. The age is carried on the row for the panel to show.
+
+**Two runtime dependencies nothing can see.** `qml6-module-qtlocation` and
+`qml6-module-qtpositioning` are QML imports, so `dh_shlibdeps` finds neither, exactly like the
+other QML modules in `debian/control` — [packaging](docs/packaging.md). A board without them
+does not fail to start: `main.cpp` does not exit on a QML error, so the other five contexts
+draw and this one is a warning in the journal.
+
+## The screen
+
+`map` is on `Nav.cycle` and costs what every id costs — a `State` on every element of every
+other screen, and an arm in `Carousel.cardOf()` whose fall-through would otherwise park the
+map's frame on the cameras slot. [contexts](docs/contexts.md) is where that machinery lives.
+
+`Map` and not `MapView`: the board answers keys and has no pointer, `MapView`'s drag and wheel
+handlers have nothing to drive them, and an item that takes focus starves the single
+`Keys.onPressed` in `Main.qml` — [input](docs/input.md).
+
+The tenth is `MapPanel.fitPadding`, and it is here rather than in C++ because it is a property
+of how the map is framed and not of where anybody is: `People` publishes the raw extent.
+`visibleRegion` is assigned from the `boundsChanged` signal rather than bound, because a
+binding that leaves the viewport alone when there is nobody has to name `visibleRegion` on its
+own right-hand side.

@@ -8,14 +8,15 @@ A QML application on a Raspberry Pi 4, drawn by Qt Quick fullscreen in the board
 session. The weight sits in what it shows and what it does, not in a rendering architecture:
 that is `drm-hmi` next door, and a problem here wanting a renderer seam belongs there.
 
-The scene is a dashboard of the house across five contexts the two context keys cycle
+The scene is a dashboard of the house across six contexts the two context keys cycle
 between: five RTSP cameras beside a clock and the hot water tank on one; the gate's state and
 its controls, the tank over the last day, the weather forecast and an internet radio on the
-compact screen; and the weather on its own on the last. Each forecast screen is two contexts -
-one per span it carries - and the two do not carry the same pair. The menu key puts all four
-screens on at once as miniatures to choose between, with a settings screen behind them where
-every key the panel answers is bound. Behind all of it are three clients of the <REDACTED> -
-PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through one seam.
+compact screen; the weather on its own; and a map of everyone sharing a location. Each
+forecast screen is two contexts - one per span it carries - and the two do not carry the same
+pair. The menu key puts all five screens on at once as miniatures to choose between, with a
+settings screen behind them where every key the panel answers is bound. Behind all of it are
+four clients of the <REDACTED> - PostgreSQL, two HTTP services and MQTT - each on its own thread,
+reaching the scene through one seam.
 
 ## Nodes
 
@@ -40,6 +41,7 @@ PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through o
 | [session](docs/session.md) | How the application gets on screen: the target that is never reached, and the variable systemd does not have |
 | [rtsp](docs/rtsp.md) | Whether a tile that will not come up is the stream, the network or Qt: the two tools that tell them apart |
 | [diagnostics](docs/diagnostics.md) | Where the GUI thread was when it stopped answering: the watchdog that reports mid-freeze, and how one is captured |
+| [map](docs/map.md) | The map context: the scrape that must not live here, the only list model in the repository, and the tiles that silently come from elsewhere |
 | [delivery](docs/delivery.md) | How a ticket closes: the one place a closing keyword may live, and the gate that refuses the rest |
 
 ## Navigating

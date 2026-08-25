@@ -23,9 +23,9 @@ CardFrame {
 	readonly property string spans: "compact-24h,compact-72h"
 	readonly property string weather: "weather-72h,weather-7d"
 
-	// The two contexts these cards are not on at all. Settings leaves them exactly the way the
-	// cameras do.
-	readonly property string offIds: "cameras,settings"
+	// The three contexts these cards are not on at all. Settings and the map both leave them
+	// exactly the way the cameras do.
+	readonly property string offIds: "cameras,settings,map"
 
 	// Whichever of their two screens the chooser was opened from is the card they stay in, so
 	// that screen zooms out around them and they never cross the scene to reach a miniature.
@@ -67,6 +67,10 @@ CardFrame {
 			},
 			State {
 				name: "settings"
+				PropertyChanges { target: temperature; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "map"
 				PropertyChanges { target: temperature; offsetX: -1400; opacity: 0 }
 			},
 			State {
@@ -168,6 +172,10 @@ CardFrame {
 				PropertyChanges { target: temperatureChart; offsetX: -1400; opacity: 0 }
 			},
 			State {
+				name: "map"
+				PropertyChanges { target: temperatureChart; offsetX: -1400; opacity: 0 }
+			},
+			State {
 				name: "carousel"
 				PropertyChanges {
 					target: temperatureChart
@@ -259,6 +267,10 @@ CardFrame {
 			},
 			State {
 				name: "settings"
+				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "map"
 				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
 			},
 			State {

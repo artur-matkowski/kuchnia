@@ -25,7 +25,7 @@ Context {
 
 	// Every id that is not this screen. The panels below are off screen in all of them and
 	// leave for the weather context exactly as they leave for the cameras.
-	readonly property string away: "cameras,weather-72h,weather-7d,settings"
+	readonly property string away: "cameras,weather-72h,weather-7d,settings,map"
 
 	// Everything inside the margin, in two columns. They are divided differently - the left one
 	// is a stack of four, the right one is the gate over the radio - which is why they are cut
@@ -93,6 +93,10 @@ Context {
 				name: "settings"
 				PropertyChanges { target: gate; offsetY: -820; opacity: 0 }
 			},
+			State {
+				name: "map"
+				PropertyChanges { target: gate; offsetY: -820; opacity: 0 }
+			},
 			State { name: "carousel" }
 		]
 
@@ -146,6 +150,10 @@ Context {
 				name: "settings"
 				PropertyChanges { target: hotWater; scale: 0.8; opacity: 0 }
 			},
+			State {
+				name: "map"
+				PropertyChanges { target: hotWater; scale: 0.8; opacity: 0 }
+			},
 			State { name: "carousel" }
 		]
 
@@ -197,6 +205,10 @@ Context {
 			},
 			State {
 				name: "settings"
+				PropertyChanges { target: radio; offsetY: 820; opacity: 0 }
+			},
+			State {
+				name: "map"
 				PropertyChanges { target: radio; offsetY: 820; opacity: 0 }
 			},
 			State { name: "carousel" }

@@ -41,7 +41,7 @@ The last two lines are the difference between an installed package and a running
 
 ## What `dh_shlibdeps` cannot find
 
-`debian/control` names eleven runtime dependencies by hand. They are not a belt-and-braces
+`debian/control` names thirteen runtime dependencies by hand. They are not a belt-and-braces
 list: none of them is discoverable from the binary. **`ffmpeg` is the one that is not a
 library at all** — it is a program the application forks once per camera tile, so no linkage
 and no QML import can reveal it, and a board without it draws five tiles that fail with "No
@@ -52,6 +52,11 @@ reference, and the scene reaches Quick through the engine rather than through a 
 `libQt6Quick` is not among the binary's `NEEDED` entries at all, and `qml6-module-qtquick`
 is the only thing that installs it. The rest of the imports in `src/qml/` follow the same
 path, which is why every one of them is listed.
+
+`qml6-module-qtlocation` and `qml6-module-qtpositioning` are the newest two and the ones
+whose absence is quietest: they carry a single context rather than the whole scene, so a
+board without them starts, draws the other five, and says so only in the journal —
+[map](docs/map.md).
 
 `qt6-wayland` is the platform plugin the session needs, and it is the one dependency whose
 absence degrades instead of failing: with a compositor running and no Wayland plugin, Qt

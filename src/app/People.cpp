@@ -1,9 +1,11 @@
 #include "People.hpp"
 
 #include <algorithm>
+#include <utility>
 
-People::People(QObject* parent)
+People::People(QString tileUrl, QObject* parent)
 	: Panel(parent)
+	, m_tileUrl(std::move(tileUrl))
 {
 }
 

@@ -38,7 +38,7 @@ AppState::AppState(const Settings& settings, QObject* parent)
 	, m_hotWater(new HotWater(this))
 	, m_keys(new KeyBindings(QString::fromStdString(settings.keyBindings),
 	                         settings.keyReset, this))
-	, m_people(new People(this))
+	, m_people(new People(QString::fromStdString(settings.mapTileUrl), this))
 	, m_radio(new Radio(QString::fromStdString(settings.radioM3u), this))
 	, m_weather(new Weather(this))
 {

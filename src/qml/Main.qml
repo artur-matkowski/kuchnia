@@ -99,10 +99,11 @@ Window {
 
 		// Every context is instantiated once and stays instantiated: a transition animates
 		// elements of both screens at the same time, so both have to exist at the same time -
-		// and in the carousel all four are on screen at once as miniatures.
+		// and in the carousel all five are on screen at once as miniatures.
 		CamerasScreen {}
 		CompactScreen { id: compact }
 		WeatherScreen { id: weather }
+		MapScreen {}
 		SettingsScreen { id: settings }
 
 		// The three weather cards, which belong to both of the screens above and therefore to
