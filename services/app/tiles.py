@@ -49,7 +49,7 @@ class Tiles:
         return z, x, y
 
     def get(self, z, x, y):
-        """(status, body, cache status). Never raises; an upstream failure is a 502."""
+        """(status, body, cache status). Never raises. A failed fetch falls back to disk."""
         path = os.path.join(self._dir, str(z), str(x), f"{y}.png")
 
         body = self._read_fresh(path)
@@ -69,24 +69,39 @@ class Tiles:
                 with urllib.request.urlopen(request, timeout=20) as response:
                     body = response.read()
             except urllib.error.HTTPError as error:
-                # Not cached: an upstream 404 is a tile that does not exist at that zoom, and
-                # a cached one would outlive the reason.
                 LOG.warning("%s answered HTTP %d", url, error.code)
-                return (404 if error.code == 404 else 502), b"", "MISS"
+                # An upstream 404 is a tile that does not exist at that zoom, and nothing on
+                # disk can stand in for one.
+                if error.code == 404:
+                    return 404, b"", "MISS"
             except Exception as error:  # noqa: BLE001
                 LOG.warning("%s failed: %s", url, error)
-                return 502, b"", "MISS"
+            else:
+                self._store(path, body)
+                return 200, body, "MISS"
 
-            self._store(path, body)
-            return 200, body, "MISS"
+            return self._stale(path)
+
+    def _stale(self, path):
+        """The expired tile, if there is one, because a 502 here outlives the blip that caused
+        it by days - the panel never asks again. See docs/location.md."""
+        body = self._read(path)
+        if body is None:
+            return 502, b"", "MISS"
+        return 200, body, "STALE"
 
     def _read_fresh(self, path):
+        """The cached tile while it is inside its TTL. None is absent OR expired."""
         try:
             age = time.time() - os.path.getmtime(path)
         except OSError:
             return None
         if age > self._config["tile_ttl_days"] * 86400:
             return None
+        return self._read(path)
+
+    def _read(self, path):
+        """Whatever is on disk, however old."""
         try:
             with open(path, "rb") as handle:
                 return handle.read()

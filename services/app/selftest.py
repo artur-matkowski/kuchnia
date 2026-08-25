@@ -10,6 +10,7 @@ Nothing in this file talks to the network or needs a credential.
 import http.cookiejar
 import json
 import os
+import shutil
 import sys
 import tempfile
 import time
@@ -186,6 +187,27 @@ def tiles():
     ok.append(check("zoom 20 is refused", cache.match("/tiles/20/1/1.png") is None))
     ok.append(check("outside the pyramid is refused", cache.match("/tiles/2/9/1.png") is None))
     ok.append(check("a non-tile path is refused", cache.match("/tiles/8/137/83.jpg") is None))
+
+    # A tile past its TTL with the upstream unreachable. 127.0.0.1:1 refuses instantly, so
+    # this is the failure path without a network and without a timeout to wait out.
+    directory = tempfile.mkdtemp(prefix="kuchnia-tiles-")
+    failing = Tiles(Stub(tile_ttl_days=30, tile_upstream="http://127.0.0.1:1",
+                         tile_user_agent="selftest"), directory)
+    status, body, cached = failing.get(8, 137, 83)
+    ok.append(check("a failed fetch with nothing on disk is a 502",
+                    (status, body, cached) == (502, b"", "MISS"), f"({status} {cached})"))
+
+    expired = os.path.join(directory, "8", "137", "83.png")
+    os.makedirs(os.path.dirname(expired))
+    with open(expired, "wb") as handle:
+        handle.write(b"an expired tile")
+    os.utime(expired, (0, time.time() - 31 * 86400))
+    status, body, cached = failing.get(8, 137, 83)
+    ok.append(check("a failed fetch serves the expired tile rather than a hole in the map",
+                    (status, body, cached) == (200, b"an expired tile", "STALE"),
+                    f"({status} {cached})"))
+
+    shutil.rmtree(directory, ignore_errors=True)
     return ok
 
 

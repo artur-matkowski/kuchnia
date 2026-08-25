@@ -13,11 +13,10 @@
 > Owns: services/app/google.py
 > Owns: services/app/roster.py
 > Owns: services/app/signin.py
-> Owns: services/app/tiles.py
 > Owns: services/app/web.py
 > Owns: services/app/selftest.py
 > Owns: services/app/ui.html
-> See:  docs/map.md docs/rest.md
+> See:  docs/map.md docs/tiles.md docs/rest.md
 
 Everything the map context needs that the panel must not do itself: the Google scrape, the
 tiles, and the browser the Google session is renewed in. One container, one published port,
@@ -122,13 +121,8 @@ its websocket URL from the root, so a path prefix breaks the screen and nothing 
 ## The tiles
 
 `Cache-Control` is **replaced, not added**: upstream sends its own much shorter value and a
-client handed both picks that one. The identifying `User-Agent` is not politeness — the
-OpenStreetMap tile policy rejects a client that does not identify itself, the panel's own
-`User-Agent` is `kuchnia`, and this proxy is the only client the tile server ever sees.
-
-`map-tile-url` and this service's `/tiles/` prefix are one fact in two repositories, and the
-**trailing slash** belongs to the panel's side — see [map](docs/map.md) for what a missing one
-does.
+client handed both picks that one. The proxy behind `/tiles/` is its own node —
+[tiles](docs/tiles.md).
 
 ## State
 

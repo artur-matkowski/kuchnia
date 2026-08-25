@@ -43,6 +43,7 @@ reaching the scene through one seam.
 | [diagnostics](docs/diagnostics.md) | Where the GUI thread was when it stopped answering: the watchdog that reports mid-freeze, and how one is captured |
 | [map](docs/map.md) | The map context: the scrape that must not live here, the only list model in the repository, and the tiles that silently come from elsewhere |
 | [location](docs/location.md) | The <REDACTED> half: the Google session that cannot live on the panel, the empty roster that means two things, and the browser a person signs in on |
+| [tiles](docs/tiles.md) | The map's tiles: the fetch that fails once and leaves a hole for good, and the expired tile that is better than none |
 | [delivery](docs/delivery.md) | How a ticket closes: the one place a closing keyword may live, and the gate that refuses the rest |
 
 ## Navigating
