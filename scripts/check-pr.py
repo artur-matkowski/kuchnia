@@ -14,12 +14,16 @@ import sys
 import urllib.request
 
 # Wider than Gitea's own keyword set on purpose: a refusal here is visible, a keyword that
-# slips through is a ticket that closes weeks early and says nothing.
+# slips through is a ticket that closes from a place nobody is watching.
 CLOSING = re.compile(
     r"(?i)(?<![0-9a-z_/-])(clos(?:e|es|ed|ing)|fix(?:|es|ed|ing)|resolv(?:e|es|ed|ing)"
     r"|reopen(?:|s|ed|ing))\s*:?\s*(?:[\w.-]+/[\w.-]+)?#(\d+)\b"
 )
 REFS = re.compile(r"(?i)(?<![0-9a-z_/-])refs?\s*:?\s*(?:[\w.-]+/[\w.-]+)?#(\d+)\b")
+
+# What is left of a line after a reference, before deciding whether a reason was written.
+# A trailing full stop is not a reason.
+TRAILING = re.compile(r"^[\s.,;:)\]}—–-]+")
 
 NO_TICKET = "No ticket"
 
@@ -44,8 +48,12 @@ def pull_number():
 
 
 def commits(base, head):
-    """(sha, subject, message) for every commit this pull request adds to base."""
-    shas = git("log", "--format=%H", f"{base}..{head}").split()
+    """(sha, subject, message) for every commit this pull request adds to base.
+
+    --no-merges because a merge commit carries no authored content: it names no ticket and
+    there is nothing to ask of it.
+    """
+    shas = git("log", "--no-merges", "--format=%H", f"{base}..{head}").split()
     return [
         (sha[:7], git("show", "-s", "--format=%s", sha).strip(), git("show", "-s", "--format=%B", sha))
         for sha in shas
@@ -53,26 +61,34 @@ def commits(base, head):
 
 
 def hits(pattern, text):
-    """(line number, line, ticket) for every match, so a refusal can quote what it refuses."""
+    """(line number, line, ticket, what follows it) for every match.
+
+    The fourth element is the rest of the line with trailing punctuation stripped, which is
+    how a reason is told from a bare reference.
+    """
     found = []
     for number, line in enumerate(text.splitlines(), 1):
         line = line.strip()
         for match in pattern.finditer(line):
             quoted = line if len(line) <= 76 else line[:73] + "..."
-            found.append((number, quoted, int(match.group(match.re.groups))))
+            found.append((number, quoted, int(match.group(match.re.groups)), TRAILING.sub("", line[match.end():]).strip()))
     return found
 
 
 def tickets(pattern, text):
-    return {t for _, _, t in hits(pattern, text)}
+    return {t for _, _, t, _ in hits(pattern, text)}
+
+
+def says_no_ticket(text):
+    return any(l.strip().lower() == NO_TICKET.lower() for l in text.splitlines())
 
 
 def listed(numbers):
     return ", ".join(f"#{n}" for n in sorted(numbers))
 
 
-def required(numbers):
-    return "\n".join(f"    Refs #{n}" for n in sorted(numbers))
+def lines(word, numbers):
+    return "\n".join(f"    {word} #{n}" for n in sorted(numbers))
 
 
 def main():
@@ -82,6 +98,7 @@ def main():
     pull = api(f"pulls/{number}")
     base, head = pull["base"]["ref"], pull["head"]["sha"]
     title, body = pull["title"], pull["body"] or ""
+    promotion = base == "main"
 
     git("fetch", "--quiet", "origin", base, f"refs/pull/{number}/head")
     added = commits(f"origin/{base}", head)
@@ -89,9 +106,11 @@ def main():
 
     blocks = []
 
+    # 1. A closing keyword in a commit. Gitea acts on one when the commit reaches the default
+    #    branch, which is a second route to a close the branch pull request already made.
     quoted, offending = [], set()
     for sha, subject, message in added:
-        for line, text, ticket in hits(CLOSING, message):
+        for line, text, ticket, _ in hits(CLOSING, message):
             quoted.append(f"  {sha}  {subject}\n           line {line}:  {text}")
             offending.add(ticket)
     if quoted:
@@ -100,81 +119,157 @@ def main():
             "BLOCKED: a commit message carries a closing keyword.\n\n"
             + "\n".join(quoted)
             + "\n\n"
-            + "A closing keyword in a commit closes the ticket the moment the commit reaches\n"
-            + "main - outside the promotion's description, and outside this check.\n\n"
+            + "Gitea acts on a keyword in a commit when it reaches main - a second route to a\n"
+            + "close the branch pull request has already made, firing weeks later and outside\n"
+            + "this check.\n\n"
             + f"Required: reword {'that commit' if one else 'those commits'} to say\n\n"
-            + required(offending)
+            + lines("Refs", offending)
             + f"\n\n    git rebase -i origin/{base}        (reword)\n"
             + "    git push --force-with-lease"
         )
 
-    if base != "main":
+    # 2. A commit that names no ticket. The promotion reads its record from commit messages,
+    #    so a commit naming nothing is work that reaches main with no ticket attached.
+    silent = [
+        (sha, subject)
+        for sha, subject, message in added
+        if not tickets(REFS, message) and not tickets(CLOSING, message) and not says_no_ticket(message)
+    ]
+    if silent:
+        one = len(silent) == 1
+        blocks.append(
+            "BLOCKED: a commit message names no ticket.\n\n"
+            + "\n".join(f"  {sha}  {subject}" for sha, subject in silent)
+            + "\n\n"
+            + "Every ticket this branch touches is read out of its commit messages - by the\n"
+            + "check below, and by the promotion that later records what reached main. A commit\n"
+            + "naming nothing is invisible to both.\n\n"
+            + f"Required: name the ticket in {'that message' if one else 'each of those messages'}, verbatim,\n\n"
+            + "    Refs #N\n\n"
+            + "or say, on a line of its own, that there is none.\n\n"
+            + f"    {NO_TICKET}\n\n"
+            + f"    git commit --amend        (or: git rebase -i origin/{base})\n"
+            + "    git push --force-with-lease"
+        )
+
+    # 3. A closing keyword in the title. Gitea reads a title exactly as it reads a body, and a
+    #    title is retyped casually; the body is the one place.
+    quoted, offending = [], set()
+    for line, text, ticket, _ in hits(CLOSING, title):
+        quoted.append(f"  the title:  {text}")
+        offending.add(ticket)
+    if quoted:
+        blocks.append(
+            "BLOCKED: the title carries a closing keyword.\n\n"
+            + "\n".join(quoted)
+            + "\n\n"
+            + "Gitea acts on a keyword in a title exactly as it does on one in the body, and a\n"
+            + "title is retyped without ceremony. The body is the one place.\n\n"
+            + f"Required: take {listed(offending)} out of the title, and name it in the description.\n\n"
+            + lines("Closes" if not promotion else "Refs", offending)
+        )
+
+    in_commits = {}
+    for sha, subject, message in added:
+        for _, _, ticket, _ in hits(REFS, message) + hits(CLOSING, message):
+            in_commits.setdefault(ticket, subject)
+
+    if promotion:
+        # 4. A closing keyword in a promotion's description. By here the branch pull request
+        #    has already closed the ticket; a keyword is a second route, and `reopen` is one
+        #    that undoes the first.
         quoted, offending = [], set()
-        for line, text, ticket in hits(CLOSING, title):
-            quoted.append(f"  the title:  {text}")
-            offending.add(ticket)
-        for line, text, ticket in hits(CLOSING, body):
+        for line, text, ticket, _ in hits(CLOSING, body):
             quoted.append(f"  line {line}:  {text}")
             offending.add(ticket)
         if quoted:
             blocks.append(
-                f"BLOCKED: this description carries a closing keyword and its base is '{base}'.\n\n"
+                "BLOCKED: this promotion's description carries a closing keyword.\n\n"
                 + "\n".join(quoted)
                 + "\n\n"
-                + "Gitea acts on a closing keyword in a description whatever the base branch is,\n"
-                + f"so merging this closes {listed(offending)} before main has the work.\n\n"
-                + "Required: name it without a keyword. Either shape is accepted.\n\n"
-                + required(offending)
-                + "\n"
-                + "\n".join(f"    ticket {n}" for n in sorted(offending))
+                + "A ticket closes when its branch pull request merges into testing, so by here\n"
+                + f"{listed(offending)} is already shut. A keyword in a promotion is a second route to\n"
+                + "a result the first one produced.\n\n"
+                + "Required: name it as the record it is.\n\n"
+                + lines("Refs", offending)
             )
 
-    in_commits = {}
-    for sha, subject, message in added:
-        for ticket in tickets(REFS, message) | tickets(CLOSING, message):
-            in_commits.setdefault(ticket, subject)
-    accounted = tickets(REFS, body) | tickets(CLOSING, body)
-
-    missing = []
-    if base == "main":
-        missing = sorted(t for t in in_commits if t not in accounted)
-        if missing:
+        # 5. A promotion that does not record every ticket its commits name.
+        unrecorded = sorted(t for t in in_commits if t not in tickets(REFS, body))
+        if unrecorded:
             blocks.append(
-                "BLOCKED: this promotion carries tickets the description does not account for.\n\n"
-                + "\n".join(f"  #{t:<4}  {in_commits[t]}" for t in missing)
+                "BLOCKED: this promotion carries tickets its description does not record.\n\n"
+                + "\n".join(f"  #{t:<4}  {in_commits[t]}" for t in unrecorded)
                 + "\n\n"
-                + "Required: the description must give every one of them a line.\n\n"
-                + "    Closes #N     this promotion finishes it; it closes when this merges\n"
-                + "    Refs #N       the work reaches main, the ticket stays open\n\n"
-                + "Copy these lines into the description and change 'Refs' to 'Closes' for each\n"
-                + "ticket this promotion finishes:\n\n"
-                + required(missing)
+                + "A promotion's description is the record of what reached main, and a ticket's\n"
+                + "timeline gets its link to that moment from here.\n\n"
+                + "Required: give every one of them a line.\n\n"
+                + lines("Refs", unrecorded)
                 + "\n\n"
                 + "Editing the description re-runs this check, and so does 'Re-run all jobs'\n"
                 + "in the Actions tab - it re-reads the description from the API, not from the\n"
                 + "event that dispatched it."
             )
     else:
-        unnamed = sorted(tickets(REFS, body) - set(in_commits))
-        if unnamed:
-            one = len(unnamed) == 1
+        # 6. A branch description that does not close the tickets its commits name. This is the
+        #    only place a ticket ever closes, so a description that says nothing leaves it open
+        #    with its work delivered - which is the whole failure this gate exists for.
+        closed = tickets(CLOSING, body)
+        reasoned = {t for _, _, t, tail in hits(REFS, body) if tail}
+        bare = {t for _, _, t, tail in hits(REFS, body) if not tail}
+        unresolved = sorted(t for t in in_commits if t not in closed and t not in reasoned)
+        if unresolved:
             blocks.append(
-                f"BLOCKED: the description names {listed(unnamed)} and no commit in this branch does.\n\n"
-                + "A promotion reads its ticket list from the commit messages it carries, so a\n"
-                + "ticket named only here is invisible when this reaches main - nothing will ask\n"
-                + "the promotion to account for it, and it will not close.\n\n"
-                + f"Required: put {'the line' if one else 'those lines'} in a commit message too, verbatim.\n\n"
-                + required(unnamed)
-                + f"\n\n    git commit --amend        (or: git rebase -i origin/{base})\n"
-                + "    git push --force-with-lease"
+                "BLOCKED: this description does not close the tickets its commits name.\n\n"
+                + "\n".join(
+                    f"  #{t:<4}  {in_commits[t]}"
+                    + ("\n           named 'Refs' with no reason after it" if t in bare else "")
+                    for t in unresolved
+                )
+                + "\n\n"
+                + "Gitea closes a ticket named here when this merges into testing, and this\n"
+                + "description is the only place that happens. Nothing downstream will close it.\n\n"
+                + "Required: give every one of them a line.\n\n"
+                + lines("Closes", unresolved)
+                + "\n\n"
+                + "A ticket this branch advances but does not finish is downgraded by hand, and\n"
+                + "must say on the same line why it stays open:\n\n"
+                + f"    Refs #{unresolved[0]} - <what is still missing>\n\n"
+                + "Editing the description re-runs this check, and so does 'Re-run all jobs'\n"
+                + "in the Actions tab - it re-reads the description from the API, not from the\n"
+                + "event that dispatched it."
             )
 
-    named = any(l.strip().lower() == NO_TICKET.lower() for l in body.splitlines())
-    if not accounted and not missing and not named:
+        # 7. A closing keyword in a branch description for a ticket no commit names. This is
+        #    the one base where a keyword is not otherwise refused, so it is the one place the
+        #    #36 accident can still happen: prose that mentions closing a ticket closes it.
+        stray = sorted(closed - set(in_commits))
+        if stray:
+            one = len(stray) == 1
+            blocks.append(
+                f"BLOCKED: this description closes {listed(stray)}, which no commit in this branch names.\n\n"
+                + "\n".join(
+                    f"  line {line}:  {text}"
+                    for line, text, ticket, _ in hits(CLOSING, body)
+                    if ticket in stray
+                )
+                + "\n\n"
+                + "Gitea reads a keyword out of prose as readily as out of a line written to be\n"
+                + f"one, and merging this shuts {listed(stray)} with nothing here having done the work.\n\n"
+                + f"Required: if the sentence is prose, say {'it' if one else 'them'} without a keyword.\n\n"
+                + "\n".join(f"    ticket {n}" for n in stray)
+                + "\n\n"
+                + f"If this branch does deliver {'it' if one else 'them'}, name {'it' if one else 'them'} in a commit too.\n\n"
+                + lines("Refs", stray)
+            )
+
+    # 8. A description that names nothing at all and does not say so. A version bump needs
+    #    only that line, so a promotion carrying no ticket costs nothing.
+    named = tickets(REFS, body) | tickets(CLOSING, body)
+    if not named and not says_no_ticket(body) and not in_commits:
         blocks.append(
             "BLOCKED: this description names no ticket.\n\n"
-            + "Work no description names is work no promotion can account for, which is how a\n"
-            + "ticket stays open with its work already on main.\n\n"
+            + "Work no description names is work nothing can account for later.\n\n"
             + "Required: name the ticket in the description, verbatim,\n\n"
             + "    Refs #N\n\n"
             + "or say, on a line of its own, that there is none.\n\n"
@@ -187,7 +282,15 @@ def main():
         print(f"\ntickets: {len(blocks)} refusal(s). The rule is docs/delivery.md.")
         return 1
 
-    print(f"tickets: the description accounts for {listed(accounted) or NO_TICKET.lower()}")
+    if promotion:
+        print(f"tickets: this promotion records {listed(in_commits) or NO_TICKET.lower()}")
+    else:
+        closing = tickets(CLOSING, body)
+        held = sorted(t for t in in_commits if t not in closing)
+        print(
+            f"tickets: merging this closes {listed(closing) or 'nothing'}"
+            + (f", and holds {listed(held)} open" if held else "")
+        )
     return 0
 
 
