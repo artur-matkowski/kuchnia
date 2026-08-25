@@ -10,7 +10,7 @@
 > Owns: src/qml/WeatherLayer.qml
 > Owns: src/qml/ForecastSpan.qml
 > Owns: src/qml/Cells.qml
-> See:  docs/scene.md docs/media.md docs/carousel.md docs/input.md
+> See:  docs/scene.md docs/charts.md docs/media.md docs/carousel.md docs/input.md
 
 Exactly one context is ON; the two context keys cycle. Nothing draws a tab bar and
 nothing is meant to: the only evidence a context exists is what it puts on the screen. The one

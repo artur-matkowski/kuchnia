@@ -47,8 +47,9 @@ Item {
 	property real fixedHigh: NaN
 
 	// Wide enough for the widest label the range can produce, so the line never starts under
-	// its own axis.
-	readonly property real _gutter: Theme.fontLabel * 3.2
+	// its own axis. The 3.2 is a character count and not a size, so it holds as the labels grow -
+	// but it has to be the size the labels are actually drawn at. See docs/charts.md.
+	readonly property real _gutter: Theme.fontBody * 3.2
 
 	// The series as two flat arrays of plain numbers, refilled only when the series itself
 	// changes. `series.points` is a QVariantList of QPointF, and reading an element through it
@@ -312,14 +313,14 @@ Item {
 			anchors { left: parent.left; top: parent.top }
 			text: root.yHigh.toFixed(root.decimals) + root.unit
 			color: Theme.text
-			font.pixelSize: Theme.fontLabel
+			font.pixelSize: Theme.fontBody
 			font.bold: true
 		}
 		Text {
 			anchors { left: parent.left; bottom: parent.bottom }
 			text: root.yLow.toFixed(root.decimals) + root.unit
 			color: Theme.text
-			font.pixelSize: Theme.fontLabel
+			font.pixelSize: Theme.fontBody
 			font.bold: true
 		}
 	}
@@ -396,7 +397,7 @@ Item {
 	Item {
 		id: axis
 		anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-		height: Theme.fontLabel + 6
+		height: Theme.fontBody + 6
 		visible: root.hasVisible
 
 		Text {
@@ -404,13 +405,13 @@ Item {
 			anchors.leftMargin: root._gutter + Theme.gap
 			text: root.hasVisible ? root._time(root.xLow) : ""
 			color: Theme.textDim
-			font.pixelSize: Theme.fontLabel
+			font.pixelSize: Theme.fontBody
 		}
 		Text {
 			anchors.right: parent.right
 			text: root.hasVisible ? root._time(root.xHigh) : ""
 			color: Theme.textDim
-			font.pixelSize: Theme.fontLabel
+			font.pixelSize: Theme.fontBody
 		}
 	}
 }

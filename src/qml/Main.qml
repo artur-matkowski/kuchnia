@@ -11,11 +11,12 @@ Window {
 	// scene loaded any other way gets, and the board is the case that matters.
 	property bool fullscreen: true
 
-	// The size the scene is composed against, 1:1, and the windowed size only. The board runs
-	// fullscreen on whatever the panel is, which is not this - Carousel is bound to the real
-	// size below because it is the one thing that has to cut geometry out of it.
-	readonly property int panelWidth: 1366
-	readonly property int panelHeight: 768
+	// The board's panel, which is what the type scale in Theme is measured in - so a window on a
+	// desktop is the board 1:1 and worth judging a screenshot from. The board itself still runs
+	// fullscreen on whatever the panel reports, and Carousel is bound to that real size below
+	// because it is the one thing that has to cut geometry out of it.
+	readonly property int panelWidth: 1920
+	readonly property int panelHeight: 1080
 
 	width: panelWidth
 	height: panelHeight

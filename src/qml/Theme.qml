@@ -34,15 +34,17 @@ QtObject {
 
 	readonly property int gap: 8
 
-	// The type scale. Every size in the scene comes from here, because the panel is read from
-	// two to three metres away and a literal pixel size written at a desk is always too small.
-	readonly property int fontLabel:   16   // axis ends, captions, the status badge
-	readonly property int fontBody:    22   // button labels, station names, gate state
-	readonly property int fontReading: 44   // a number that is the point of its panel
-	readonly property int fontHero:    64   // the two numbers read from across the room
+	// The type scale, in pixels of the board's 1920x1080 panel, which is read from two to three
+	// metres away. Every size in the scene comes from here; a literal size written at a desk is
+	// always too small and nothing says so.
+	readonly property int fontLabel:   22   // captions, a card's title, the status badge
+	readonly property int fontBody:    30   // button labels, station names, a chart's axis
+	readonly property int fontReading: 62   // a number that is the point of its panel
+	readonly property int fontHero:    90   // the two numbers read from across the room
 
-	// The height of a row carrying one big reading instead of a chart. Both screens that show
-	// the weather use it, and the migration between them depends on them agreeing: a card that
-	// changes height on the way over reads as a card that was rebuilt rather than moved.
-	readonly property int readingRow:  Math.round(fontHero * 1.7)
+	// The height of a row carrying one big reading instead of a chart: a Card's heading, its
+	// margins and one fontHero line at a 1.2 line height. Not a multiple of fontHero alone - the
+	// heading does not scale with the reading. See docs/scene.md.
+	readonly property int readingRow:
+		Math.round(fontLabel * 1.2 + fontHero * 1.2 + gap * 3)
 }

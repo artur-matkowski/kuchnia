@@ -26,7 +26,8 @@ PostgreSQL, HTTP and MQTT - each on its own thread, reaching the scene through o
 | [contexts](docs/contexts.md) | The contexts the two context keys cycle, the forecast spans among them, and where an element's animation is written |
 | [carousel](docs/carousel.md) | The chooser on the menu key: whole screens shrunk into a strip, and the copies that must not overlap the originals |
 | [input](docs/input.md) | Every key press: the action it becomes, the file the bindings are kept in, and the row that swallows the keyboard |
-| [scene](docs/scene.md) | The panels and the charts, the window a forecast is drawn through, and the QML names that are already taken |
+| [scene](docs/scene.md) | The panels, the type scale the board's panel is measured in, and the QML names that are already taken |
+| [charts](docs/charts.md) | One line from a series: what an empty one draws, the grid that must not be a Repeater, and the window a forecast is drawn through |
 | [media](docs/media.md) | The five cameras: the mute that a mixer cannot see, and the dead stream that reports nothing |
 | [radio](docs/radio.md) | The internet radio: the station that is assigned and never bound, and the title Qt will not hand over |
 | [integrations](docs/integrations.md) | The three network clients, the logger that drops lines until told where to write, and the settings that fail quietly |

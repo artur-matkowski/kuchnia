@@ -3,7 +3,7 @@
 > Owns: src/app/Trace.hpp
 > Owns: src/app/Trace.cpp
 > Owns: scripts/collect-freeze.sh
-> See:  docs/app.md docs/integrations.md docs/contexts.md docs/media.md docs/scene.md docs/rtsp.md
+> See:  docs/app.md docs/integrations.md docs/contexts.md docs/media.md docs/scene.md docs/charts.md docs/rtsp.md
 
 Where the GUI thread was when it stopped answering. Input is on that thread and Qt's threaded
 render loop blocks it on the render thread every frame, so a freeze in either reads the same

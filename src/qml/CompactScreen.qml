@@ -43,10 +43,20 @@ Context {
 		return Cells.box(screen.leftCol, [-1], [Theme.readingRow, -1, -1, -1], 0, row)
 	}
 
+	// What the gate needs and no more, at a 1.2 line height. A literal here is a band that stops
+	// fitting the moment the type scale moves, and a card does not clip: the bar is simply drawn
+	// over the radio below it.
+	readonly property int gateRow:
+		Math.round(Theme.fontLabel * 1.2      // the card's heading
+		         + Theme.fontReading * 1.2    // the gate's state
+		         + Theme.fontLabel * 1.2      // the read-only line, when the config turns it on
+		         + Theme.fontBody * 2         // the command bar
+		         + Theme.gap * 5)
+
 	// The right column: the gate needs only enough for a state and three buttons, and what is
 	// left over is the radio's, which is the column that has a station list to show.
 	function rightCell(row) {
-		return Cells.box(screen.rightCol, [-1], [200, -1], 0, row)
+		return Cells.box(screen.rightCol, [-1], [screen.gateRow, -1], 0, row)
 	}
 
 	// The boxes WeatherLayer's three cards are asked to occupy while this context is on. The

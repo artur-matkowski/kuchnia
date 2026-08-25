@@ -19,16 +19,20 @@ Row {
 	// across the card's own title, which is the one line that says which panel it is.
 	property real maximumWidth: -1
 
-	spacing: 4
+	// The dot follows the type scale rather than sitting at a size of its own: an indicator that
+	// stays put while the text around it grows is an indicator that stops being seen.
+	readonly property real _dot: Math.round(Theme.fontLabel * 0.5)
+
+	spacing: Math.round(Theme.fontLabel * 0.25)
 
 	readonly property color tint: health === "live"       ? Theme.live
 	                            : health === "connecting" ? Theme.connecting
 	                                                      : Theme.failed
 
 	Rectangle {
-		width: 10
-		height: 10
-		radius: 5
+		width: root._dot
+		height: root._dot
+		radius: root._dot / 2
 		color: root.tint
 		anchors.verticalCenter: parent.verticalCenter
 	}
@@ -37,8 +41,11 @@ Row {
 		text: root.detail.length > 0 ? root.health + " - " + root.detail : root.health
 		color: root.tint
 		font.pixelSize: Theme.fontLabel
+		// What the dot and the spacing already took, and not a number that repeats them: the two
+		// drift apart silently, and the badge then prints across its card's own title.
 		width: root.maximumWidth < 0 ? implicitWidth
-		                             : Math.min(implicitWidth, root.maximumWidth - 14)
+		                             : Math.min(implicitWidth,
+		                                        root.maximumWidth - root._dot - root.spacing)
 		horizontalAlignment: Text.AlignRight
 		elide: Text.ElideRight
 		anchors.verticalCenter: parent.verticalCenter

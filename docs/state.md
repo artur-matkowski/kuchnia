@@ -13,7 +13,7 @@
 > Owns: src/app/Weather.hpp
 > Owns: src/app/Weather.cpp
 > Owns: src/integrations/Sinks.hpp
-> See:  docs/app.md docs/integrations.md docs/scene.md docs/media.md
+> See:  docs/app.md docs/integrations.md docs/scene.md docs/charts.md docs/media.md
 
 Everything the scene binds to is a `QObject` under `src/app/`, registered as a QML singleton
 under the `Kuchnia` URI. The network clients under `src/integrations/` know nothing about any
