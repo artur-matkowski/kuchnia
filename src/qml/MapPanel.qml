@@ -34,6 +34,24 @@ Card {
 	// readable, so the street is drawn at a zoom nobody can place.
 	readonly property real minimumSpan: 0.01   // degrees, roughly a kilometre of latitude
 
+	// Past this, a marker says how old it is. Nobody is ever dropped for being stale: somebody
+	// disappearing off this map has to mean they stopped sharing, and a phone that slept for
+	// an afternoon looks exactly like one that is standing still.
+	readonly property int staleAfterMs: 15 * 60 * 1000
+
+	// Wall-clock, resampled, because "12 min temu" written once is wrong a minute later and
+	// nothing on the row changes to say so - seenAt does not move, only now does. It ticks only
+	// while this panel is on screen; SceneElement takes visible away with the context.
+	property double now: Date.now()
+
+	Timer {
+		interval: 60000
+		repeat: true
+		running: root.visible
+		triggeredOnStart: true    // or the ages are a minute stale every time the map arrives
+		onTriggered: root.now = Date.now()
+	}
+
 	Plugin {
 		id: osm
 		name: "osm"
@@ -105,6 +123,10 @@ Card {
 				required property string name
 				required property double latitude
 				required property double longitude
+				required property double seenAt
+				required property int battery
+
+				readonly property bool stale: root.now - marker.seenAt > root.staleAfterMs
 
 				coordinate: QtPositioning.coordinate(marker.latitude, marker.longitude)
 
@@ -120,20 +142,33 @@ Card {
 
 					Rectangle {
 						anchors.horizontalCenter: parent.horizontalCenter
-						width: label.width + Theme.gap * 2
-						height: label.height + Theme.gap
+						width: lines.width + Theme.gap * 2
+						height: lines.height + Theme.gap
 						radius: 4
 						color: Theme.surface
-						border.color: Theme.accent
+						border.color: marker.stale ? Theme.connecting : Theme.accent
 						border.width: 2
 
-						Text {
-							id: label
+						Column {
+							id: lines
 							anchors.centerIn: parent
-							text: marker.name
-							color: Theme.text
-							font.pixelSize: Theme.fontLabel
-							font.bold: true
+
+							Text {
+								anchors.horizontalCenter: parent.horizontalCenter
+								text: marker.name
+								color: Theme.text
+								font.pixelSize: Theme.fontLabel
+								font.bold: true
+							}
+
+							Text {
+								anchors.horizontalCenter: parent.horizontalCenter
+								visible: text !== ""
+								text: root.detailOf(marker.stale ? marker.seenAt : 0,
+								                    marker.battery)
+								color: Theme.textDim
+								font.pixelSize: Theme.fontLabel
+							}
 						}
 					}
 
@@ -142,11 +177,39 @@ Card {
 						width: 10
 						height: 10
 						radius: 5
-						color: Theme.accent
+						color: marker.stale ? Theme.connecting : Theme.accent
 					}
 				}
 			}
 		}
+	}
+
+	// The second line under a name: how old the fix is once it is worth saying, and the phone's
+	// charge when the service reported one. A seenAt of 0 asks for no age at all.
+	//
+	// battery is -1 when the service said nothing, which is why this tests for negative rather
+	// than for falsy - a phone at 0% is a fact worth drawing and 0 is exactly what a "missing"
+	// default would look like.
+	function detailOf(seenAt, battery) {
+		var parts = []
+		if (seenAt > 0)
+			parts.push(root.ageOf(root.now - seenAt))
+		if (battery >= 0)
+			parts.push(battery + "%")
+		return parts.join(" \u00b7 ")
+	}
+
+	function ageOf(ms) {
+		var minutes = Math.round(ms / 60000)
+		if (minutes < 60)
+			return minutes + " min temu"
+
+		var hours = Math.round(minutes / 60)
+		if (hours < 24)
+			return hours + " godz. temu"
+
+		var days = Math.round(hours / 24)
+		return days === 1 ? "1 dzień temu" : days + " dni temu"
 	}
 
 	// Frames everyone, or leaves the viewport alone when there is nobody to frame.

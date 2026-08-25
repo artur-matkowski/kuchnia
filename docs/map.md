@@ -87,9 +87,12 @@ on empty bounds is not blank, it is confidently wrong.
 for infinite zoom. `MapPanel.minimumSpan` floors it at 0.01 degrees, and the padding is
 applied to the floored span rather than to the raw one.
 
-**A stale fix looks exactly like a fresh one.** The service reports `seen_at` and nothing
-drops a person for being old — somebody vanishing off this map should mean they stopped
-sharing, not that their phone slept. The age is carried on the row for the panel to show.
+**A stale fix looks exactly like a fresh one, so the marker says which it is.** Nothing drops
+a person for being old — somebody vanishing off this map has to mean they stopped sharing and
+not that their phone slept — so past `MapPanel.staleAfterMs` a marker draws its age and turns
+amber rather than disappearing. The age is measured against `MapPanel.now`, which a one-minute
+`Timer` resamples while the panel is on screen: `seenAt` never moves, so a marker reading
+“12 min temu” written once is wrong a minute later with nothing on the row to say so.
 
 **Three runtime dependencies nothing can see, and they fail in two different ways.**
 `qml6-module-qtlocation` and `qml6-module-qtpositioning` are QML imports, so `dh_shlibdeps`
