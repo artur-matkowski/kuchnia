@@ -58,15 +58,26 @@ keeps `Qt6::Positioning` off the link line and out of `Build-Depends` — the de
 ## What is silent here
 
 **`activeMapType` must be the `CustomMap` entry.** The osm plugin only reaches
-`osm.mapping.custom.host` through that map type. Left on the default it draws Qt's own
+`osm.mapping.custom.host` through that map type. Left on anything else it draws Qt's own
 hardcoded providers instead: tiles arrive, the map works, and they are not the tiles that
-were configured. `MapPanel` takes the last of `supportedMapTypes`, which is where the plugin
-appends it — and if the host parameter is ever dropped, that list is one shorter and the map
-falls back with no error.
+were configured.
 
 **`osm.mapping.providersrepository.disabled` must stay true.** Enabled, the plugin fetches
 provider metadata from `maps-redirect.qt.io` at startup — an internet dependency at boot that
 nothing in `debian/control` declares and nothing in this tree mentions.
+
+**`map-tile-url` must end in a slash.** The plugin appends `%z/%x/%y.png` to it with no
+separator of its own, so a host written without one asks for `https://host8/83/138.png` — the
+zoom level welded onto the host name. It reports itself as a DNS failure, which sends you
+looking at the network rather than at the setting.
+
+**`activeMapType` is assigned, never bound.** The plugin fills `supportedMapTypes` only once
+its provider has answered; a binding written against it can evaluate against an empty list,
+and it evaluates once. `MapPanel` sets it from `onSupportedMapTypesChanged` and matches on
+`MapType.CustomMap` by style rather than by position — the custom entry is documented as last
+in the list, but a position is a fact about today's plugin and the style is the thing actually
+being asked for. No fall-back to another type: a map quietly drawing somebody else's tiles is
+the failure being guarded, so it says so instead.
 
 **Empty bounds are a real place.** `People.hasBounds` is false when nobody is sharing, and the
 viewport is then left alone. Four zeroes is a coordinate in the Gulf of Guinea; a map framed
@@ -80,7 +91,7 @@ applied to the floored span rather than to the raw one.
 drops a person for being old — somebody vanishing off this map should mean they stopped
 sharing, not that their phone slept. The age is carried on the row for the panel to show.
 
-**Two runtime dependencies nothing can see, and they take the whole scene with them.**
+**Three runtime dependencies nothing can see, and they fail in two different ways.**
 `qml6-module-qtlocation` and `qml6-module-qtpositioning` are QML imports, so `dh_shlibdeps`
 finds neither, exactly like the other QML modules in `debian/control` —
 [packaging](docs/packaging.md). It is tempting to assume one context's import failing costs
@@ -88,6 +99,14 @@ one context: it does not. `MapScreen` is instantiated by `Main.qml`, so an impor
 resolve fails the root object, and `main.cpp` turns that into `exit(1)` — a board missing
 either module restart-loops with a blank screen, and the five contexts that have nothing to
 do with the map never draw.
+
+**`qt6-location-plugins` is the third, and it is the one that says nothing at all.** The QML
+module ships only the import; the `osm` geoservices back end is a separate package. Without
+it `Plugin { name: "osm" }` resolves to no provider, `supportedMapTypes` stays **empty
+forever** — the signal never fires — and `activeMapType` is assigned `undefined`. The
+application starts, the scene loads, all six contexts cycle, the map item is there with the
+markers drawn on it, and there are simply no tiles under them. One warning about
+`QGeoMapType` in the journal is the entire evidence, and it appears once at startup.
 
 ## The screen
 

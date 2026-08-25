@@ -10,6 +10,8 @@ import Kuchnia
 // 1. `activeMapType` must be the CustomMap entry. The osm plugin only reaches
 //    osm.mapping.custom.host through that map type; left on the default it draws Qt's own
 //    hardcoded providers instead, so the wrong tiles arrive with no error anywhere.
+//    map-tile-url must also end in a slash - the plugin appends "%z/%x/%y.png" straight
+//    onto it, and without one the zoom level is welded to the host name.
 // 2. The plugin is given no `providersrepository.address` and told the repository is
 //    disabled, so it never calls maps-redirect.qt.io. Enabled, that lookup is an internet
 //    dependency at startup that nothing in this repository declares.
@@ -63,11 +65,26 @@ Card {
 		// takes focus starves the single Keys.onPressed in Main.qml - see docs/input.md.
 		focus: false
 
-		// The last entry, which is the CustomMap the plugin appends when it is given a custom
-		// host. Indexing it by position rather than by name because the type carries no name
-		// worth matching; if the host parameter is ever dropped this list is one shorter and
-		// the map silently falls back, which is the failure the header note is about.
-		activeMapType: map.supportedMapTypes[map.supportedMapTypes.length - 1]
+		// Assigned from the signal and NOT bound. The plugin fills supportedMapTypes when its
+		// provider answers, and nothing guarantees that has happened by the time a binding
+		// here is first evaluated - a binding that runs against an empty list assigns
+		// undefined, and it does not run again usefully.
+		onSupportedMapTypesChanged: map.selectCustomType()
+
+		// By style rather than by position in the list: the CustomMap is documented as the
+		// last entry, but a position is a fact about today's plugin and a style is the thing
+		// being asked for. Nothing here falls back to another type - a map drawing somebody
+		// else's tiles is the failure this is guarding, so it says so instead.
+		function selectCustomType() {
+			for (var i = 0; i < map.supportedMapTypes.length; ++i) {
+				if (map.supportedMapTypes[i].style === MapType.CustomMap) {
+					map.activeMapType = map.supportedMapTypes[i]
+					return
+				}
+			}
+			console.warn("no CustomMap among " + map.supportedMapTypes.length +
+			             " map types - map-tile-url is not being drawn from")
+		}
 
 		// Assigned rather than bound: a binding for visibleRegion has to name visibleRegion
 		// on its own right-hand side to say "leave it alone when there is nobody", and that

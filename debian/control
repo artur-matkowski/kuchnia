@@ -41,6 +41,7 @@ Depends: ${shlibs:Depends},
          qml6-module-qtmultimedia,
          qml6-module-qtlocation,
          qml6-module-qtpositioning,
+         qt6-location-plugins,
          ca-certificates,
          pipewire-pulse | pulseaudio,
          adduser

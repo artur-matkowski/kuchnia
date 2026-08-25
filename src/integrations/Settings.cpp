@@ -69,9 +69,13 @@ std::vector<ParamInitializer> specs()
 		// Ours rather than tile.openstreetmap.org, for the same reason rest-url is: one host
 		// we control, and one place to change when a provider does. The map also turns off
 		// Qt's own provider lookup, so this is the only tile source there is.
-		ParamInitializer(STRING, "map-tile-url", "https://<HOST_REDACTED>",
-			"Tile server for the map context; '/%z/%x/%y.png' is appended unless the URL "
-			"already ends in .png"),
+		// THE TRAILING SLASH IS LOAD-BEARING. The osm plugin appends "%z/%x/%y.png" to this
+		// string with no separator of its own, so a host written without one asks for
+		// "https://host8/83/138.png" - a host name with the zoom level welded onto it, which
+		// resolves nowhere and reports itself as a DNS failure rather than as a bad setting.
+		ParamInitializer(STRING, "map-tile-url", "https://<HOST_REDACTED>/",
+			"Tile server for the map context, WITH a trailing slash; '%z/%x/%y.png' is "
+			"appended to it unless it already ends in .png"),
 
 		ParamInitializer(STRING, "mqtt-host", "<HOST_REDACTED>", "Broker address"),
 		ParamInitializer(INT,    "mqtt-port", 0,             "Broker port"),
