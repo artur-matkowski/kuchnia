@@ -58,8 +58,13 @@ Item {
 		Trace.mark("element " + element.parent.card + " at " + Math.round(element.box.x) +
 			"," + Math.round(element.box.y) + " -> " + element.state)
 
+	// Whether something is standing on top of this element. A covered element is not drawn:
+	// it is invisible either way, and what that buys is not being seen THROUGH the thing
+	// covering it while that thing fades. CamerasScreen is the one use - docs/contexts.md.
+	property bool covered: false
+
 	// An element that has faded out costs nothing further.
-	visible: opacity > 0
+	visible: opacity > 0 && !element.covered
 
 	transform: Translate { x: element.offsetX; y: element.offsetY }
 }

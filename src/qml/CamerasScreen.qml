@@ -12,6 +12,9 @@ import Kuchnia
 //
 // A camera key fills the screen with one tile by growing its box, and not by changing context;
 // docs/contexts.md says why. The other four keep their sessions, so the way back costs nothing.
+//
+// `boxMs`, `covered` and the reset below are one rule between them - a zoom is never in flight
+// at the same time as a context change - and docs/contexts.md is where it is written.
 Context {
 	id: screen
 
@@ -38,6 +41,24 @@ Context {
 	// though this screen is `on` there: a miniature is not what somebody is listening to.
 	readonly property bool listening: Nav.current === "cameras"
 
+	// This screen as it is actually being looked at, with nothing left in flight. A zoom is
+	// only ever animated here, and what a fullscreen camera stands on is only drawn here.
+	readonly property bool settled: screen.listening && !Nav.transitioning
+
+	// Everything a fullscreen camera is covering. It is out of sight either way; hiding it is
+	// what stops the grid being seen THROUGH that camera while it fades across a context
+	// change, which was the whole of what leaving a zoom looked like.
+	readonly property bool covered: Cctv.zoom > 0 && !screen.settled
+
+	// The zoom belongs to this visit and does not outlive it, and neither does the context a
+	// camera key was pressed on. Dropped here rather than where the key is answered, because
+	// on the way out the camera has to keep filling the screen through its exit animation:
+	// by the time this fires the screen is off and the snap back into the cell is unseen.
+	onLiveChanged: if (!screen.live) {
+		Cctv.zoom = 0
+		Cctv.returnTo = ""
+	}
+
 	// Three columns, two rows of cameras, and the readouts strip taking whatever the two rows
 	// leave - which is why the strip is as tall as it is and the readings on it as large.
 	function cell(column, row, columnSpan) {
@@ -52,7 +73,8 @@ Context {
 		readonly property bool zoomed: Cctv.zoom === 1
 		box: cameraOne.zoomed ? screen.content : screen.cell(0, 0)
 		z: cameraOne.zoomed ? 1 : 0
-		boxMs: 320
+		covered: screen.covered && !cameraOne.zoomed
+		boxMs: screen.listening ? 320 : 0
 
 		CameraTile {
 			anchors.fill: parent
@@ -115,7 +137,8 @@ Context {
 		readonly property bool zoomed: Cctv.zoom === 2
 		box: cameraTwo.zoomed ? screen.content : screen.cell(1, 0)
 		z: cameraTwo.zoomed ? 1 : 0
-		boxMs: 320
+		covered: screen.covered && !cameraTwo.zoomed
+		boxMs: screen.listening ? 320 : 0
 
 		CameraTile {
 			anchors.fill: parent
@@ -184,7 +207,8 @@ Context {
 		readonly property bool zoomed: Cctv.zoom === 3
 		box: cameraThree.zoomed ? screen.content : screen.cell(2, 0)
 		z: cameraThree.zoomed ? 1 : 0
-		boxMs: 320
+		covered: screen.covered && !cameraThree.zoomed
+		boxMs: screen.listening ? 320 : 0
 
 		CameraTile {
 			anchors.fill: parent
@@ -253,7 +277,8 @@ Context {
 		readonly property bool zoomed: Cctv.zoom === 4
 		box: cameraFour.zoomed ? screen.content : screen.cell(0, 1)
 		z: cameraFour.zoomed ? 1 : 0
-		boxMs: 320
+		covered: screen.covered && !cameraFour.zoomed
+		boxMs: screen.listening ? 320 : 0
 
 		CameraTile {
 			anchors.fill: parent
@@ -322,7 +347,8 @@ Context {
 		readonly property bool zoomed: Cctv.zoom === 5
 		box: cameraFive.zoomed ? screen.content : screen.cell(1, 1)
 		z: cameraFive.zoomed ? 1 : 0
-		boxMs: 320
+		covered: screen.covered && !cameraFive.zoomed
+		boxMs: screen.listening ? 320 : 0
 
 		CameraTile {
 			anchors.fill: parent
@@ -388,6 +414,7 @@ Context {
 	SceneElement {
 		id: readouts
 		box: screen.cell(0, 2, 3)
+		covered: screen.covered
 
 		Card {
 			id: readoutCard

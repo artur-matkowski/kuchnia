@@ -41,12 +41,17 @@ QtObject {
 	// Back to all five, and back to where the camera key was pressed - but only from the CCTV
 	// screen itself. Somebody who walked off it with a context key has already chosen where they
 	// are, and returning them to a screen they left would read as the panel navigating itself.
+	//
+	// Going back does NOT drop the zoom: the camera has to keep filling the screen through its
+	// own exit animation, or the picture collapses into its cell while the screen it is leaving
+	// for is already coming in. CamerasScreen drops the zoom - and this - once it has settled
+	// OFF, which is also what keeps `returnTo` from outliving the visit it belongs to.
 	function grid() {
+		if (cctv.returnTo.length > 0 && Nav.current === "cameras") {
+			Nav.goTo(cctv.returnTo)
+			return
+		}
 		cctv.zoom = 0
-		const back = cctv.returnTo
-		cctv.returnTo = ""
-		if (back.length > 0 && Nav.current === "cameras")
-			Nav.goTo(back)
 	}
 
 	// Whether the radio wants the one audio sink, written by RadioPanel and read nowhere but
