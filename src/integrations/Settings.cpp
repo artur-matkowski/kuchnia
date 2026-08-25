@@ -62,7 +62,7 @@ std::vector<ParamInitializer> specs()
 		// so that its cookie jar does not - see docs/map.md. Every field this parses is
 		// required, so a service answering a different shape fails loudly rather than drawing
 		// an empty map.
-		ParamInitializer(STRING, "people-url", "https://<HOST_REDACTED>/v1/people",
+		ParamInitializer(STRING, "people-url", "http://127.0.0.1:8087/v1/people",
 			"Absolute URL of the shared-location service; http and https both work"),
 		ParamInitializer(INT,    "people-interval-ms", 60000, "Milliseconds between fetches"),
 
@@ -74,7 +74,7 @@ std::vector<ParamInitializer> specs()
 		// string with no separator of its own, so a host written without one asks for
 		// "https://host8/83/138.png" - a host name with the zoom level welded onto it, which
 		// resolves nowhere and reports itself as a DNS failure rather than as a bad setting.
-		ParamInitializer(STRING, "map-tile-url", "https://<HOST_REDACTED>/tiles/",
+		ParamInitializer(STRING, "map-tile-url", "http://127.0.0.1:8087/tiles/",
 			"Tile server for the map context, WITH a trailing slash; '%z/%x/%y.png' is "
 			"appended to it unless it already ends in .png"),
 
