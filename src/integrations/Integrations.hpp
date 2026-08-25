@@ -21,9 +21,11 @@ public:
 	Integrations(const Settings& settings, Sinks sinks);
 	~Integrations();
 
-	// The scene's one way in. Forwarded to the broker client, which queues it for its own
-	// thread; nothing here publishes on the caller's.
+	// The scene's two ways in. The gate command is forwarded to the broker client, which
+	// queues it for its own thread; nothing here publishes on the caller's. The refresh only
+	// wakes the roster's worker, which then polls on its own.
 	void sendGateCommand(const std::string& command);
+	void refreshPeople();
 
 	Integrations(const Integrations&) = delete;
 	Integrations& operator=(const Integrations&) = delete;

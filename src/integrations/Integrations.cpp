@@ -52,3 +52,8 @@ void Integrations::sendGateCommand(const std::string& command)
 {
 	m_mqtt->requestGateCommand(command);
 }
+
+void Integrations::refreshPeople()
+{
+	m_location->refresh();
+}

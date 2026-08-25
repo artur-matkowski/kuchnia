@@ -3,10 +3,26 @@
 #include <algorithm>
 #include <utility>
 
+#include "integrations/Log.hpp"
+
 People::People(QString tileUrl, QObject* parent)
 	: Panel(parent)
 	, m_tileUrl(std::move(tileUrl))
 {
+}
+
+void People::setRefreshSink(std::function<void()> sink)
+{
+	m_refresh = std::move(sink);
+}
+
+void People::refresh()
+{
+	if (!m_refresh) {
+		LOG_ERROR(applog::App) << "roster refresh dropped: no location service";
+		return;
+	}
+	m_refresh();
 }
 
 void People::update(const PeopleUpdate& people)

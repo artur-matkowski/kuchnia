@@ -8,7 +8,7 @@
 > Owns: src/app/PeopleModel.cpp
 > Owns: src/integrations/Location.hpp
 > Owns: src/integrations/Location.cpp
-> See:  docs/contexts.md docs/integrations.md docs/state.md docs/packaging.md docs/rest.md docs/location.md
+> See:  docs/contexts.md docs/integrations.md docs/state.md docs/packaging.md docs/rest.md docs/location.md docs/tiles.md docs/input.md
 
 One screen showing everyone who shares a location, framed so all of them fit with a tenth of
 the span to spare. `Location` fetches, `PeopleModel` holds the rows, `People` is what QML
@@ -16,10 +16,8 @@ binds to, `MapPanel` draws.
 
 ## The scrape is not here, and must not be
 
-There is no official Google API for location sharing. The only thing that works is a private
-RPC read with a logged-in cookie jar, and Google rotates `__Secure-1PSIDTS` on nearly every
-authenticated visit — a client that does not persist the rotated cookie is dead within the
-hour. That is a supervising daemon, and it holds a credential that is full account access.
+Location sharing has no official Google API. What reads it instead is a supervising daemon
+holding a credential that is full account access — [location](docs/location.md).
 
 So it runs in the <REDACTED> and `people-url` points at it, the same way `rest-url` points at
 `openmeteo-cache` and not at open-meteo — [location](docs/location.md) is that half, and
@@ -42,18 +40,15 @@ marker that moves and an unstable one is every marker on screen destroyed and re
 
 ## Why this is the only QAbstractListModel in the repository
 
-Everything else exposes lists as `QVariantList` read by a `Repeater`, which is right for a set
-replaced wholesale and wrong for one that moves: a `Repeater` handed a fresh list destroys and
-re-incubates **every** delegate when any value in it changes — `src/qml/LineChart.qml` says so
-at the point that caused it. A map delegate is a `MapQuickItem`, so one person moving would
-tear down every marker.
+A `Repeater` over a `QVariantList` — how every other list here is drawn — destroys and
+re-incubates **every** delegate when any value in it changes, and `src/qml/LineChart.qml` says
+so at the point that caused it. A map delegate is a `MapQuickItem`, so one person moving would
+tear down every marker. `set()` therefore removes absent ids, appends new ones, and emits
+`dataChanged` for only the roles that moved; rows are never reordered, which would cost exactly
+what the model exists to avoid.
 
-`set()` therefore removes absent ids, appends new ones, and emits `dataChanged` for only the
-roles that actually moved. Rows are never reordered; the map does not care about order, and
-reordering would cost exactly what the model exists to avoid.
-
-Coordinates cross the seam as plain doubles rather than as `QGeoCoordinate`. That is what
-keeps `Qt6::Positioning` off the link line and out of `Build-Depends` — the delegate calls
+Coordinates cross the seam as plain doubles rather than as `QGeoCoordinate`, which keeps
+`Qt6::Positioning` off the link line and out of `Build-Depends` — the delegate calls
 `QtPositioning.coordinate()` itself. Adding a geo type to `src/app/` puts it back.
 
 ## What is silent here
@@ -70,7 +65,14 @@ nothing in `debian/control` declares and nothing in this tree mentions.
 **`map-tile-url` must end in a slash.** The plugin appends `%z/%x/%y.png` to it with no
 separator of its own, so a host written without one asks for `https://host8/83/138.png` — the
 zoom level welded onto the host name. It reports itself as a DNS failure, which sends you
-looking at the network rather than at the setting.
+looking at the network rather than at the setting. [tiles](docs/tiles.md) is the other end.
+
+**A tile that fails to arrive is a hole for good** — the plugin gives up after five tries and
+never asks again, and [tiles](docs/tiles.md) is what that leaves in the log. `map-refresh`
+([input](docs/input.md)) is the way back: `Map.clearData()` drops the tile cache and re-asks
+for the visible screen, so **the map blanks for a moment and redraws**, good tiles included —
+nothing can tell them from the holes. It also calls `People.refresh()`, whose sink `main()`
+sets once `Integrations` exists, exactly as the gate's — [state](docs/state.md).
 
 **`activeMapType` is assigned, never bound.** The plugin fills `supportedMapTypes` only once
 its provider has answered; a binding written against it can evaluate against an empty list,
@@ -122,8 +124,6 @@ map's frame on the cameras slot. [contexts](docs/contexts.md) is where that mach
 handlers have nothing to drive them, and an item that takes focus starves the single
 `Keys.onPressed` in `Main.qml` — [input](docs/input.md).
 
-The tenth is `MapPanel.fitPadding`, and it is here rather than in C++ because it is a property
-of how the map is framed and not of where anybody is: `People` publishes the raw extent.
-`visibleRegion` is assigned from the `boundsChanged` signal rather than bound, because a
-binding that leaves the viewport alone when there is nobody has to name `visibleRegion` on its
-own right-hand side.
+The tenth is `MapPanel.fitPadding`; `People` publishes the raw extent. `visibleRegion` is
+assigned from `boundsChanged` and not bound, because a binding that leaves the viewport alone
+when there is nobody has to name `visibleRegion` on its own right-hand side.

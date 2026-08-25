@@ -114,6 +114,18 @@ Card {
 			function onBoundsChanged() { root.frame() }
 		}
 
+		// The refresh key, answered here rather than in Actions because the tile cache belongs
+		// to this Map. clearData() blanks the whole map for a moment - see docs/map.md.
+		Connections {
+			target: Actions
+			function onInvoked(id) {
+				if (id !== "map-refresh")
+					return
+				map.clearData()
+				People.refresh()
+			}
+		}
+
 		MapItemView {
 			model: People.model
 

@@ -72,6 +72,8 @@ QtObject {
 			case "radio-play-stop":
 			case "radio-next":
 			case "radio-previous":
+			// MapPanel's, for the same reason: the tile cache belongs to its Map, not here.
+			case "map-refresh":
 				break
 
 			default:

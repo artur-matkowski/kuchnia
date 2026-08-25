@@ -266,6 +266,7 @@ int main(int argc, char *argv[])
 	state.setGateCommandSink([&integrations](const std::string& command) {
 		integrations.sendGateCommand(command);
 	});
+	state.setPeopleRefreshSink([&integrations] { integrations.refreshPeople(); });
 
 	// A panel has no pointer, and a compositor draws one whenever an input device looks like
 	// a mouse - the touchscreen included. Hiding it is the application's job, not the session's.

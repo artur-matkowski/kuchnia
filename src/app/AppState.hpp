@@ -40,9 +40,10 @@ public:
 	// after this and destroyed before it, which is what makes that true.
 	Sinks sinks();
 
-	// Where the gate buttons publish to. Set after Integrations exists, since that is what
-	// owns the broker client.
+	// Where the gate buttons publish to, and where the map's refresh key wakes the roster's
+	// poll. Both set after Integrations exists, since that is what owns the services.
 	void setGateCommandSink(std::function<void(const std::string&)> sink);
+	void setPeopleRefreshSink(std::function<void()> sink);
 
 private:
 	Cameras*     m_cameras;

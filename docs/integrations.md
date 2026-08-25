@@ -111,8 +111,8 @@ Two consequences worth knowing:
   connection kept across a failure is one that reports the same error forever.
 * `wake()` cuts a `waitFor()` short from any thread, and a wake with nobody waiting is
   remembered rather than lost — which is what stops a library callback from having to do
-  blocking work on its own thread. It is also how the scene gets a gate command onto the
-  broker client's thread.
+  blocking work on its own thread. It is also how the scene reaches a worker at all: a gate
+  command onto the broker's thread, and the map's refresh key onto the roster's.
 * `setHealthSink()` is written without a lock, on the assumption that no worker thread exists
   yet to read it. Call it before `start()`.
 

@@ -78,6 +78,11 @@ void AppState::setGateCommandSink(std::function<void(const std::string&)> sink)
 	m_gate->setCommandSink(std::move(sink));
 }
 
+void AppState::setPeopleRefreshSink(std::function<void()> sink)
+{
+	m_people->setRefreshSink(std::move(sink));
+}
+
 Sinks AppState::sinks()
 {
 	Sinks sinks;

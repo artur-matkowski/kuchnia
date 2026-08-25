@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <QAbstractListModel>
 #include <QString>
 
@@ -45,12 +47,21 @@ public:
 	// GUI thread only. AppState is what guarantees that.
 	void update(const PeopleUpdate& people);
 
+	// Cuts the roster poll's wait short, so the map's refresh key re-reads the service rather
+	// than sitting out the rest of people-interval-ms. Set from main() once Integrations
+	// exists, exactly as the gate's command sink is.
+	void setRefreshSink(std::function<void()> sink);
+
+	// Only wakes the worker; the poll itself happens on its thread. Nothing here blocks.
+	Q_INVOKABLE void refresh();
+
 signals:
 	void boundsChanged();
 
 private:
-	PeopleModel m_model;
-	QString     m_tileUrl;
+	PeopleModel           m_model;
+	QString               m_tileUrl;
+	std::function<void()> m_refresh;
 
 	int    m_count = 0;
 	double m_minLatitude  = 0.0;

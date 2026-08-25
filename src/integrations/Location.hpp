@@ -21,6 +21,10 @@ public:
 	Location(const Settings& settings, Sinks sinks);
 	~Location() override;
 
+	// Polls now instead of at the end of the current people-interval-ms. Safe from any
+	// thread - it is the GUI thread that calls it, through People's refresh sink.
+	void refresh() { wake(); }
+
 protected:
 	void step() override;
 

@@ -4,7 +4,7 @@
 > Owns: src/app/KeyBindings.cpp
 > Owns: src/qml/Actions.qml
 > Owns: src/qml/SettingsScreen.qml
-> See:  docs/contexts.md docs/carousel.md docs/media.md docs/radio.md docs/state.md
+> See:  docs/contexts.md docs/carousel.md docs/media.md docs/radio.md docs/state.md docs/map.md
 
 A USB keyboard is the whole of the input; there is no pointer on the board. Every press
 arrives at one handler in `src/qml/Main.qml`, becomes an action id through `KeyBindings`, and
@@ -41,7 +41,11 @@ instead of passed on argv resets on every boot, discarding every binding made si
 
 `Actions.run` performs the actions whose state belongs to a singleton, and announces every one
 of them on `invoked`. The radio's three are not among them: what is playing belongs to the
-`MediaPlayer` in `RadioPanel.qml`, and that panel answers them there.
+`MediaPlayer` in `RadioPanel.qml`, and that panel answers them there. `map-refresh` is the
+fourth, for the same reason — the tile cache belongs to the `Map` in `MapPanel.qml`, which
+re-fetches it and re-polls the roster. It ships bound to **F5**, on the reasoning below that
+binds the camera keys: it commands no hardware and undoes itself. What it repairs, and why a
+tile that failed once never comes back on its own, is [map](docs/map.md).
 
 **A panel hears `invoked` only because every context is instantiated at startup and stays
 instantiated** - see [contexts](docs/contexts.md). A panel built when its screen is opened

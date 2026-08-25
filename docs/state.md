@@ -95,9 +95,14 @@ costs a repaint rather than a round trip through C++.
 the multiplication happens in `ChartSeries::from` and nowhere else. Do it twice, or not at
 all, and the axis is labelled 1970 — a chart that renders perfectly and is simply wrong.
 
-## Gate commands go out the way they came in
+## What goes out goes the way it came in
 
 `Gate` holds a command sink, set from `main()` once `Integrations` exists, and its invokables
 only queue. The publish happens on the broker client's thread because it waits for a PUBACK;
 doing it on the GUI thread freezes the screen for as long as the LAN takes. See
 [mqtt](docs/mqtt.md).
+
+`People` holds a second one, set the same way and for the same reason: `refresh()` only wakes
+the roster's worker, which polls on its own thread. **The invariant above is about the other
+direction** — a sink pointing outward touches no Qt object off the GUI thread, and neither of
+these two may grow into one that does.
