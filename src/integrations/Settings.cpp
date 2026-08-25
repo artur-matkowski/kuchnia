@@ -58,6 +58,21 @@ std::vector<ParamInitializer> specs()
 			"Absolute URL fetched on every poll; http and https both work"),
 		ParamInitializer(INT,    "rest-interval-ms", 300000,   "Milliseconds between fetches"),
 
+		// The location service, not Google: the scrape that produces this lives in the <REDACTED>
+		// so that its cookie jar does not - see docs/map.md. Every field this parses is
+		// required, so a service answering a different shape fails loudly rather than drawing
+		// an empty map.
+		ParamInitializer(STRING, "people-url", "https://<HOST_REDACTED>/v1/people",
+			"Absolute URL of the shared-location service; http and https both work"),
+		ParamInitializer(INT,    "people-interval-ms", 60000, "Milliseconds between fetches"),
+
+		// Ours rather than tile.openstreetmap.org, for the same reason rest-url is: one host
+		// we control, and one place to change when a provider does. The map also turns off
+		// Qt's own provider lookup, so this is the only tile source there is.
+		ParamInitializer(STRING, "map-tile-url", "https://<HOST_REDACTED>",
+			"Tile server for the map context; '/%z/%x/%y.png' is appended unless the URL "
+			"already ends in .png"),
+
 		ParamInitializer(STRING, "mqtt-host", "<HOST_REDACTED>", "Broker address"),
 		ParamInitializer(INT,    "mqtt-port", 0,             "Broker port"),
 		ParamInitializer(STRING, "mqtt-user", "kuchnia",
@@ -158,6 +173,10 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 
 	get("rest-url", &out->restUrl);
 	get("rest-interval-ms", &out->restIntervalMs);
+
+	get("people-url", &out->peopleUrl);
+	get("people-interval-ms", &out->peopleIntervalMs);
+	get("map-tile-url", &out->mapTileUrl);
 
 	get("mqtt-host", &out->mqttHost);
 	get("mqtt-port", &out->mqttPort);

@@ -15,12 +15,6 @@ public:
 	Rest(const Settings& settings, Sinks sinks);
 	~Rest() override;
 
-	// Poco's SSL layer is process-wide and has to be up before the first HTTPS session and
-	// down after the last one. Called by Integrations around the whole set of services, not
-	// per request.
-	static void initializeTls();
-	static void shutdownTls();
-
 protected:
 	void step() override;
 

@@ -7,10 +7,11 @@
 #include "Sinks.hpp"
 
 class Database;
+class Location;
 class Mqtt;
 class Rest;
 
-// Owns the three services and the process-wide state they share.
+// Owns the four services and the process-wide state they share.
 //
 // Constructing it starts every worker; destroying it stops them all, in the order that lets
 // Poco's TLS layer come down after the last session that could still be using it. It holds a
@@ -31,4 +32,5 @@ private:
 	std::unique_ptr<Database> m_database;
 	std::unique_ptr<Rest>     m_rest;
 	std::unique_ptr<Mqtt>     m_mqtt;
+	std::unique_ptr<Location> m_location;
 };

@@ -57,12 +57,16 @@ qt_add_executable(kuchnia
 	src/app/HotWater.cpp
 	src/app/KeyBindings.cpp
 	src/app/Panel.cpp
+	src/app/People.cpp
+	src/app/PeopleModel.cpp
 	src/app/Radio.cpp
 	src/app/Series.cpp
 	src/app/Trace.cpp
 	src/app/Weather.cpp
 	src/integrations/Database.cpp
+	src/integrations/Http.cpp
 	src/integrations/Integrations.cpp
+	src/integrations/Location.cpp
 	src/integrations/Log.cpp
 	src/integrations/Mqtt.cpp
 	src/integrations/Rest.cpp

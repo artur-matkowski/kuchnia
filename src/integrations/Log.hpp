@@ -19,20 +19,21 @@ namespace applog {
 // Every topic used anywhere in the program. debug::log prints a complaint to cerr for each
 // line written under a topic it was never told about, so all of them are registered by
 // init() whether or not the module that owns one is enabled.
-inline constexpr const char* App  = "APP";
-inline constexpr const char* Cfg  = "CONFIG";
-inline constexpr const char* Db   = "DB";
-inline constexpr const char* Rest = "REST";
-inline constexpr const char* Mqtt = "MQTT";
+inline constexpr const char* App    = "APP";
+inline constexpr const char* Cfg    = "CONFIG";
+inline constexpr const char* Db     = "DB";
+inline constexpr const char* Rest   = "REST";
+inline constexpr const char* Mqtt   = "MQTT";
+inline constexpr const char* Location = "LOCATION";
 
 // Where the GUI thread was when it stopped answering - see docs/diagnostics.md. Silent at
 // info: the spans are debug lines and only the watchdog's stall reports are warnings.
-inline constexpr const char* Perf = "PERF";
+inline constexpr const char* Perf   = "PERF";
 
 // Everything Qt itself says - the scene graph, QML warnings, the media backend and libav
 // under it. main.cpp installs the handler that routes them here; without it they go to
 // stderr, which on the board is not the file anybody reads.
-inline constexpr const char* Gui  = "QT";
+inline constexpr const char* Gui    = "QT";
 
 // Points the logger at stdout and registers every topic. Until this runs the logger holds a
 // null output buffer and drops every line written through it, reporting nothing at all - not

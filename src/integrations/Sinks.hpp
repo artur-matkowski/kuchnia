@@ -61,6 +61,38 @@ struct WeatherUpdate {
 	std::vector<Daylight> daylight;
 };
 
+// One person sharing a location, as the location service reports them.
+//
+// `id` is that service's own stable key for the person, and it is load-bearing: the model in
+// src/app/ matches incoming rows against it, so somebody who has moved is a row that changed
+// rather than a list that was thrown away and rebuilt. An id that is not stable between
+// polls turns every marker on the map into a new marker, which reads as a flicker and costs
+// a full delegate rebuild each time.
+struct Person {
+	std::string id;
+	std::string name;
+
+	double latitude  = 0.0;  // degrees
+	double longitude = 0.0;  // degrees
+	double accuracy  = 0.0;  // metres, the radius the fix is good to
+
+	// Seconds since the epoch, like Sample - not milliseconds. The conversion to what QML
+	// wants happens at the seam in src/app/, once.
+	double seenAt = 0.0;
+
+	// Percent, or -1 when the service reported none. Out of range on purpose: a phone at 0%
+	// and a phone that did not say are different things, and a default of 0 would draw the
+	// second as the first.
+	int battery = -1;
+};
+
+// Everyone the service currently knows about, in one update. A person who stopped sharing
+// leaves by being absent from the next one; the list is the whole truth each time and is
+// never merged with what came before.
+struct PeopleUpdate {
+	std::vector<Person> people;
+};
+
 // What a panel shows instead of pretending it has data. A service is Failed from the moment
 // a step throws until the next one returns, which is what makes a dead LAN visible on the
 // screen rather than a chart that has simply stopped moving.
@@ -73,6 +105,7 @@ enum class Health {
 struct Sinks {
 	std::function<void(const HotWaterUpdate&)> hotWater;
 	std::function<void(const WeatherUpdate&)>  weather;
+	std::function<void(const PeopleUpdate&)>   people;
 
 	// The bare signal name from hc12/rx/<name> - GateOpened, GateClosing and so on.
 	std::function<void(const std::string&)> gateState;

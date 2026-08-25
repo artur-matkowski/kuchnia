@@ -24,7 +24,7 @@ bool parseLevel(const std::string& name, debug::LogLevel* out)
 }
 
 constexpr const char* kTopics[] = {applog::App, applog::Cfg, applog::Db, applog::Rest,
-                                   applog::Mqtt, applog::Perf, applog::Gui};
+                                   applog::Mqtt, applog::Location, applog::Perf, applog::Gui};
 
 // The constant behind a name, so a topic that was never registered is refused rather than
 // silently doing nothing: SetTopicLogLevel takes any string and ignores one it does not know.

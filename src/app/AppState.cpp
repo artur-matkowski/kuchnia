@@ -11,6 +11,7 @@
 #include "Gate.hpp"
 #include "HotWater.hpp"
 #include "KeyBindings.hpp"
+#include "People.hpp"
 #include "Radio.hpp"
 #include "Trace.hpp"
 #include "Weather.hpp"
@@ -37,6 +38,7 @@ AppState::AppState(const Settings& settings, QObject* parent)
 	, m_hotWater(new HotWater(this))
 	, m_keys(new KeyBindings(QString::fromStdString(settings.keyBindings),
 	                         settings.keyReset, this))
+	, m_people(new People(this))
 	, m_radio(new Radio(QString::fromStdString(settings.radioM3u), this))
 	, m_weather(new Weather(this))
 {
@@ -56,6 +58,7 @@ void AppState::registerSingletons()
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Gate", m_gate);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "HotWater", m_hotWater);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "KeyBindings", m_keys);
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "People", m_people);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Radio", m_radio);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Weather", m_weather);
 
@@ -93,6 +96,12 @@ Sinks AppState::sinks()
 		                          Qt::QueuedConnection);
 	};
 
+	People* people = m_people;
+	sinks.people = [people](const PeopleUpdate& update) {
+		QMetaObject::invokeMethod(people, [people, update] { people->update(update); },
+		                          Qt::QueuedConnection);
+	};
+
 	Gate* gate = m_gate;
 	sinks.gateState = [gate](const std::string& state) {
 		const QString value = QString::fromStdString(state);
@@ -100,7 +109,7 @@ Sinks AppState::sinks()
 		                          Qt::QueuedConnection);
 	};
 
-	// One sink for all three services; the topic is what routes it, and it is the same
+	// One sink for all four services; the topic is what routes it, and it is the same
 	// pointer applog uses, so a panel with no topic here is silently never updated. Adding a
 	// service means adding it to this switch.
 	sinks.health = [this](const char* topic, Health health, const std::string& detail) {
@@ -111,6 +120,8 @@ Sinks AppState::sinks()
 			panel = m_weather;
 		else if (std::strcmp(topic, applog::Mqtt) == 0)
 			panel = m_gate;
+		else if (std::strcmp(topic, applog::Location) == 0)
+			panel = m_people;
 
 		if (!panel)
 			return;

@@ -27,6 +27,13 @@ struct Settings {
 	std::string restUrl;
 	int         restIntervalMs = 0;
 
+	std::string peopleUrl;
+	int         peopleIntervalMs = 0;
+
+	// The tile server the map draws from, as a bare host or a full template. Nothing here
+	// fetches it - see src/qml/MapScreen.qml, which hands it to Qt's osm plugin.
+	std::string mapTileUrl;
+
 	std::string              mqttHost;
 	int                      mqttPort = 0;
 	std::string              mqttUser;

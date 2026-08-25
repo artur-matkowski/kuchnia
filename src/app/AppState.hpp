@@ -12,6 +12,7 @@ class Cameras;
 class Gate;
 class HotWater;
 class KeyBindings;
+class People;
 class Radio;
 class Weather;
 
@@ -48,6 +49,7 @@ private:
 	Gate*        m_gate;
 	HotWater*    m_hotWater;
 	KeyBindings* m_keys;
+	People*      m_people;
 	Radio*       m_radio;
 	Weather*     m_weather;
 };
