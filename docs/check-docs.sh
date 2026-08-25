@@ -48,7 +48,7 @@ while IFS=: read -r file line rest; do
 	path=$(echo "$rest" | sed 's/[.,:;)]*$//')
 	[ -n "$path" ] || continue
 	[ -e "$path" ] || err "$file:$line mentions a path that does not exist: $path"
-done < <(grep -HnoE '(docs|src|scripts)/[A-Za-z0-9._/-]*' "${LINKED[@]}")
+done < <(grep -HnoE '(docs|src|scripts|services)/[A-Za-z0-9._/-]*' "${LINKED[@]}")
 
 echo "=== every node is reachable from the index ==="
 for f in "${NODES[@]}"; do
@@ -110,7 +110,7 @@ OWNED=$(grep -h '^> Owns:' "${NODES[@]}" | sed 's/^> Owns:[[:space:]]*//; s/[[:s
 while IFS= read -r f; do
 	[ -n "$f" ] || continue
 	grep -qxF "$f" <<< "$OWNED" || warn "no node owns $f"
-done < <(git ls-files src scripts CMakeLists.txt 2>/dev/null)
+done < <(git ls-files src scripts services CMakeLists.txt 2>/dev/null)
 
 echo
 if [ "$FAIL" -gt 0 ]; then

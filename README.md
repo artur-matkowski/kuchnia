@@ -24,6 +24,11 @@ There are two application repositories, and they are deliberately different in k
 A problem here that wants a renderer seam, a backend switch or a scene-graph node belongs in
 `drm-hmi` instead. That is the whole reason this repository exists separately.
 
+`services/` is the exception that proves it: one container that holds the Google session the
+map context draws from, because that credential must not sit on a kitchen wall. Nothing builds
+or ships it with the package — see [services/README.md](services/README.md) and
+[docs/location.md](docs/location.md).
+
 ## Documentation
 
 **[docs/INDEX.md](docs/INDEX.md) is the entry point.** Each node names the files it owns and

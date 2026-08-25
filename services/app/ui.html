@@ -1,0 +1,87 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kuchnia location</title>
+<style>
+  :root { color-scheme: dark; }
+  body { background: #101014; color: #e6e6f0; margin: 0;
+         font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 46rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em;
+       color: #8b8b9e; margin: 2.5rem 0 .75rem; }
+  .lede { color: #8b8b9e; margin: 0 0 1rem; }
+  section { background: #191922; border: 1px solid #2b2b38; border-radius: 6px;
+            padding: 1rem 1.25rem; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-weight: 400; color: #8b8b9e; width: 14rem;
+       vertical-align: top; padding: .2rem 1rem .2rem 0; }
+  td { padding: .2rem 0; word-break: break-word; }
+  label { display: block; margin-top: 1rem; font-family: ui-monospace, monospace;
+          color: #4aa3ff; }
+  input { width: 100%; box-sizing: border-box; margin-top: .25rem; padding: .4rem .6rem;
+          background: #101014; color: #e6e6f0; border: 1px solid #2b2b38; border-radius: 4px;
+          font: inherit; }
+  .help { color: #8b8b9e; font-size: .875rem; margin: .35rem 0 0; }
+  .row { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }
+  button, .button { background: #4aa3ff; color: #101014; border: 0; border-radius: 4px;
+                    padding: .5rem 1rem; font: inherit; font-weight: 600; cursor: pointer;
+                    text-decoration: none; display: inline-block; }
+  button.quiet { background: #2b2b38; color: #e6e6f0; }
+  .message { background: #334aa3ff; border: 1px solid #4aa3ff; border-radius: 4px;
+             padding: .6rem .9rem; margin: 0 0 1.5rem; }
+  code { color: #4aa3ff; }
+</style>
+
+<main>
+  <h1>kuchnia location</h1>
+  <p class="lede">
+    Shared Google positions for the kitchen panel's map, the tiles it draws them on, and the
+    browser the Google session is renewed in.
+  </p>
+
+  {{MESSAGE}}
+
+  <h2>Roster</h2>
+  <section>
+    <table>{{ROSTER}}</table>
+    <div class="row">
+      <a class="button" href="v1/people">/v1/people</a>
+      <a class="button" href="health">/health</a>
+    </div>
+  </section>
+
+  <h2>Google sign-in</h2>
+  <section>
+    <p class="lede">
+      There is no sign-in flow that can produce this credential: the RPC needs a full
+      web-session cookie, and only a real browser yields one. So this is a browser, on a
+      screen, and a person. It only runs while you are using it.
+    </p>
+    <table>{{SIGNIN}}</table>
+    <form method="post" action="signin" class="row">
+      <button name="action" value="start">Start the screen</button>
+      <a class="button" href="vnc/vnc.html?path=vnc/websockify&amp;autoconnect=1"
+         target="_blank" rel="noopener">Open it</a>
+      <button name="action" value="finish">Finish &amp; harvest</button>
+      <button name="action" value="cancel" class="quiet">Cancel</button>
+    </form>
+  </section>
+
+  <h2>Settings</h2>
+  <section>
+    <form method="post" action="settings">
+      {{SETTINGS}}
+      <div class="row"><button type="submit">Save</button></div>
+    </form>
+  </section>
+
+  <h2>What the panel is configured with</h2>
+  <section>
+    <table>
+      <tr><th><code>people-url</code></th><td>this host, <code>/v1/people</code></td></tr>
+      <tr><th><code>map-tile-url</code></th>
+          <td>this host, <code>/tiles/</code> &mdash; the trailing slash is load-bearing</td></tr>
+    </table>
+  </section>
+</main>

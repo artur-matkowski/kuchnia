@@ -23,3 +23,18 @@ config.conf
 
 # The capture directory. One run per directory, and the report beside its log.
 /logs/
+
+# The container's own state, which is not the container. Each of these is a bind mount from
+# services/docker-compose.yml, kept in the repository so that throwing the deployment away is
+# `rm -rf` here rather than a hunt through /var/lib/docker.
+#
+# services/data/ holds the harvested cookie jar, and THAT FILE IS THE GOOGLE CREDENTIAL.
+/services/data/
+/services/profile/
+/services/cache/
+/services/.env
+
+# Nothing here is a Python package, but services/app is Python and running it leaves these.
+# scripts/__pycache__ is tracked by an accident this prevents.
+__pycache__/
+*.pyc

@@ -1,0 +1,23 @@
+# One service, one published port, three bind mounts. Everything the panel reads and
+# everything a person clicks is a path under the same port - see services/README.md.
+services:
+  location:
+    build: .
+    image: kuchnia-location
+    container_name: kuchnia-location
+    restart: unless-stopped
+    environment:
+      # No default on purpose: compose refuses to start rather than bringing up a VNC screen
+      # and a settings page with a password somebody could guess from this file.
+      VNC_PASSWORD: ${VNC_PASSWORD:?set VNC_PASSWORD in services/.env - copy .env.example}
+    ports:
+      - "${HOST_PORT:-8087}:8080"
+    # Firefox puts its process-to-process buffers here, and Docker's 64M default is not
+    # enough for a page with a sign-in form and a captcha on it.
+    shm_size: "512m"
+    volumes:
+      # In the repository rather than in named volumes, so that throwing all of this away is
+      # `docker compose down && rm -rf data profile cache` and nothing hides in /var/lib.
+      - ./data:/data          # the cookie jar - this IS the Google credential - and config.json
+      - ./profile:/profile    # the signed-in browser profile
+      - ./cache:/cache        # tiles

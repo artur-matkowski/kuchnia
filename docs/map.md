@@ -8,7 +8,7 @@
 > Owns: src/app/PeopleModel.cpp
 > Owns: src/integrations/Location.hpp
 > Owns: src/integrations/Location.cpp
-> See:  docs/contexts.md docs/integrations.md docs/state.md docs/packaging.md docs/rest.md
+> See:  docs/contexts.md docs/integrations.md docs/state.md docs/packaging.md docs/rest.md docs/location.md
 
 One screen showing everyone who shares a location, framed so all of them fit with a tenth of
 the span to spare. `Location` fetches, `PeopleModel` holds the rows, `People` is what QML
@@ -22,8 +22,9 @@ authenticated visit — a client that does not persist the rotated cookie is dea
 hour. That is a supervising daemon, and it holds a credential that is full account access.
 
 So it runs in the <REDACTED> and `people-url` points at it, the same way `rest-url` points at
-`openmeteo-cache` and not at open-meteo. **A change that starts logging into Google from this
-process is a change in the wrong repository.**
+`openmeteo-cache` and not at open-meteo — [location](docs/location.md) is that half, and
+`map-tile-url` is the same host on a different path. **A change that starts logging into Google
+from this process is a change in the wrong repository.**
 
 The contract, which is the whole coupling:
 
