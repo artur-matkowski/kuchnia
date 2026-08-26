@@ -99,10 +99,6 @@ neither is visible afterwards: the scene just draws in whatever fontconfig picke
 resource lives in its own `qt_add_resources()` call rather than in the QML module's
 `RESOURCES`, which would put it under `:/qt/qml/Kuchnia/` and break the path `main.cpp` opens.
 
-`QCoreApplication::setOrganizationName`/`setApplicationName` are set for `QSettings`, which
-the radio's remembered station goes through — see [radio](docs/radio.md). Without them
-`QSettings` refuses to open a file and says so only as a warning.
-
 ## CMake
 
 **The QML files are aliased into the module.** Without `QT_RESOURCE_ALIAS` each file keeps

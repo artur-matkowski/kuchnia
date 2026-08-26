@@ -249,13 +249,6 @@ int main(int argc, char *argv[])
 		std::max(QThread::idealThreadCount(),
 		         static_cast<int>(settings.cameraUrls.size()) + 3));
 
-	// QSettings refuses to open a file without these and says so only as a warning, so the
-	// radio's remembered station would silently never be written. QML's Settings type is the
-	// only thing that reads them.
-	QCoreApplication::setOrganizationName("kuchnia");
-	QCoreApplication::setOrganizationDomain("kuchnia.local");
-	QCoreApplication::setApplicationName("kuchnia");
-
 	loadBundledFont();
 
 	// Declaration order here is destruction order reversed, and both matter. The engine is

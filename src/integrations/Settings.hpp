@@ -67,9 +67,6 @@ struct Settings {
 // The config file this account reads: ~/.config/kuchnia/config.conf, empty when neither
 // XDG_CONFIG_HOME nor HOME is set. Overridden by --configpath, which is Module-cpp-config's
 // own argument and never appears in the table below.
-//
-// Not kuchnia.conf in that directory - QSettings already writes that name, see
-// docs/packaging.md.
 std::string defaultConfigPath();
 
 enum class SettingsResult {

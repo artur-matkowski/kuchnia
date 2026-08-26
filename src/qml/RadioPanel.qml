@@ -1,4 +1,3 @@
-import QtCore
 import QtQuick
 import QtQuick.Layouts
 import QtMultimedia
@@ -12,21 +11,10 @@ Card {
 
 	title: "Radio"
 
-	Settings {
-		id: persisted
-		// Written to the platform's config location, which the target has to provide - see
-		// docs/radio.md. Where it cannot be written the station simply does not survive a
-		// restart; nothing else breaks.
-		property int station: 0
-	}
-
-	// One direction each way, and neither is a binding: a two-way binding between this and
-	// Radio.index would fight itself the first time a button moved the station.
-	Component.onCompleted: Radio.index = persisted.station
+	// Nothing persists the station: every start is the first one, stopped - see docs/radio.md.
 	Connections {
 		target: Radio
 		function onIndexChanged() {
-			persisted.station = Radio.index
 			root._apply()
 		}
 

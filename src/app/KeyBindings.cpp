@@ -96,9 +96,9 @@ KeyBindings::KeyBindings(const QString& path, bool reset, QObject* parent)
 
 std::unique_ptr<QSettings> KeyBindings::open() const
 {
-	// The organisation and application names here are QSettings' own path arithmetic and not
-	// the ones main.cpp sets - those name the file QML's Settings type writes, which is a
-	// different file in the same directory.
+	// These two names are QSettings' own path arithmetic and the only ones there are: nothing
+	// sets an application-wide organisation or application name, so a QSettings constructed
+	// without them opens no file and says so only as a warning.
 	return m_path.isEmpty()
 		? std::make_unique<QSettings>(QSettings::IniFormat, QSettings::UserScope,
 		                              QStringLiteral("kuchnia"), QStringLiteral("keys"))

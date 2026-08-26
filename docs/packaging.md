@@ -96,11 +96,11 @@ parameter in `specs()` at its compiled-in default, `0600` because both passwords
 fresh install draws a scene with no camera, database or broker in it until that account edits
 the file. The path is resolved in `src/integrations/Settings.cpp` and nowhere else.
 
-**Not `kuchnia.conf` in that directory.** `main.cpp` names both the organisation and the
-application `kuchnia`, so `QSettings` already owns `~/.config/kuchnia/kuchnia.conf` — the
-radio station ([radio](docs/radio.md)), with `keys.ini` beside it for the bindings
-([input](docs/input.md)). Two writers on that one file, one of them writing INI, lose each
-other's contents without a word.
+**Two files land in that directory and no more**: `config.conf`, and `keys.ini` beside it for
+the key bindings ([input](docs/input.md)), which `QSettings` names from the two strings
+`KeyBindings::open()` passes it. Nothing sets an application-wide organisation or application
+name, so nothing else here has a `QSettings` path at all — a third file appearing under
+`~/.config/kuchnia` is something new writing one.
 
 **`/etc/kuchnia.conf` is not read, and not removed.** dpkg keeps a conffile that a new version
 stops shipping and no `rm_conffile` is declared, so an upgraded board still holds the only

@@ -98,17 +98,15 @@ stay idempotent.
 `RadioPanel` binds `_wanted` onto `Cctv.radioPlaying`; taken from `playbackState` instead, a
 station that drops mid-song would let a camera into the room until it reconnected.
 
-## The station index, remembered and re-read
+## The station index is not written down
 
-`RadioPanel` persists the index through QML's `Settings`, which is `QSettings` and needs the
-organisation and application names `main.cpp` sets, plus a writable config location on the
-target. Where it cannot be written the station does not survive a restart and nothing else
-breaks. `Radio.index` and the persisted value are wired one direction each way rather than
-bound together: a two-way binding fights itself the first time a button moves the station.
+Every start is the first station with the radio stopped. `src/qml/RadioPanel.qml` opens no
+file of its own, and one integer earns no second file under `~/.config/kuchnia`
+([packaging](docs/packaging.md)) on a board that runs continuously.
 
-`Radio.reload()` re-reads every playlist — it is the refresh key on the compact screen,
-[input](docs/input.md) — so the index has to survive a file edited under it as it survives one
-edited between runs. `Radio` clamps it to the list, and:
+Within a run it does have to survive a playlist edited under it. `Radio.reload()` re-reads
+every playlist — it is the refresh key on the compact screen, [input](docs/input.md) — and
+`Radio` clamps the index to the list it read, so:
 
 **`urls`, `names` and `count` must never go back to `CONSTANT`.** Such a property is read once
 and cached, so the files would be re-read with the panel still drawing the previous list and
