@@ -85,6 +85,7 @@ qt_add_executable(kuchnia
 	src/app/PeopleModel.cpp
 	src/app/Radio.cpp
 	src/app/Series.cpp
+	src/app/SnapClient.cpp
 	src/app/Trace.cpp
 	src/app/Volume.cpp
 	src/app/Weather.cpp

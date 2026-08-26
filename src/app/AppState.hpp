@@ -14,6 +14,7 @@ class HotWater;
 class KeyBindings;
 class People;
 class Radio;
+class SnapClient;
 class Volume;
 class Weather;
 
@@ -60,6 +61,7 @@ private:
 	KeyBindings* m_keys;
 	People*      m_people;
 	Radio*       m_radio;
+	SnapClient*  m_snapclient;
 	Volume*      m_volume;
 	Weather*     m_weather;
 };

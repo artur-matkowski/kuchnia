@@ -3,10 +3,11 @@
 > Owns: src/qml/RadioPanel.qml
 > Owns: src/app/Radio.hpp
 > Owns: src/app/Radio.cpp
-> See:  docs/media.md docs/volume.md docs/app.md docs/scene.md docs/input.md
+> Owns: src/app/SnapClient.hpp
+> Owns: src/app/SnapClient.cpp
+> See:  docs/media.md docs/volume.md docs/app.md docs/scene.md docs/input.md docs/session.md
 
-One internet radio from `radio-m3u`, through QtMultimedia and out of the same audio sink the
-cameras share. Which of them is heard is not decided here — that arbitration and the mute it
+The radio from `radio-m3u`, out of the same audio sink the cameras share. Which of them is heard is not decided here — that arbitration and the mute it
 is made of are [media](docs/media.md).
 
 ## The station list is a file
@@ -21,6 +22,64 @@ empty station list until someone puts one there.
 the stream and `ffprobe` prints it — but Qt's ffmpeg backend maps it onto no key the scene can
 read. `RadioPanel`'s status line stays bound and empty rather than carrying a placeholder for
 something the stream never told us.
+
+## Two transports, and the scheme picks one
+
+A station's URL scheme says how it is played:
+
+| scheme | played by | synced |
+|---|---|---|
+| `http`, `https` | `RadioPanel`'s `MediaPlayer` | no |
+| `snapcast` | a `snapclient` child, through `SnapClient` | yes, sample-accurate |
+
+**`Radio` parses neither.** `load()` takes any non-`#` line verbatim, so a synced station is one
+more line in the playlist and nothing in `src/app/Radio.cpp` knows there are two kinds:
+
+```
+#EXTINF:-1 group-title="radio", Dom (sync)
+snapcast://<HOST_REDACTED>:1704/kuchnia
+```
+
+**Exactly one transport ever runs**, and the second is not a fallback beside the first:
+`_apply()` releases the one this station is not before starting the one it is, and a snapcast
+station holds no `source` at all. `_wanted` still drives both, which is why `Cctv.radioPlaying`
+and the camera mute know about neither.
+
+**Host, port and room are all required**, and a line missing any of them fails with itself
+quoted. snapclient would supply the last two on its own — port 1704, and a `hostID` off the MAC
+address — and the room then plays under a name nobody chose, which reads in snapweb exactly like
+one that was configured. The path segment is that `hostID`, which is what keeps per-room volume
+and grouping attached to a name.
+
+**The child's environment is passed through untouched.** `PULSE_SERVER` comes from the unit
+([session](docs/session.md)), and that is the only reason it finds this board's shared server.
+
+**`--player pulse` is passed explicitly.** The default is `alsa`, and here the device belongs to
+pipewire-pulse — an ALSA client against it is silence or a fight, never an error that names
+itself.
+
+## Only a clock catches a server that is not there
+
+**snapclient retries a server that is not there for ever, without exiting.** Left alone the card
+sits on `connecting` and nothing ever contradicts it, so `SnapClient` fails the panel after ten
+seconds with no `ServerSettings - ` line on the child's stderr.
+
+That literal is where `live` comes from and nothing else is a substitute: it is logged only once
+the server has answered hello, and a socket opens against a server that then drops the client
+just the same. A reconnect logs it again, which is what returns the card to `live` on its own.
+
+Failure is read off AixLog's `[Error]` / `[Fatal]` severity stamp and never off the messages.
+The first thing snapclient says when its server disappears is `Error reading message header of
+length 0: End of file`, which shares no substring with `Error: `, `Exception: ` or `Failed to
+send hello request`.
+
+**A server that goes quiet with its socket still open reads as `live`.** It is the same silent
+failure the camera watchdog exists to catch ([media](docs/media.md)), and there is nothing
+equivalent here.
+
+`--player file:…` into a `QAudioSink` is the obvious reach from `CameraFeed` and it destroys
+what snapcast is for: the client's own player schedules each chunk against the server's clock,
+and a sink in between puts back the independent buffering that makes two rooms flange.
 
 ## Stopping drops the stream
 

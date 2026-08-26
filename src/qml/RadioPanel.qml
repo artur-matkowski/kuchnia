@@ -4,8 +4,9 @@ import QtQuick.Layouts
 import QtMultimedia
 import Kuchnia
 
-// The internet radio. It shares one audio sink with the cameras and wins whenever it is
-// playing, which is what the Binding below publishes.
+// The radio, over either of two transports: a URL station through the MediaPlayer below, and a
+// snapcast:// one through a snapclient child. It shares one audio sink with the cameras and
+// wins whenever it is playing, which is what the Binding below publishes.
 Card {
 	id: root
 
@@ -36,20 +37,31 @@ Card {
 	// A source assignment that was held off while the player was opening one.
 	property bool _pending: false
 
-	// The player is reconciled with _wanted here and nowhere else. Stopped means no source at
-	// all: these are live streams, and a player that keeps its connection resumes behind the
-	// broadcast. Idempotent, so the deferral below is a second call and nothing more.
+	// Which transport this station is played by. The scheme decides, in one place - this is
+	// not a fallback beside a working path. See docs/radio.md.
+	readonly property bool _synced: SnapClient.handles(Radio.url)
+
+	// Both transports are reconciled with _wanted here and nowhere else, and exactly one of
+	// them is ever running. Stopped means no source at all: these are live streams, and a
+	// player that keeps its connection resumes behind the broadcast. Idempotent, so the
+	// deferral below is a second call and nothing more - SnapClient.play() is idempotent for
+	// the same reason.
 	//
 	// Assigning source waits for whatever the player is already opening, on the GUI thread, so
 	// an assignment made while one is in flight would stop the whole screen. See docs/app.md.
 	function _apply() {
 		root._pending = false
 
-		// Before the source goes, so the sink is released whether or not the drop is deferred.
-		if (!root._wanted)
+		// Whichever transport this station is not, released first. Before the source goes, so
+		// the sink is let go whether or not the drop is deferred.
+		if (!root._wanted || !root._synced)
+			SnapClient.stop()
+		if (!root._wanted || root._synced)
 			player.stop()
 
-		const want = root._wanted ? Radio.url : ""
+		// A snapcast station holds no source at all: the player is not its transport, and a
+		// URL left on it would be reopened by the next status change.
+		const want = (root._wanted && !root._synced) ? Radio.url : ""
 		if (player.source.toString() !== want) {
 			if (player.mediaStatus === MediaPlayer.LoadingMedia) {
 				root._pending = true
@@ -60,7 +72,11 @@ Card {
 			Trace.end("radio.source")
 		}
 
-		if (root._wanted)
+		if (!root._wanted)
+			return
+		if (root._synced)
+			SnapClient.play(Radio.url)
+		else
 			player.play()
 	}
 
@@ -109,13 +125,19 @@ Card {
 	// can read: a playing MP3 station offers Duration, FileFormat, AudioCodec and AudioBitRate
 	// and nothing else. So this is empty in practice, and it stays empty rather than being
 	// filled with a placeholder - see docs/radio.md.
-	readonly property string _nowPlaying:
-		player.metaData ? (player.metaData.stringValue(MediaMetaData.Title) || "") : ""
+	// Empty on a snapcast station too, and for a second reason: the title is on snapcast's
+	// control port, which is a network client this panel does not have.
+	readonly property string _nowPlaying: root._synced ? ""
+	      : player.metaData ? (player.metaData.stringValue(MediaMetaData.Title) || "") : ""
 
-	status: player.playbackState === MediaPlayer.PlayingState ? "live"
+	// SnapClient starts out "connecting" and stays there between stations, so its status is
+	// only asked for while something has actually been asked of it - the card is blank when
+	// stopped, exactly as it is on a URL station.
+	status: _synced ? (_wanted ? SnapClient.status : "")
+	      : player.playbackState === MediaPlayer.PlayingState ? "live"
 	      : _detail.length > 0 ? "failed"
 	      : _wanted ? "connecting" : ""
-	statusDetail: _detail
+	statusDetail: _synced ? (_wanted ? SnapClient.statusDetail : "") : _detail
 
 	ColumnLayout {
 		anchors { fill: parent; margins: Theme.gap; topMargin: root.contentTop }
