@@ -25,11 +25,10 @@ PipeWire directly and never reading `PULSE_SERVER` at all.
 `Main.qml` drops auto-repeat, so a held key is one step; the twentieth press is nothing this
 stops.
 
-## The session may own these keys first
+## The keys these two ship on
 
-`volume-up` and `volume-down` ship bound to `Qt::Key_VolumeUp` and `Qt::Key_VolumeDown`, and
-reach this application only if the compositor hands them over. A session that binds them
-itself either swallows them — the keys do nothing here and the volume still moves — or acts
-alongside this, and one press moves the volume twice. Both read as a fault in this repository
-and neither is one: the session's own bindings are where it is settled, or bind these two to
-keys the session does not want.
+`volume-up` and `volume-down` ship bound to `Qt::Key_VolumeUp` and `Qt::Key_VolumeDown`, which
+puts them in the class [input](docs/input.md) describes: a session that grabs the media keys
+takes them before this application sees them, and because the session then moves the volume
+itself the keys look bound and dead at the same time. A session that acts on them *and* passes
+them on is the other half of it — one press moves the volume twice. Neither is settled here.

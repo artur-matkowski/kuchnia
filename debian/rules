@@ -15,6 +15,11 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 # system binary's library search path.
 CONFIGURE_OPTS = -DCMAKE_SKIP_INSTALL_RPATH=ON
 
+# The version the settings screen prints. Taken from debian/changelog, which is the version
+# dpkg-buildpackage stamps the package with and therefore the one apt installed - anything
+# derived from git here would name a commit nobody can look up from a board.
+CONFIGURE_OPTS += -DKUCHNIA_VERSION=$(shell dpkg-parsechangelog -S Version)
+
 # Qt runs moc, rcc, qmlcachegen and qmlimportscanner on the build machine and the CMake
 # toolchain knows nothing about them. On Debian the host Qt's CMake package does not sit at
 # ${QT_HOST_PATH}/lib/cmake, so naming the prefix alone is not enough - see docs/targets.md.

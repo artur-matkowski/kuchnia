@@ -47,6 +47,11 @@ AppState::AppState(const Settings& settings, QObject* parent)
 	m_gate->setControlEnabled(settings.gateControl);
 }
 
+QString AppState::version() const
+{
+	return QStringLiteral(KUCHNIA_VERSION);
+}
+
 void AppState::registerSingletons()
 {
 	// qmlRegisterSingletonInstance and not QML_SINGLETON: these objects are built from the
@@ -64,6 +69,10 @@ void AppState::registerSingletons()
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Radio", m_radio);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Volume", m_volume);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Weather", m_weather);
+
+	// This object itself, for the one thing on it that belongs to no panel. Registered last
+	// so the list above stays the panels'.
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "App", this);
 
 	// The one instantiable type, and not a singleton: there is one of these per tile and each
 	// owns its own child processes. Registered here anyway, so that every name the scene

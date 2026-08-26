@@ -21,8 +21,11 @@ Context {
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
 	                                        width - Theme.gap * 2, height - Theme.gap * 2)
 
+	// Three rows and not two: the heading strip is fixed and the two card rows share the rest.
+	readonly property var rows: [Math.round(Theme.fontLabel * 1.6), -1, -1]
+
 	function cell(column, row) {
-		return Cells.box(screen.content, [-1, -1], [-1, -1], column, row)
+		return Cells.box(screen.content, [-1, -1], screen.rows, column, row)
 	}
 
 	function moveSelection(delta) {
@@ -99,9 +102,50 @@ Context {
 		}
 	}
 
+	// The strip above the cards. It is a SceneElement and not a plain child of the screen: a
+	// child of the Context keeps its base pose in every state, so it would stay on screen over
+	// the cameras and the map while the cards it belongs to have slid away.
+	SceneElement {
+		id: heading
+		box: Cells.box(screen.content, [-1, -1], screen.rows, 0, 0, 2, 1)
+
+		Text {
+			anchors { left: parent.left; leftMargin: Theme.gap; verticalCenter: parent.verticalCenter }
+			text: "Ustawienia"
+			color: Theme.text
+			font.pixelSize: Theme.fontLabel
+			font.bold: true
+		}
+
+		// Which build this is. The package's version, or the commit a desktop build was
+		// configured at - see docs/packaging.md.
+		Text {
+			anchors { right: parent.right; rightMargin: Theme.gap; verticalCenter: parent.verticalCenter }
+			text: "kuchnia " + App.version
+			color: Theme.textDim
+			font.pixelSize: Theme.fontLabel
+		}
+
+		states: [
+			State { name: "cameras"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
+			State { name: "map"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
+			State { name: "compact-24h"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
+			State { name: "compact-72h"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
+			State { name: "weather-72h"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
+			State { name: "weather-7d"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
+			State { name: "settings" },
+			State { name: "carousel" }
+		]
+
+		transitions: [
+			CarouselIn {},
+			CarouselOut {}
+		]
+	}
+
 	SceneElement {
 		id: soundKeys
-		box: screen.cell(0, 0)
+		box: screen.cell(0, 1)
 
 		Card {
 			id: soundKeysCard
@@ -139,7 +183,7 @@ Context {
 
 	SceneElement {
 		id: gateKeys
-		box: screen.cell(0, 1)
+		box: screen.cell(0, 2)
 
 		Card {
 			id: gateKeysCard
@@ -175,7 +219,7 @@ Context {
 
 	SceneElement {
 		id: cameraKeys
-		box: screen.cell(1, 0)
+		box: screen.cell(1, 1)
 
 		Card {
 			id: cameraKeysCard
@@ -214,7 +258,7 @@ Context {
 
 	SceneElement {
 		id: navKeys
-		box: screen.cell(1, 1)
+		box: screen.cell(1, 2)
 
 		Card {
 			id: navKeysCard

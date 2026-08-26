@@ -30,8 +30,15 @@ class Weather;
 class AppState : public QObject {
 	Q_OBJECT
 
+	// What the settings screen prints. CONSTANT because it is a compile definition: the
+	// package's build passes debian/changelog's version, a desktop build passes a commit -
+	// see docs/packaging.md.
+	Q_PROPERTY(QString version READ version CONSTANT)
+
 public:
 	explicit AppState(const Settings& settings, QObject* parent = nullptr);
+
+	QString version() const;
 
 	// Must run before QQmlApplicationEngine::loadFromModule: a singleton registered after the
 	// scene is built is a name QML has already failed to resolve.

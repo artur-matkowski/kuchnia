@@ -23,6 +23,30 @@ pkg_check_modules(PQXX REQUIRED IMPORTED_TARGET libpqxx)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
+# What the settings screen prints, and the one string in the process that says which build
+# this is. The package passes debian/changelog's version, which is the version apt installed
+# and the only one a board can be asked about - see docs/packaging.md. A desktop build has no
+# changelog speaking for it and says which commit it is instead.
+#
+# Resolved at configure time, so a desktop build that has moved on since keeps the version it
+# was configured with until CMake runs again.
+set(KUCHNIA_VERSION "" CACHE STRING "Version the application reports; empty asks git")
+
+if(NOT KUCHNIA_VERSION)
+	execute_process(
+		COMMAND git -C "${CMAKE_CURRENT_SOURCE_DIR}" describe --always --dirty
+		OUTPUT_VARIABLE KUCHNIA_VERSION
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		ERROR_QUIET
+	)
+endif()
+
+if(NOT KUCHNIA_VERSION)
+	set(KUCHNIA_VERSION "unknown")
+endif()
+
+message(STATUS "kuchnia version: ${KUCHNIA_VERSION}")
+
 # Both modules are consumed as source rather than as libraries: neither installs anything,
 # and one of them needs its MAX_LOG_LEVEL fixed at compile time by whoever builds it.
 #
@@ -158,6 +182,8 @@ qt_add_resources(kuchnia "fonts"
 # src/ on the path, so an include reads the same wherever it is written: src/app/ and
 # src/integrations/ include each other by their repo-relative names rather than by "../".
 target_include_directories(kuchnia PRIVATE src)
+
+target_compile_definitions(kuchnia PRIVATE KUCHNIA_VERSION="${KUCHNIA_VERSION}")
 
 target_link_libraries(kuchnia PRIVATE
 	Qt6::Gui

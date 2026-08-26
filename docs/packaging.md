@@ -72,6 +72,18 @@ the volume keys are silent no-ops with a line in the log — [volume](docs/volum
 How the unit, the autostart entry and the session fit together is
 [session](docs/session.md). Nothing in this node configures a display.
 
+## The version the settings screen prints
+
+`debian/changelog` is where the version lives, and `debian/rules` hands it to CMake as
+`KUCHNIA_VERSION`. So the string on that screen is the version `apt` installed and nothing
+else; CI rewrites the changelog on every build ([ci](docs/ci.md)), and the number never comes
+from git, because a commit is not something a board can be asked about.
+
+Outside the package `KUCHNIA_VERSION` is unset, CMake asks `git describe --always --dirty`,
+and a tree with no git at all reports `unknown`. **It is resolved when CMake configures**, so
+a desktop build keeps whatever string it was configured with: rebuilding after a commit still
+prints the old one until CMake runs again.
+
 ## The config file
 
 `/etc/kuchnia.conf` is a dpkg conffile, which is what makes a hand-edited copy survive an
