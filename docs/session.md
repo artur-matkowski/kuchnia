@@ -26,10 +26,10 @@ exists only to push it in before starting the unit. Raspberry Pi OS ships
 `env-display.desktop` doing the same import, but XDG autostart entries have no defined order
 between them, so relying on it is a race.
 
-Which account the display manager autologs in decides who this runs as, and that account has
-to be in the `kuchnia` group to read the config — [packaging](docs/packaging.md). It is also
-what gives `QSettings` a home: the key bindings ([docs/input.md](docs/input.md)) and the
-radio station in `src/qml/RadioPanel.qml` land in that user's `~/.config`.
+Which account the display manager autologs in decides who this runs as, and that account's
+`~/.config` is where everything the application keeps lands: its own config file
+([packaging](docs/packaging.md)), the key bindings ([docs/input.md](docs/input.md)) and the
+radio station in `src/qml/RadioPanel.qml`. A home it cannot write is a start that refuses.
 
 Fullscreen is the application's own request and not compositor configuration — the window is
 [scene](docs/scene.md), the parameter behind it [integrations](docs/integrations.md).

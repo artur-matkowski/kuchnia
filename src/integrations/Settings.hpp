@@ -63,9 +63,13 @@ struct Settings {
 	int retryMaxMs = 0;
 };
 
-// The config file the board reads. Overridden by --configpath, which is Module-cpp-config's
+// The config file this account reads: ~/.config/kuchnia/config.conf, empty when neither
+// XDG_CONFIG_HOME nor HOME is set. Overridden by --configpath, which is Module-cpp-config's
 // own argument and never appears in the table below.
-extern const char* const kDefaultConfigPath;
+//
+// Not kuchnia.conf in that directory - QSettings already writes that name, see
+// docs/packaging.md.
+std::string defaultConfigPath();
 
 enum class SettingsResult {
 	Ok,
@@ -74,6 +78,6 @@ enum class SettingsResult {
 };
 
 // Resolves the config file, then the environment, then argv - lowest to highest priority.
-// Writes a default config file when the path cannot be read, which is how a board with no
-// /etc/kuchnia.conf ends up with a documented one after its first boot.
+// Creates the per-user config directory, and a default file in it when there is none, which
+// is how a fresh install ends up with a complete one after its first start.
 SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* message);

@@ -1,13 +1,48 @@
 #include "Settings.hpp"
 
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <stdexcept>
+
+#include <sys/stat.h>
 
 #include "Config.hpp"
 #include "Log.hpp"
 
-const char* const kDefaultConfigPath = "/etc/kuchnia.conf";
+std::string defaultConfigPath()
+{
+	if (const char* xdg = std::getenv("XDG_CONFIG_HOME"); xdg && *xdg)
+		return std::string(xdg) + "/kuchnia/config.conf";
+	if (const char* home = std::getenv("HOME"); home && *home)
+		return std::string(home) + "/.config/kuchnia/config.conf";
+	return {};
+}
 
 namespace {
+
+// Module-cpp-config takes --configpath out of this same argv and never says which file it
+// settled on. Reading it here too is what keeps a run that names its own config from needing
+// a home directory, a config directory or a chmod.
+bool configPathGiven(int argc, char** argv)
+{
+	for (int i = 1; i < argc; ++i)
+		if (std::string(argv[i]) == "--configpath" && i + 1 < argc)
+			return true;
+	return false;
+}
+
+// The two directories above the config file. The module writes it with a bare ofstream, which
+// creates no parent, so a first start on an account that has never had one writes nothing.
+bool makeConfigDirectory(const std::string& path)
+{
+	const std::string dir  = path.substr(0, path.rfind('/'));
+	const std::string base = dir.substr(0, dir.rfind('/'));
+	for (const std::string& each : {base, dir})
+		if (::mkdir(each.c_str(), 0700) != 0 && errno != EEXIST)
+			return false;
+	return true;
+}
 
 // The gate signals the HC-12 bridge republishes. MQTT has no prefix wildcard, so there is no
 // way to say "every hc12/rx topic whose name starts with Gate" - each one is named, and a
@@ -147,15 +182,44 @@ SettingsResult loadSettings(int argc, char** argv, Settings* out, std::string* m
 	                            applog::stream(debug::LogLevel::Info, applog::Cfg),
 	                            applog::stream(debug::LogLevel::Debug, applog::Cfg));
 
+	// ArgInit reads --configpath out of argv itself and overrides this path with it; that run
+	// owns its own file, so none of the directory or permission work below applies to it.
+	const bool ownPath = !configPathGiven(argc, argv);
+	const std::string path = defaultConfigPath();
+
+	if (ownPath) {
+		if (path.empty()) {
+			*message = "neither XDG_CONFIG_HOME nor HOME is set, so there is nowhere to keep "
+			           "the config; name a file with --configpath";
+			return SettingsResult::Failed;
+		}
+		if (!makeConfigDirectory(path)) {
+			*message = "cannot create the directory for " + path + ": " + std::strerror(errno);
+			return SettingsResult::Failed;
+		}
+	}
+
+	struct stat unused;
+	const bool existed = ownPath && ::stat(path.c_str(), &unused) == 0;
+
 	bool parsed = false;
 	try {
 		// stoi and stof throw on a value that is not a number, from the file, the
 		// environment and argv alike. Uncaught that is a terminate() during startup with
 		// no indication of which parameter was malformed.
-		parsed = Config::Instance().ArgInit(kDefaultConfigPath, specs(), argc, argv, message);
+		parsed = Config::Instance().ArgInit(path, specs(), argc, argv, message);
 	} catch (const std::exception& error) {
 		*message = std::string("malformed value in config, environment or arguments: ") + error.what();
 		return SettingsResult::Failed;
+	}
+
+	// The module writes the defaults for a path it could not read, with a bare ofstream and so
+	// at whatever the umask allows. Both passwords go in this file.
+	if (!existed && ownPath && ::stat(path.c_str(), &unused) == 0) {
+		if (::chmod(path.c_str(), 0600) != 0)
+			LOG_ERROR(applog::Cfg) << "cannot restrict " << path << ": " << std::strerror(errno);
+		else
+			LOG_INFO(applog::Cfg) << "wrote a default config: " << path;
 	}
 
 	if (Config::Instance().IsHelpPrintoutRequested()) {

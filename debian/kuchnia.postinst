@@ -3,22 +3,14 @@ set -e
 
 case "$1" in
 	configure)
-		# A group and no account: the application runs as whoever is logged into the
-		# session, and this is only what guards the passwords in the file below.
-		if ! getent group kuchnia >/dev/null; then
-			addgroup --system kuchnia
+		# The config is the session account's own file now, written by the application on its
+		# first start. An /etc copy left by an older version is named and not touched: it holds
+		# the board's two passwords, and which account to move it to is not knowable from a
+		# maintainer script. See docs/packaging.md.
+		if [ -e /etc/kuchnia.conf ]; then
+			echo "kuchnia: /etc/kuchnia.conf is no longer read. Copy it, passwords and all, to"
+			echo "kuchnia:     ~/.config/kuchnia/config.conf   of the account that runs the session"
 		fi
-
-		# The passwords live in this file, and it is read by the session user.
-		chown root:kuchnia /etc/kuchnia.conf
-		chmod 0640 /etc/kuchnia.conf
-
-		# The one step this script cannot infer - it does not know which account autologs in,
-		# and reading it out of the display manager's config would be a guess. Without it the
-		# file is unreadable and the application runs on compiled-in defaults, saying so only
-		# at warning level. See docs/packaging.md.
-		echo "kuchnia: the account that runs the session must be in the kuchnia group:"
-		echo "kuchnia:     sudo adduser <user> kuchnia"
 
 		# snapclient is a Depends, and its own package starts and enables the unit. That
 		# unit is a SECOND snapclient - user _snapclient, empty SNAPCLIENT_OPTS so it

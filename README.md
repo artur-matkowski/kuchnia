@@ -66,11 +66,11 @@ knows nothing about any image.
 kuchnia [--configpath <file>] [-platform <qpa>]
 ```
 
-Parameters come from `/etc/kuchnia.conf`, then the environment, then the command line, each
-overriding the one before; `--help` lists them. That file is where the board's copy reads its
-database, broker and camera addresses from, and who is allowed to read it is
-[docs/packaging.md](docs/packaging.md). `--configpath` takes a different file instead, which
-is what a run on this desktop wants:
+Parameters come from `~/.config/kuchnia/config.conf`, then the environment, then the command
+line, each overriding the one before; `--help` lists them. The package ships no config file:
+that one is written on a start that finds none, and it is where the board reads its database,
+broker and camera addresses from — [docs/packaging.md](docs/packaging.md). `--configpath`
+takes a different file instead, which is what a run on this desktop wants:
 
 ```sh
 kuchnia --configpath ./config.conf

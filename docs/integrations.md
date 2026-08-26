@@ -76,22 +76,22 @@ The environment name is derived from the parameter name — uppercased, `-` to `
 variable and orphans whatever was exporting the old one.
 
 * **An unknown `--parameter` on the command line is skipped without a word.** A typo in an
-  argument changes nothing and reports nothing. `specs()` is also one half of a pair with the
-  shipped config file: a parameter added or removed here has to be added or removed in
-  `debian/kuchnia.conf`, which nothing checks — [packaging](docs/packaging.md).
-* **`radio-url` and `radio-name` are one list read with one index.** `loadSettings()` refuses
-  a pair of unequal length rather than letting the scene index past the end of one of them.
-  Both split on commas, so a station name containing one becomes two names.
-* **A `BOOL` is `true` and nothing else.** The parser compares the value to that string
-  exactly, so `fullscreen:True` is false and says nothing. `FLAG` is a different type with a
+  argument changes nothing and reports nothing.
+* **A `BOOL` is `true` and nothing else**, and an empty value is the same as no line at all:
+  the parser compares to that string exactly, so `fullscreen:True` is false and `mqtt-user:`
+  leaves the compiled-in default in place, neither of them saying a word. `FLAG` is a different type with a
   hardwired `false` default that no config line can turn on — which is why `fullscreen`,
   needing to default on, is a `BOOL` and `gate-control` is not.
 * **A non-numeric value where an `INT` is expected throws**, from any of the three sources.
   `loadSettings()` catches it and names the failure; without that catch it is a `terminate()`
   during startup that says nothing about which parameter was wrong.
-* **A missing config file is not an error** — the module writes a default one at that path
-  and carries on. When the path is not writable either, the defaults still apply and only a
-  warning says so.
+* **A missing config file is not an error** — the module writes a default one and carries on,
+  with a bare `ofstream`: no parent directory is made, and a write that fails says nothing.
+  `loadSettings()` creates `~/.config/kuchnia` first and refuses to start when it cannot, then
+  sets `0600` on a file that appeared across the call, which the umask would not —
+  [packaging](docs/packaging.md). It reads `--configpath` for itself too, to know whether that
+  per-user path is in use; the module parses the same flag again and only its copy picks the
+  file.
 * `Config::Get` with a name absent from `specs()` returns false and leaves the output
   untouched; `Settings.cpp`'s `get()` helper turns that into an error line rather than a
   value that silently stays default.

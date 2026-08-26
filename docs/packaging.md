@@ -3,7 +3,6 @@
 > Owns: debian/changelog
 > Owns: debian/control
 > Owns: debian/copyright
-> Owns: debian/kuchnia.conf
 > Owns: debian/kuchnia.install
 > Owns: debian/kuchnia.postinst
 > Owns: debian/rules
@@ -28,16 +27,17 @@ echo "deb [signed-by=/etc/apt/keyrings/gitea-<REDACTED>.asc] \
 https://git.example.com/api/packages/<REDACTED>/debian trixie main" \
   | sudo tee /etc/apt/sources.list.d/kuchnia.list
 sudo apt update && sudo apt install kuchnia
-sudoedit /etc/kuchnia.conf          # the two passwords are empty in the shipped file
-sudo adduser pi kuchnia             # whichever account autologs in; postinst cannot guess it
 sudo raspi-config nonint do_boot_behaviour B4    # boot into the session, not the console
+# log in once, then, as that account:
+$EDITOR ~/.config/kuchnia/config.conf            # addresses and the two passwords
 ```
 
 `main` in the last position of that line is the channel. A test board writes `testing`
 there instead, or writes both and always takes the newer.
 
-The last two lines are the difference between an installed package and a running one —
-[session](docs/session.md).
+The `raspi-config` line is the difference between an installed package and a running one —
+[session](docs/session.md). The editor line comes after the first start because that start
+is what writes the file.
 
 ## What `dh_shlibdeps` cannot find
 
@@ -88,25 +88,24 @@ and a tree with no git at all reports `unknown`. **It is resolved when CMake con
 a desktop build keeps whatever string it was configured with: rebuilding after a commit still
 prints the old one until CMake runs again.
 
-## The config file
+## The config file the package does not ship
 
-`/etc/kuchnia.conf` is a dpkg conffile, which is what makes a hand-edited copy survive an
-upgrade, and it is where the passwords go — `postinst` sets it `0640 root:kuchnia`. Nothing
-in the package or in git ever carries a credential. `kuchnia` is a group and not an account:
-the reader is whoever logs into the session, and `postinst` cannot know which account that
-is, so it creates the group and prints the `adduser` line rather than guessing.
+**The package carries no configuration.** `~/.config/kuchnia/config.conf` belongs to the
+account that logs in, and the application writes it on a start that finds none: every
+parameter in `specs()` at its compiled-in default, `0600` because both passwords go there. A
+fresh install draws a scene with no camera, database or broker in it until that account edits
+the file. The path is resolved in `src/integrations/Settings.cpp` and nowhere else.
 
-Two properties of the parser matter when editing it:
+**Not `kuchnia.conf` in that directory.** `main.cpp` names both the organisation and the
+application `kuchnia`, so `QSettings` already owns `~/.config/kuchnia/kuchnia.conf` — the
+radio station ([radio](docs/radio.md)), with `keys.ini` beside it for the bindings
+([input](docs/input.md)). Two writers on that one file, one of them writing INI, lose each
+other's contents without a word.
 
-* **An empty value is the same as no line at all.** The parser drops empty fields, so
-  `mqtt-user:` does not clear the compiled-in default — it leaves it in place.
-* **An unreadable file is replaced, not reported.** A missing `/etc/kuchnia.conf` makes the
-  application write a default one; without the group it cannot, and it then runs on the
-  compiled-in defaults having said so only at warning level. That is what a forgotten
-  `adduser` looks like: a scene that draws, and no camera, database or broker in it.
-
-The path is compiled into `src/integrations/Settings.cpp` and repeated in
-`debian/kuchnia.install` and `debian/kuchnia.postinst`. Nothing checks that the three agree.
+**`/etc/kuchnia.conf` is not read, and not removed.** dpkg keeps a conffile that a new version
+stops shipping and no `rm_conffile` is declared, so an upgraded board still holds the only
+copy of its passwords; `postinst` says so when it finds one, because which account to copy
+them to is not knowable from a maintainer script.
 
 ## Versions and channels
 

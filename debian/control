@@ -45,8 +45,7 @@ Depends: ${shlibs:Depends},
          qt6-location-plugins,
          ca-certificates,
          pipewire-pulse | pulseaudio,
-         pulseaudio-utils,
-         adduser
+         pulseaudio-utils
 # A session to draw into, not a library to link against, so a board that already has one
 # declines these. Raspberry Pi OS Desktop provides both and the LXDE-pi-labwc session on top.
 Recommends: lightdm,

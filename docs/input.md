@@ -24,10 +24,11 @@ otherwise publish a command per repeat.
 where its *path* comes from. That config is resolved once at startup out of a file, the
 environment and argv; this one is written while the scene is running, by the settings screen.
 
-An empty `key-bindings` is the standard per-user location, which is what the board uses - its
-`/etc` is not writable. `QSettings` reports a write it could not make only through `status()`,
-so without the check in `save()` an unwritable home is a screen that takes a binding, draws
-it, and has forgotten it by the next start.
+An empty `key-bindings` is the standard per-user location, `~/.config/kuchnia/keys.ini`,
+beside the config file the application writes for itself ([packaging](docs/packaging.md)).
+`QSettings` reports a write it could not make only through `status()`, so without the check in
+`save()` an unwritable home is a screen that takes a binding, draws it, and has forgotten it
+by the next start.
 
 **A missing entry takes its default; an entry that is present and empty is unbound on
 purpose.** Escape writes the second. Conflate the two and every action somebody deliberately
