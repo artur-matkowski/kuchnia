@@ -9,7 +9,7 @@
 > Owns: debian/rules
 > Owns: debian/source/format
 > Owns: scripts/build-deb.sh
-> See:  docs/ci.md docs/session.md docs/targets.md docs/app.md docs/integrations.md
+> See:  docs/ci.md docs/session.md docs/targets.md docs/app.md docs/integrations.md docs/volume.md
 
 The board runs Raspberry Pi OS Desktop, and the application reaches it as a `.deb` from this
 Gitea's own Debian registry. `apt` is the whole deployment system: an update is
@@ -41,7 +41,7 @@ The last two lines are the difference between an installed package and a running
 
 ## What `dh_shlibdeps` cannot find
 
-`debian/control` names thirteen runtime dependencies by hand. They are not a belt-and-braces
+`debian/control` names fourteen runtime dependencies by hand. They are not a belt-and-braces
 list: none of them is discoverable from the binary. **`ffmpeg` is the one that is not a
 library at all** — it is a program the application forks once per camera tile, so no linkage
 and no QML import can reveal it, and a board without it draws five tiles that fail with "No
@@ -66,6 +66,8 @@ so without it the process starts, the scene draws, and only the forecast stays e
 `pipewire-pulse | pulseaudio` in `Depends`, and an address in the unit — the server itself is
 board configuration, and on this board it is system-wide and shared. Why a server is needed
 at all, and why the address has to be said out loud, is [media](docs/media.md).
+`pulseaudio-utils` is beside it and is the second program the application forks: without it
+the volume keys are silent no-ops with a line in the log — [volume](docs/volume.md).
 
 How the unit, the autostart entry and the session fit together is
 [session](docs/session.md). Nothing in this node configures a display.

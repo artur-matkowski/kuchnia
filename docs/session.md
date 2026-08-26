@@ -3,7 +3,7 @@
 > Owns: debian/kuchnia.user.service
 > Owns: debian/kuchnia.desktop
 > Owns: debian/kuchnia-autostart
-> See:  docs/packaging.md docs/scene.md docs/media.md docs/integrations.md
+> See:  docs/packaging.md docs/scene.md docs/media.md docs/volume.md docs/integrations.md
 
 The application is an ordinary client of whatever compositor the board logs into. It picks no
 platform and owns no connector: `QT_QPA_PLATFORM` is deliberately absent from the unit, so

@@ -3,7 +3,7 @@
 > Owns: src/qml/RadioPanel.qml
 > Owns: src/app/Radio.hpp
 > Owns: src/app/Radio.cpp
-> See:  docs/media.md docs/app.md docs/scene.md docs/input.md
+> See:  docs/media.md docs/volume.md docs/app.md docs/scene.md docs/input.md
 
 One internet radio from `radio-m3u`, through QtMultimedia and out of the same audio sink the
 cameras share. Which of them is heard is not decided here — that arbitration and the mute it

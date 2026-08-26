@@ -12,8 +12,8 @@ namespace {
 // the QML that draws its row: a misspelt one is a row with no label that can never be bound.
 //
 // The six panel actions ship unbound on purpose: a key that opens a gate is not something to
-// guess at on someone's behalf. The camera keys and map-refresh are bound, because neither
-// commands any hardware and both undo themselves.
+// guess at on someone's behalf. The camera keys, map-refresh and the two volume keys are
+// bound, because none of them commands any hardware and each undoes itself.
 struct Definition {
 	const char* id;
 	const char* label;
@@ -24,6 +24,8 @@ const Definition kActions[] = {
 	{"radio-play-stop",  "graj / stop",       0},
 	{"radio-next",       "następna stacja",   0},
 	{"radio-previous",   "poprzednia stacja", 0},
+	{"volume-up",        "głośniej",          Qt::Key_VolumeUp},
+	{"volume-down",      "ciszej",            Qt::Key_VolumeDown},
 
 	{"gate-open",        "otwórz",            0},
 	{"gate-stop",        "stop",              0},

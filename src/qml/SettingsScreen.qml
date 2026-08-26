@@ -4,7 +4,7 @@ import Kuchnia
 // The key bindings, one row per action. The rows are drawn in the order KeyBindings lists its
 // actions and nothing checks that they agree: drawn in another order, the selection appears to
 // jump about the screen. Two columns, walked column-major - down the left one, then down the
-// right - because seventeen rows in one column leave a card too short to hold its own rows.
+// right - because nineteen rows in one column leave a card too short to hold its own rows.
 //
 // It is off the left/right ring on purpose - `settings` is not in Nav.cycle - so the carousel
 // is the only way in and the menu key is the only way out.
@@ -100,31 +100,33 @@ Context {
 	}
 
 	SceneElement {
-		id: radioKeys
+		id: soundKeys
 		box: screen.cell(0, 0)
 
 		Card {
-			id: radioKeysCard
+			id: soundKeysCard
 			anchors.fill: parent
-			title: "Radio"
+			title: "Dźwięk"
 
 			Column {
-				anchors { fill: parent; margins: Theme.gap; topMargin: radioKeysCard.contentTop }
+				anchors { fill: parent; margins: Theme.gap; topMargin: soundKeysCard.contentTop }
 				spacing: Theme.gap
 
 				BindingRow { action: "radio-play-stop" }
 				BindingRow { action: "radio-next" }
 				BindingRow { action: "radio-previous" }
+				BindingRow { action: "volume-up" }
+				BindingRow { action: "volume-down" }
 			}
 		}
 
 		states: [
-			State { name: "cameras"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
-			State { name: "map"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
-			State { name: "compact-24h"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
-			State { name: "compact-72h"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
-			State { name: "weather-72h"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
-			State { name: "weather-7d"; PropertyChanges { target: radioKeys; offsetX: -900; opacity: 0 } },
+			State { name: "cameras"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
+			State { name: "map"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
+			State { name: "compact-24h"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
+			State { name: "compact-72h"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
+			State { name: "weather-72h"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
+			State { name: "weather-7d"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
 			State { name: "settings" },
 			State { name: "carousel" }
 		]

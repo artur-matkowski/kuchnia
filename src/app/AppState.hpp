@@ -14,6 +14,7 @@ class HotWater;
 class KeyBindings;
 class People;
 class Radio;
+class Volume;
 class Weather;
 
 // Owns everything the scene binds to, and is the only place a worker thread's data becomes a
@@ -52,5 +53,6 @@ private:
 	KeyBindings* m_keys;
 	People*      m_people;
 	Radio*       m_radio;
+	Volume*      m_volume;
 	Weather*     m_weather;
 };

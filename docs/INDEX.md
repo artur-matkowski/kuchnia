@@ -30,7 +30,8 @@ reaching the scene through one seam.
 | [scene](docs/scene.md) | The panels, the type scale the board's panel is measured in, and the QML names that are already taken |
 | [charts](docs/charts.md) | One line from a series: what an empty one draws, the grid that must not be a Repeater, and the window a forecast is drawn through |
 | [media](docs/media.md) | The five cameras: the mute that a mixer cannot see, and the dead stream that reports nothing |
-| [radio](docs/radio.md) | The internet radio: the station that is assigned and never bound, and the title Qt will not hand over |
+| [radio](docs/radio.md) | The internet radio: the stop that drops the stream rather than pausing it, and the title Qt will not hand over |
+| [volume](docs/volume.md) | The two volume keys: the sink they move, the variable that decides which daemon hears them, and the failure nothing draws |
 | [integrations](docs/integrations.md) | The three network clients, the logger that drops lines until told where to write, and the settings that fail quietly |
 | [database](docs/database.md) | The archive client: centidegrees, and a table with no index on its timestamp |
 | [rest](docs/rest.md) | The HTTP client: a forecast field that goes missing without an error |

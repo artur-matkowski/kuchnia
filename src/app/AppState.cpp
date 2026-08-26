@@ -14,6 +14,7 @@
 #include "People.hpp"
 #include "Radio.hpp"
 #include "Trace.hpp"
+#include "Volume.hpp"
 #include "Weather.hpp"
 #include "integrations/Log.hpp"
 
@@ -40,6 +41,7 @@ AppState::AppState(const Settings& settings, QObject* parent)
 	                         settings.keyReset, this))
 	, m_people(new People(QString::fromStdString(settings.mapTileUrl), this))
 	, m_radio(new Radio(QString::fromStdString(settings.radioM3u), this))
+	, m_volume(new Volume(this))
 	, m_weather(new Weather(this))
 {
 	m_gate->setControlEnabled(settings.gateControl);
@@ -60,6 +62,7 @@ void AppState::registerSingletons()
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "KeyBindings", m_keys);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "People", m_people);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Radio", m_radio);
+	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Volume", m_volume);
 	qmlRegisterSingletonInstance("Kuchnia", 1, 0, "Weather", m_weather);
 
 	// The one instantiable type, and not a singleton: there is one of these per tile and each

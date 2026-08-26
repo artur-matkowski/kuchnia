@@ -27,8 +27,8 @@ Architecture: any
 # dh_shlibdeps sees none of these: they are QML imports, a dlopen'd platform plugin, a program
 # forked at runtime, a file read off disk and a server reached over a socket. --as-needed drops
 # even libQt6Quick from the binary, so the Quick library arrives through qml6-module-qtquick or
-# not at all - and ffmpeg and the PulseAudio server are runtime peers no linkage can reveal.
-# See docs/packaging.md.
+# not at all - and ffmpeg, pactl and the PulseAudio server are runtime peers no linkage can
+# reveal. See docs/packaging.md.
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          ffmpeg,
@@ -44,6 +44,7 @@ Depends: ${shlibs:Depends},
          qt6-location-plugins,
          ca-certificates,
          pipewire-pulse | pulseaudio,
+         pulseaudio-utils,
          adduser
 # A session to draw into, not a library to link against, so a board that already has one
 # declines these. Raspberry Pi OS Desktop provides both and the LXDE-pi-labwc session on top.

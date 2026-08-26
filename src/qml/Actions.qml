@@ -69,6 +69,15 @@ QtObject {
 				Cctv.grid()
 				break
 
+			// The sound server's, and not this application's: there is no level held here to
+			// move - see docs/volume.md.
+			case "volume-up":
+				Volume.up()
+				break
+			case "volume-down":
+				Volume.down()
+				break
+
 			case "radio-play-stop":
 			case "radio-next":
 			case "radio-previous":
