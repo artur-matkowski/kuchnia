@@ -10,13 +10,21 @@
 The radio from `radio-m3u`, out of the same audio sink the cameras share. Which of them is heard is not decided here — that arbitration and the mute it
 is made of are [media](docs/media.md).
 
-## The station list is a file
+## The station list is files
 
-Stations come from the extended M3U at `radio-m3u`, parsed in `Radio::load()`. A path that
-cannot be read, and a file with no entries, are both an error in the log and a radio with no
-stations. **Nothing ships that file.** The package does not carry it and the default path
-points at `/etc/radio.m3u`, so a board that has only been installed has a radio panel with an
-empty station list until someone puts one there.
+`radio-m3u` is a comma-separated list of extended M3U paths, read in the order it names them
+and concatenated into one station list — `Radio::read()` per file, `Radio::load()` over all of
+them. **One path that cannot be read does not stop the others**: it is an error naming that
+path and its stations are simply not in the list, so a playlist on a share that is not mounted
+is a panel that is quietly shorter rather than a panel that is empty. Only a list with no
+station in any file is an error about the whole set.
+
+Splitting is on commas with **no trimming**, so `a.m3u, b.m3u` asks for a path beginning with a
+space. That is why the error quotes the path.
+
+**Nothing ships any of those files.** The package carries none and the default is the single
+`/etc/radio.m3u`, so a board that has only been installed has a radio panel with an empty
+station list until someone puts one there.
 
 **Qt exposes no now-playing title.** The stations do broadcast one — ICY `StreamTitle` is in
 the stream and `ffprobe` prints it — but Qt's ffmpeg backend maps it onto no key the scene can

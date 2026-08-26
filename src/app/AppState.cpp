@@ -41,7 +41,7 @@ AppState::AppState(const Settings& settings, QObject* parent)
 	, m_keys(new KeyBindings(QString::fromStdString(settings.keyBindings),
 	                         settings.keyReset, this))
 	, m_people(new People(QString::fromStdString(settings.mapTileUrl), this))
-	, m_radio(new Radio(QString::fromStdString(settings.radioM3u), this))
+	, m_radio(new Radio(toStringList(settings.radioM3u), this))
 	, m_snapclient(new SnapClient(this))
 	, m_volume(new Volume(this))
 	, m_weather(new Weather(this))

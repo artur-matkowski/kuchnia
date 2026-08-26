@@ -145,7 +145,7 @@ Card {
 
 		Text {
 			Layout.fillWidth: true
-			text: Radio.count === 0 ? "no stations in " + Radio.playlist
+			text: Radio.count === 0 ? "no stations in " + Radio.playlists.join(", ")
 			                        : (Radio.index + 1) + "/" + Radio.count + "  " + Radio.name
 			color: Radio.count === 0 ? Theme.textDim : Theme.text
 			font.pixelSize: Theme.fontReading

@@ -146,8 +146,9 @@ std::vector<ParamInitializer> specs()
 			"How long a camera keeps its stream after its context leaves the screen; "
 			"negative never disconnects"),
 
-		ParamInitializer(STRING, "radio-m3u", "/etc/radio.m3u",
-			"Extended M3U playlist the radio stations are read from"),
+		ParamInitializer(STRING_VECTOR, "radio-m3u", std::vector<std::string>{"/etc/radio.m3u"},
+			"Extended M3U playlists the radio stations are read from, comma separated; read in "
+			"order and concatenated into one list"),
 
 		ParamInitializer(STRING, "key-bindings", "",
 			"INI file the key bindings are read from and written to; "

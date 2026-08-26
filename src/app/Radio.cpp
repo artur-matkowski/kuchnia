@@ -5,9 +5,9 @@
 
 #include "integrations/Log.hpp"
 
-Radio::Radio(QString playlist, QObject* parent)
+Radio::Radio(QStringList playlists, QObject* parent)
 	: QObject(parent)
-	, m_playlist(std::move(playlist))
+	, m_playlists(std::move(playlists))
 {
 	load();
 }
@@ -19,19 +19,35 @@ Radio::Radio(QString playlist, QObject* parent)
 //
 // A URL with no #EXTINF above it is labelled with the URL. It is a station somebody added by
 // hand, and dropping it would be a playlist that is quietly shorter than the file.
+//
+// One file that cannot be read does not stop the others: it is an error naming that path, and
+// the stations of every other playlist still reach the panel.
 void Radio::load()
 {
-	QFile file(m_playlist);
+	for (const QString& playlist : m_playlists)
+		read(playlist);
+
+	if (m_urls.isEmpty())
+		LOG_ERROR(applog::App) << "no stations in any of "
+		                       << m_playlists.join(QStringLiteral(", ")).toStdString();
+}
+
+void Radio::read(const QString& playlist)
+{
+	QFile file(playlist);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		// The reason, because a permission bit, a missing file and an unmounted path read alike.
-		LOG_ERROR(applog::App) << "radio-m3u " << m_playlist.toStdString()
-		                       << " cannot be read (" << file.errorString().toStdString()
-		                       << ") - the radio has no stations";
+		// Quoted, because radio-m3u splits on commas without trimming and a path written with a
+		// space after the comma is otherwise a missing file with nothing to see.
+		LOG_ERROR(applog::App) << "radio-m3u '" << playlist.toStdString()
+		                       << "' cannot be read (" << file.errorString().toStdString()
+		                       << ") - its stations are missing";
 		return;
 	}
 
 	QTextStream stream(&file);
 	QString pending;
+	int found = 0;
 
 	while (!stream.atEnd()) {
 		const QString line = stream.readLine().trimmed();
@@ -49,15 +65,10 @@ void Radio::load()
 		m_urls.append(line);
 		m_names.append(pending.isEmpty() ? line : pending);
 		pending.clear();
+		++found;
 	}
 
-	if (m_urls.isEmpty()) {
-		LOG_ERROR(applog::App) << "radio-m3u " << m_playlist.toStdString()
-		                       << " holds no stations";
-		return;
-	}
-
-	LOG_INFO(applog::App) << m_urls.size() << " station(s) from " << m_playlist.toStdString();
+	LOG_INFO(applog::App) << found << " station(s) from " << playlist.toStdString();
 }
 
 QString Radio::url() const

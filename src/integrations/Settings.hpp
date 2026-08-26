@@ -51,8 +51,9 @@ struct Settings {
 	std::string              cameraTransport;
 	int                      cameraHoldMs = 0;
 
-	// The playlist the stations are read from. Nothing here parses it - see src/app/Radio.cpp.
-	std::string radioM3u;
+	// The playlists the stations are read from, in the order they are read. Nothing here
+	// parses them - see src/app/Radio.cpp.
+	std::vector<std::string> radioM3u;
 
 	// The key binding file, and whether to throw it away on this start. Empty means the
 	// standard per-user config location; nothing here reads either - see src/app/KeyBindings.cpp.
