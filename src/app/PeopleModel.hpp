@@ -36,6 +36,7 @@ public:
 		AccuracyRole,
 		SeenAtRole,
 		BatteryRole,
+		StackRole,
 	};
 
 	using QAbstractListModel::QAbstractListModel;
@@ -48,6 +49,11 @@ public:
 	void set(const std::vector<Person>& people);
 
 private:
+	// Numbers everyone at one address 0, 1, 2 so the delegate can lift each label clear of the
+	// one below it. Runs after the merge, never inside it: a row's rung depends on rows the
+	// merge loop has not reached yet. See docs/map.md.
+	void restack();
+
 	struct Row {
 		QString id;
 		QString name;
@@ -58,6 +64,11 @@ private:
 		// reads, and QML's Date takes milliseconds. The conversion happens here, once.
 		double  seenAt    = 0.0;
 		int     battery   = -1;
+
+		// Which rung of the stack this person's label sits on, counting up from the marker.
+		// Everyone alone somewhere is 0; a household is 0, 1, 2 in row order. Computed from
+		// every other row, so it can only be assigned once all of them are in - restack().
+		int     stack     = 0;
 	};
 
 	QVector<Row> m_rows;

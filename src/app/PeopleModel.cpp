@@ -2,6 +2,8 @@
 
 #include <QSet>
 
+#include <cmath>
+
 int PeopleModel::rowCount(const QModelIndex& parent) const
 {
 	// A list model has rows only at the root; a valid parent means a tree, and answering
@@ -25,6 +27,7 @@ QVariant PeopleModel::data(const QModelIndex& index, int role) const
 	case AccuracyRole:  return row.accuracy;
 	case SeenAtRole:    return row.seenAt;
 	case BatteryRole:   return row.battery;
+	case StackRole:     return row.stack;
 	default:            return QVariant();
 	}
 }
@@ -42,6 +45,7 @@ QHash<int, QByteArray> PeopleModel::roleNames() const
 		{AccuracyRole,  "accuracy"},
 		{SeenAtRole,    "seenAt"},
 		{BatteryRole,   "battery"},
+		{StackRole,     "stackIndex"},
 	};
 }
 
@@ -105,8 +109,62 @@ void PeopleModel::set(const std::vector<Person>& people)
 		if (changed.isEmpty())
 			continue;
 
+		// restack() owns `stack` and runs after this loop; `row` was built from the service's
+		// answer, which carries no such field. Assigning it here would reset every rung to 0
+		// on every poll, and restack() would then emit dataChanged for all of them.
+		row.stack = current.stack;
 		current = row;
 		const QModelIndex at_ = index(at);
 		emit dataChanged(at_, at_, changed);
+	}
+
+	restack();
+}
+
+namespace {
+
+// How far apart two people can be and still get one label rung each instead of two boxes on
+// the same pixels. A claim about labels colliding, not a distance: both markers stay on their
+// own coordinates and only the boxes move.
+//
+// Wide enough to hold a household together through GPS jitter. Observed fixes for two phones
+// in one house carry accuracy_m of 67-100 and wander tens of metres between polls, so a
+// threshold tight enough to let those separate is a pair of boxes that jump apart and back
+// every minute - which reads as a bug rather than as movement.
+constexpr double kSamePlaceDegrees = 0.001;  // ~110 m of latitude, ~70 m of longitude at 52N
+
+}  // namespace
+
+void PeopleModel::restack()
+{
+	// Single linkage, in row order, rather than rounding coordinates onto a grid: a grid puts
+	// two people either side of a cell edge into different cells while they are drawn on the
+	// same pixel, and that collision is exactly what this exists to prevent - it would report
+	// nothing. Rows are a household, so the honest version costs nothing worth measuring.
+	QVector<int> cluster(m_rows.size(), -1);
+	QVector<int> height;  // how many rungs each cluster has used
+
+	for (int i = 0; i < m_rows.size(); ++i) {
+		for (int j = 0; j < i; ++j) {
+			if (std::abs(m_rows.at(i).latitude - m_rows.at(j).latitude) > kSamePlaceDegrees)
+				continue;
+			if (std::abs(m_rows.at(i).longitude - m_rows.at(j).longitude) > kSamePlaceDegrees)
+				continue;
+			cluster[i] = cluster[j];
+			break;
+		}
+
+		if (cluster[i] < 0) {
+			cluster[i] = height.size();
+			height.append(0);
+		}
+
+		const int stack = height[cluster[i]]++;
+		if (m_rows.at(i).stack == stack)
+			continue;
+
+		m_rows[i].stack = stack;
+		const QModelIndex at = index(i);
+		emit dataChanged(at, at, {StackRole});
 	}
 }

@@ -138,6 +138,10 @@ Card {
 				required property double seenAt
 				required property int battery
 
+				// Which rung this label sits on, counting up from the marker. PeopleModel
+				// assigns it: a delegate would need every other person to work it out.
+				required property int stackIndex
+
 				readonly property bool stale: root.now - marker.seenAt > root.staleAfterMs
 
 				coordinate: QtPositioning.coordinate(marker.latitude, marker.longitude)
@@ -153,6 +157,7 @@ Card {
 					spacing: 2
 
 					Rectangle {
+						id: box
 						anchors.horizontalCenter: parent.horizontalCenter
 						width: lines.width + Theme.gap * 2
 						height: lines.height + Theme.gap
@@ -183,6 +188,22 @@ Card {
 								font.pixelSize: Theme.fontLabel
 							}
 						}
+					}
+
+					// What keeps two people at one address readable: the box is lifted by a
+					// whole box per rung, and the dot below it is not. Every marker's dot
+					// still lands on its own coordinate - they simply coincide, because the
+					// people do.
+					//
+					// The step is the box's OWN measured height and not arithmetic on
+					// Theme.fontLabel, because a Text is taller than its pixelSize by a
+					// factor no line here should be guessing at. It is only correct while
+					// every box is the same height, which is why the detail line above is
+					// drawn unconditionally - hide it for fresh markers and these overlap
+					// again, silently.
+					Item {
+						width: 1
+						height: marker.stackIndex * (box.height + Theme.gap)
 					}
 
 					Rectangle {
