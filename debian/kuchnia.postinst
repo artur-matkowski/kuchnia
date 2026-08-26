@@ -19,6 +19,18 @@ case "$1" in
 		# at warning level. See docs/packaging.md.
 		echo "kuchnia: the account that runs the session must be in the kuchnia group:"
 		echo "kuchnia:     sudo adduser <user> kuchnia"
+
+		# snapclient is a Depends, and its own package starts and enables the unit. That
+		# unit is a SECOND snapclient - user _snapclient, empty SNAPCLIENT_OPTS so it
+		# browses mDNS for whatever server it finds, no PULSE_SERVER, and outside this
+		# application's mute arbitration. Nothing else on the board uses it, which is
+		# exactly why nothing but the application may start one.
+		#
+		# dpkg configures a Depends before its dependent, so this always runs second, and
+		# deb-systemd-helper remembers the disable across snapclient's own upgrades.
+		if [ -d /run/systemd/system ]; then
+			systemctl disable --now snapclient.service >/dev/null 2>&1 || true
+		fi
 		;;
 esac
 

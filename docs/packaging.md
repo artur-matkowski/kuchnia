@@ -41,11 +41,15 @@ The last two lines are the difference between an installed package and a running
 
 ## What `dh_shlibdeps` cannot find
 
-`debian/control` names fourteen runtime dependencies by hand. They are not a belt-and-braces
-list: none of them is discoverable from the binary. **`ffmpeg` is the one that is not a
-library at all** — it is a program the application forks once per camera tile, so no linkage
-and no QML import can reveal it, and a board without it draws five tiles that fail with "No
-such file or directory" and retry forever ([media](docs/media.md)).
+`debian/control` names fifteen runtime dependencies by hand. They are not a belt-and-braces
+list: none of them is discoverable from the binary. **Three of them are not libraries at all.**
+`ffmpeg` is forked per camera tile, `snapclient` for a synced radio station
+([radio](docs/radio.md)) and `pactl` for the volume: no linkage or QML import reveals any of
+them, and a board missing one fails with "No such file or directory" ([media](docs/media.md)).
+
+**Installing `snapclient` starts one.** Its package enables `snapclient.service`: a second
+client as `_snapclient`, browsing mDNS, with no `PULSE_SERVER` and outside this application's
+mute arbitration. `postinst` disables it, and `deb-systemd-helper` makes that stick.
 
 The QML imports are the reason. `--as-needed` drops any library the object files do not
 reference, and the scene reaches Quick through the engine rather than through a symbol — so
