@@ -112,6 +112,17 @@ Run `docs/check-docs.sh` after touching anything under `docs/`.
 * **Hardware is the oracle.** A build that succeeds is not a frame on a screen. Nothing is
   "working" until it has rendered on the target. Report what was observed, not what should
   follow.
+* **NEVER RUN THE BINARY. An agent does not test; a human does.** Do not launch `kuchnia`,
+  not with `scripts/build.sh host --run`, not in the background, not headless, not under
+  `xdotool`, `xvfb`, a screenshot tool or any other driver, and not "just to read the log".
+  This is not a preference to be weighed against getting a better answer — there is no task
+  in this repository that licenses it.
+
+  What an agent does instead, and this is the whole of it: **build**, then **write the test
+  scenario down** — the config to run with, the keys to press, and what each step should
+  produce — and **hand it to the human**. A claim about runtime behaviour that no human
+  observed is not evidence and must not be written into a commit message, a PR, a ticket
+  comment or a doc node.
 * **Do not overengineer.** Simplicity is value. Design solutions **as simple as they can be,
   and as complicated as they have to be** to get the job done.
 * Commits: imperative subject with a scope prefix (`app:`, `qml:`, `build:`, `docs:`). The
