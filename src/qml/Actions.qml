@@ -5,9 +5,11 @@ import Kuchnia
 // What an action does. `KeyBindings` says which key runs which id; this says what the id means,
 // and the two are the whole of the input path.
 //
-// An action whose state belongs to a singleton is performed here. One does not - what the radio
-// is playing belongs to the MediaPlayer in RadioPanel.qml - so every action is also announced
-// on `invoked`, and that panel answers the three that are its own. See docs/input.md.
+// An action whose state belongs to a singleton is performed here. Some does not - what the radio
+// is playing belongs to the MediaPlayer in RadioPanel.qml - so an action is also announced on
+// `invoked`, and the panel that owns the state answers it there. An action fully performed here
+// returns before announcing, which is how `refresh` reaches one panel and not the other. See
+// docs/input.md.
 QtObject {
 	id: actions
 
@@ -81,8 +83,21 @@ QtObject {
 			case "radio-play-stop":
 			case "radio-next":
 			case "radio-previous":
-			// MapPanel's, for the same reason: the tile cache belongs to its Map, not here.
-			case "map-refresh":
+				break
+
+			// Two screens own this key and the context says which, decided here so it is decided
+			// once - MapPanel answers `invoked` and would otherwise need the same test with its sign
+			// flipped. The compact screen's half is the Radio singleton's and is done here; the map's
+			// is not, so only that one is announced. Anywhere else - the cameras, the weather, the
+			// chooser, settings - the key does nothing and announces nothing: refreshing a screen
+			// nobody is looking at is a poll with no visible result.
+			case "refresh":
+				if (Carousel.cardOf(Nav.current) === "compact") {
+					Radio.reload()
+					return
+				}
+				if (Nav.current !== "map")
+					return
 				break
 
 			default:

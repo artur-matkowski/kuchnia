@@ -29,6 +29,14 @@ Card {
 			persisted.station = Radio.index
 			root._apply()
 		}
+
+		// A reload left the station that was playing in none of the playlists. Cleared here and
+		// applied by the onIndexChanged that follows it, so the transport is released rather than
+		// re-opened onto whatever the clamped index now points at.
+		function onStationLost() {
+			root._wanted = false
+			root._detail = ""
+		}
 	}
 
 	property bool _wanted: false

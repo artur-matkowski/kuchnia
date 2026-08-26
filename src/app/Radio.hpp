@@ -14,9 +14,12 @@
 // panel pointed at a URL that no longer exists.
 class Radio : public QObject {
 	Q_OBJECT
-	Q_PROPERTY(QStringList urls READ urls CONSTANT)
-	Q_PROPERTY(QStringList names READ names CONSTANT)
-	Q_PROPERTY(int count READ count CONSTANT)
+	// NOT CONSTANT, because reload() replaces all three. A CONSTANT property is read once and
+	// cached, so the station list would be re-read with the panel still drawing the old one and
+	// nothing anywhere would say so.
+	Q_PROPERTY(QStringList urls READ urls NOTIFY stationsChanged)
+	Q_PROPERTY(QStringList names READ names NOTIFY stationsChanged)
+	Q_PROPERTY(int count READ count NOTIFY stationsChanged)
 	Q_PROPERTY(QStringList playlists READ playlists CONSTANT)
 	Q_PROPERTY(int index READ index WRITE setIndex NOTIFY indexChanged)
 	Q_PROPERTY(QString url READ url NOTIFY indexChanged)
@@ -41,8 +44,18 @@ public:
 	Q_INVOKABLE void next();
 	Q_INVOKABLE void previous();
 
+	// Re-reads every playlist, for the refresh key - see docs/input.md. The selected station is
+	// kept by URL and not by position, so a station inserted above it does not move what is
+	// playing; gone from every file, it is stationLost() and the panel stops.
+	Q_INVOKABLE void reload();
+
 signals:
 	void indexChanged();
+	void stationsChanged();
+
+	// The station that was selected is in none of the playlists any more. RadioPanel stops on
+	// it, so nothing is left playing that the list no longer offers.
+	void stationLost();
 
 private:
 	void load();

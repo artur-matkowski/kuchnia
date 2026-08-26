@@ -273,7 +273,7 @@ Context {
 				BindingRow { action: "context-next" }
 				BindingRow { action: "menu" }
 				BindingRow { action: "confirm" }
-				BindingRow { action: "map-refresh" }
+				BindingRow { action: "refresh" }
 			}
 		}
 

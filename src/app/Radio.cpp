@@ -71,6 +71,35 @@ void Radio::read(const QString& playlist)
 	LOG_INFO(applog::App) << found << " station(s) from " << playlist.toStdString();
 }
 
+// The order of the three signals is load-bearing. RadioPanel clears what it wants on
+// stationLost, and its onIndexChanged handler re-applies the player: emitted the other way
+// round, the panel opens whatever landed under the clamped index and closes it a moment later.
+void Radio::reload()
+{
+	const QString previous = url();
+
+	m_urls.clear();
+	m_names.clear();
+	load();
+
+	// By URL, not by position: a station added above this one must not move what is playing.
+	const int found = previous.isEmpty() ? -1 : m_urls.indexOf(previous);
+	const int index = found >= 0 ? found : qBound(0, m_index, qMax(0, m_urls.size() - 1));
+
+	const int before = m_index;
+	m_index = index;
+
+	emit stationsChanged();
+
+	if (found < 0 && !previous.isEmpty())
+		emit stationLost();
+
+	// Both tests are needed. A station that only moved keeps its URL and has to move the
+	// highlight; a line edited in place keeps its number and has to re-open the player.
+	if (m_index != before || url() != previous)
+		emit indexChanged();
+}
+
 QString Radio::url() const
 {
 	return m_index >= 0 && m_index < m_urls.size() ? m_urls.at(m_index) : QString();

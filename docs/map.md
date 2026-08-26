@@ -67,10 +67,11 @@ zoom level welded onto the host name. It reports itself as a DNS failure, which 
 looking at the network rather than at the setting. [tiles](docs/tiles.md) is the other end.
 
 **A tile that fails to arrive is a hole for good** — the plugin gives up after five tries and
-never asks again; [tiles](docs/tiles.md) is what it leaves in the log. `map-refresh`
-([input](docs/input.md)) is the way back: `Map.clearData()` drops the tile cache and re-asks for
-the visible screen, so **the map blanks and redraws**, good tiles included. It also calls
-`People.refresh()`, whose sink `main()` sets once `Integrations` exists — [state](docs/state.md).
+never asks again; [tiles](docs/tiles.md) is what it leaves in the log. `refresh`
+([input](docs/input.md)) is the way back, and only on this context: `Map.clearData()` drops the
+tile cache and re-asks for the visible screen, so **the map blanks and redraws**, good tiles
+included. It also calls `People.refresh()`, whose sink `main()` sets once `Integrations` exists
+— [state](docs/state.md).
 
 **`activeMapType` is assigned, never bound.** The plugin fills `supportedMapTypes` only once
 its provider has answered; a binding written against it can evaluate against an empty list,

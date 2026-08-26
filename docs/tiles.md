@@ -30,7 +30,8 @@ QGeoTileRequestManager: Failed to fetch tile (8,137,83) 5 times, giving up. Last
 It is a `qWarning`, so `routeQtMessages` in `src/main.cpp` puts it at WARN where every other
 line goes — `journalctl --user -u kuchnia` on the board. It names the tile and the network
 error underneath it, which is what tells a throttled request apart from a name that would not
-resolve. `map-refresh` — [input](docs/input.md) — is the way back from a hole already made.
+resolve. `refresh` on the map context — [input](docs/input.md) — is the way back from a hole
+already made.
 
 ## Why an expired tile beats a 502
 

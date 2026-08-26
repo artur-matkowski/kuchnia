@@ -116,10 +116,11 @@ Card {
 
 		// The refresh key, answered here rather than in Actions because the tile cache belongs
 		// to this Map. clearData() blanks the whole map for a moment - see docs/map.md.
+		// Unconditional on the context: Actions only announces this id on the map screen.
 		Connections {
 			target: Actions
 			function onInvoked(id) {
-				if (id !== "map-refresh")
+				if (id !== "refresh")
 					return
 				map.clearData()
 				People.refresh()

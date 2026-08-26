@@ -40,18 +40,24 @@ instead of passed on argv resets on every boot, discarding every binding made si
 
 ## Which action is performed where
 
-`Actions.run` performs the actions whose state belongs to a singleton, and announces every one
-of them on `invoked`. The radio's three are not among them: what is playing belongs to the
-`MediaPlayer` in `RadioPanel.qml`, and that panel answers them there. `map-refresh` is the
-fourth, for the same reason — the tile cache belongs to the `Map` in `MapPanel.qml`, which
-re-fetches it and re-polls the roster. It ships bound to **F5**, on the reasoning below that
-binds the camera keys: it commands no hardware and undoes itself. What it repairs, and why a
-tile that failed once never comes back on its own, is [map](docs/map.md).
+`Actions.run` performs the actions whose state belongs to a singleton and announces them on
+`invoked`. The radio's three are not among them: what is playing belongs to the `MediaPlayer`
+in `RadioPanel.qml`, which answers them there.
+
+`refresh` is two actions and **the context picks which, in `Actions.run` alone** — the compact
+screen re-reads the radio playlists ([radio](docs/radio.md)), the map screen drops its tile
+cache and re-polls the roster ([map](docs/map.md)), and on the other four contexts it does
+nothing. Only the map's half is announced, because that tile cache belongs to the `Map` in
+`MapPanel.qml`; the radio's is `Radio` singleton state, done in `run` itself, which then
+**returns before announcing**. `MapPanel`'s handler is unconditional, and correct only because
+nothing else announces this id.
+
+It ships bound to **F5**, on the reasoning below that binds the camera keys: it commands no
+hardware and undoes itself.
 
 **A panel hears `invoked` only because every context is instantiated at startup and stays
-instantiated** - see [contexts](docs/contexts.md). A panel built when its screen is opened
-would hear nothing, and a key bound to it would do nothing off that screen and say nothing
-about it.
+instantiated** - see [contexts](docs/contexts.md). A panel built when its screen is opened would
+hear nothing, and a key bound to it would do nothing off that screen and say nothing about it.
 
 An id is written in `KeyBindings`' table, in `Actions.run`'s switch, and in the QML that draws
 its row. `run` warns about an id it does not know and `BindingRow` warns about one the table
