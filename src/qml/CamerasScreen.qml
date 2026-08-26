@@ -440,6 +440,11 @@ Context {
 			id: readoutCard
 			anchors.fill: parent
 			title: "Teraz"
+			// The tank's status and only the tank's, on a card that now carries the
+			// forecast's reading too: two badges on one card cannot say which reading each
+			// one is about. A stale outside temperature therefore looks live here - the
+			// weather screen is where that is reported.
+			//
 			// Status without the detail: the badge's text is not width-constrained, and
 			// a connection error runs across this card's own title. The full detail is on
 			// the hot water panel, which is wide enough to hold it.
@@ -466,6 +471,24 @@ Context {
 
 					Text {
 						text: "ciepła woda"
+						color: Theme.textDim
+						font.pixelSize: Theme.fontBody
+					}
+				}
+
+				Column {
+					Layout.fillWidth: true
+					Layout.alignment: Qt.AlignVCenter
+
+					Text {
+						text: Weather.live ? Weather.temperature.toFixed(1) + "°C" : "--"
+						color: Weather.live ? Theme.text : Theme.textDim
+						font.pixelSize: Theme.fontHero
+						font.bold: true
+					}
+
+					Text {
+						text: "na zewnątrz"
 						color: Theme.textDim
 						font.pixelSize: Theme.fontBody
 					}
