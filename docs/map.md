@@ -31,8 +31,9 @@ The contract, which is the whole coupling:
             "accuracy_m":25,"seen_at":1756100000,"battery":73}]}
 ```
 
-`seen_at` is epoch **seconds**, like everything in `Sinks.hpp`; `PeopleModel` is where it
-becomes the milliseconds QML wants. `battery` may be absent and arrives as `-1`, which is out
+`seen_at` is epoch **seconds**, like everything in `Sinks.hpp`, and it is Google's own
+timestamp on the fix rather than the time the service polled — a marker's age is how old the
+*position* is. `PeopleModel` is where it becomes the milliseconds QML wants. `battery` may be absent and arrives as `-1`, which is out
 of range on purpose — a phone at 0% and a phone that did not say are different facts.
 
 `id` is load-bearing. `PeopleModel::set` matches incoming rows against it, so a stable id is a
@@ -90,29 +91,27 @@ on empty bounds is not blank, it is confidently wrong.
 for infinite zoom. `MapPanel.minimumSpan` floors it at 0.01 degrees, and the padding is
 applied to the floored span rather than to the raw one.
 
-**A stale fix looks exactly like a fresh one, so the marker says which it is.** Nothing drops
-a person for being old — somebody vanishing off this map has to mean they stopped sharing and
-not that their phone slept — so past `MapPanel.staleAfterMs` a marker draws its age and turns
-amber rather than disappearing. The age is measured against `MapPanel.now`, which a one-minute
-`Timer` resamples while the panel is on screen: `seenAt` never moves, so a marker reading
-“12 min temu” written once is wrong a minute later with nothing on the row to say so.
+**A stale fix looks exactly like a fresh one, so every marker says how old it is.** Nothing
+drops a person for being old — somebody vanishing off this map has to mean they stopped
+sharing and not that their phone slept — so the age is always drawn, and past
+`MapPanel.staleAfterMs` the marker turns amber rather than disappearing. It is measured
+against `MapPanel.now`, which a one-minute `Timer` resamples while the panel is on screen:
+`seenAt` never moves, so a marker reading “12 min temu” written once is wrong a minute later
+with nothing on the row to say so.
 
 **Three runtime dependencies nothing can see, and they fail in two different ways.**
 `qml6-module-qtlocation` and `qml6-module-qtpositioning` are QML imports, so `dh_shlibdeps`
-finds neither, exactly like the other QML modules in `debian/control` —
-[packaging](docs/packaging.md). It is tempting to assume one context's import failing costs
-one context: it does not. `MapScreen` is instantiated by `Main.qml`, so an import it cannot
-resolve fails the root object, and `main.cpp` turns that into `exit(1)` — a board missing
-either module restart-loops with a blank screen, and the five contexts that have nothing to
-do with the map never draw.
+finds neither — [packaging](docs/packaging.md). A missing one does not cost one context:
+`MapScreen` is instantiated by `Main.qml`, so the unresolved import fails the root object and
+`main.cpp` turns it into `exit(1)`. The board restart-loops on a blank screen, and the five
+contexts with nothing to do with the map never draw.
 
-**`qt6-location-plugins` is the third, and it is the one that says nothing at all.** The QML
-module ships only the import; the `osm` geoservices back end is a separate package. Without
-it `Plugin { name: "osm" }` resolves to no provider, `supportedMapTypes` stays **empty
-forever** — the signal never fires — and `activeMapType` is assigned `undefined`. The
-application starts, the scene loads, all six contexts cycle, the map item is there with the
-markers drawn on it, and there are simply no tiles under them. One warning about
-`QGeoMapType` in the journal is the entire evidence, and it appears once at startup.
+**`qt6-location-plugins` is the third, and it says nothing at all.** The QML module ships only
+the import; the `osm` back end is a separate package. Without it `Plugin { name: "osm" }`
+resolves to no provider, `supportedMapTypes` stays **empty forever** — the signal never fires
+— and `activeMapType` is assigned `undefined`. The scene loads, all six contexts cycle, the
+markers are drawn, and there are simply no tiles under them. One `QGeoMapType` warning at
+startup is the entire evidence.
 
 ## The screen
 

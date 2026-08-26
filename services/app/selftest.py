@@ -64,8 +64,12 @@ def parser():
                     f"got {person['lat']}"))
     ok.append(check("longitude comes from location[1][1]", person["lon"] == WARSAW[1],
                     f"got {person['lon']}"))
-    ok.append(check("milliseconds become epoch seconds", person["seen_at"] == 1756100000,
-                    f"got {person['seen_at']}"))
+    # The whole of what separates the fix's own timestamp from the time this service polled:
+    # seen_at is location[2], which Google puts on the position, and nothing here may ever
+    # substitute time.time() for it. A fetch timestamp would read as every phone reporting at
+    # once, every poll, and the panel draws that without complaint.
+    ok.append(check("seen_at is Google's location[2] in seconds, never the time of the poll",
+                    person["seen_at"] == 1756100000, f"got {person['seen_at']}"))
     ok.append(check("accuracy is carried", person["accuracy_m"] == 25.0))
     ok.append(check("battery is carried", person["battery"] == 73))
     ok.append(check("name is identity[2]", person["name"] == "Ala"))

@@ -34,9 +34,9 @@ Card {
 	// readable, so the street is drawn at a zoom nobody can place.
 	readonly property real minimumSpan: 0.01   // degrees, roughly a kilometre of latitude
 
-	// Past this, a marker says how old it is. Nobody is ever dropped for being stale: somebody
-	// disappearing off this map has to mean they stopped sharing, and a phone that slept for
-	// an afternoon looks exactly like one that is standing still.
+	// Past this a marker turns amber; its age is drawn either way. Nobody is ever dropped for
+	// being stale: somebody disappearing off this map has to mean they stopped sharing, and a
+	// phone that slept for an afternoon looks exactly like one that is standing still.
 	readonly property int staleAfterMs: 15 * 60 * 1000
 
 	// Wall-clock, resampled, because "12 min temu" written once is wrong a minute later and
@@ -173,11 +173,12 @@ Card {
 								font.bold: true
 							}
 
+							// Never hidden, and never conditional on `stale`. Two things depend on
+							// that: a fix's age is what this line is for, and every box being
+							// exactly two lines tall is what makes the stack step below exact.
 							Text {
 								anchors.horizontalCenter: parent.horizontalCenter
-								visible: text !== ""
-								text: root.detailOf(marker.stale ? marker.seenAt : 0,
-								                    marker.battery)
+								text: root.detailOf(marker.seenAt, marker.battery)
 								color: Theme.textDim
 								font.pixelSize: Theme.fontLabel
 							}
@@ -196,8 +197,8 @@ Card {
 		}
 	}
 
-	// The second line under a name: how old the fix is once it is worth saying, and the phone's
-	// charge when the service reported one. A seenAt of 0 asks for no age at all.
+	// The second line under a name: when the fix was taken, and the phone's charge when the
+	// service reported one. A seenAt of 0 asks for no age at all.
 	//
 	// battery is -1 when the service said nothing, which is why this tests for negative rather
 	// than for falsy - a phone at 0% is a fact worth drawing and 0 is exactly what a "missing"
@@ -213,6 +214,10 @@ Card {
 
 	function ageOf(ms) {
 		var minutes = Math.round(ms / 60000)
+		// Rounding alone would draw a fix taken seconds ago as "0 min temu", which reads as a
+		// broken clock rather than as a fresh position.
+		if (minutes < 1)
+			return "teraz"
 		if (minutes < 60)
 			return minutes + " min temu"
 
