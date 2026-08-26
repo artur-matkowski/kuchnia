@@ -21,53 +21,59 @@ Card {
 
 	// One direction each way, and neither is a binding: a two-way binding between this and
 	// Radio.index would fight itself the first time a button moved the station.
-	Component.onCompleted: {
-		Radio.index = persisted.station
-		root._station()
-	}
+	Component.onCompleted: Radio.index = persisted.station
 	Connections {
 		target: Radio
 		function onIndexChanged() {
 			persisted.station = Radio.index
-			root._station()
+			root._apply()
 		}
 	}
 
-	property bool _stationPending: false
+	property bool _wanted: false
+	property string _detail: ""
 
-	// What points the player at a station, instead of a binding onto Radio.url. Assigning
-	// source waits for whatever the player is already opening, on the GUI thread - so a
-	// station changed while one is being opened stops the whole screen until it answers, and
-	// a stream the pool has not started yet is opened here outright. See docs/app.md.
-	function _station() {
-		root._stationPending = false
-		if (player.source.toString() === Radio.url)
-			return
-		if (player.mediaStatus === MediaPlayer.LoadingMedia) {
-			root._stationPending = true
-			return
+	// A source assignment that was held off while the player was opening one.
+	property bool _pending: false
+
+	// The player is reconciled with _wanted here and nowhere else. Stopped means no source at
+	// all: these are live streams, and a player that keeps its connection resumes behind the
+	// broadcast. Idempotent, so the deferral below is a second call and nothing more.
+	//
+	// Assigning source waits for whatever the player is already opening, on the GUI thread, so
+	// an assignment made while one is in flight would stop the whole screen. See docs/app.md.
+	function _apply() {
+		root._pending = false
+
+		// Before the source goes, so the sink is released whether or not the drop is deferred.
+		if (!root._wanted)
+			player.stop()
+
+		const want = root._wanted ? Radio.url : ""
+		if (player.source.toString() !== want) {
+			if (player.mediaStatus === MediaPlayer.LoadingMedia) {
+				root._pending = true
+				return
+			}
+			Trace.begin("radio.source")
+			player.source = want
+			Trace.end("radio.source")
 		}
-		Trace.begin("radio.source")
-		player.source = Radio.url
-		Trace.end("radio.source")
+
+		if (root._wanted)
+			player.play()
 	}
 
 	MediaPlayer {
 		id: player
 		audioOutput: AudioOutput {}
 
-		// A source change while playing does not restart playback by itself.
-		onSourceChanged: if (root._wanted && source.toString().length > 0) play()
-
-		// A station that arrived while this one was still being opened.
-		onMediaStatusChanged: if (root._stationPending) root._station()
+		// The assignment that was held off, once the open it was waiting on has landed.
+		onMediaStatusChanged: if (root._pending) root._apply()
 
 		onErrorOccurred: function(error, text) { root._detail = text }
 		onPlaybackStateChanged: if (playbackState === MediaPlayer.PlayingState) root._detail = ""
 	}
-
-	property bool _wanted: false
-	property string _detail: ""
 
 	// The cameras have to know, because the sink is one and this panel owns it. What was ASKED
 	// for and not what the player is doing: a station that drops mid-song would otherwise let a
@@ -83,10 +89,7 @@ Card {
 			return
 		root._wanted = !root._wanted
 		root._detail = ""
-		if (root._wanted)
-			player.play()
-		else
-			player.stop()
+		root._apply()
 	}
 
 	Connections {

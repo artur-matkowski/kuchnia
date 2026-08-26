@@ -22,13 +22,20 @@ the stream and `ffprobe` prints it — but Qt's ffmpeg backend maps it onto no k
 read. `RadioPanel`'s status line stays bound and empty rather than carrying a placeholder for
 something the stream never told us.
 
-## The station is assigned and never bound
+## Stopping drops the stream
 
-`player.source` is written by `_station()`, and binding it onto `Radio.url` instead is the one
-change here that stops the whole screen. Assigning `source` waits for whatever the player is
-already opening, on the GUI thread, and a binding leaves nowhere to hold that off — see
-[app](docs/app.md). A station chosen while one is being opened is kept in `_stationPending`
-and applied when the open lands.
+`player.source` follows `_wanted`, through `_apply()` and nowhere else. Stopping clears the
+source instead of pausing the player, because a paused stream resumes where its buffer left
+off — minutes behind the broadcast — rather than at what is on air. Starting reopens the
+connection, which is what `connecting` is for and why the button is not instant; that cost is
+the behaviour and not a fault to be tuned away. Nothing is opened at startup, and a station
+chosen while the radio is stopped opens nothing either.
+
+Binding `source` onto `Radio.url` instead is the one change here that stops the whole screen.
+Assigning `source` waits for whatever the player is already opening, on the GUI thread, and a
+binding leaves nowhere to hold that off — see [app](docs/app.md). An assignment made while an
+open is in flight is kept in `_pending` and made again when that open lands, which is why
+`_apply()` has to stay idempotent.
 
 **What the radio publishes is what it was asked for, not what its player is doing.**
 `RadioPanel` binds `_wanted` onto `Cctv.radioPlaying`; taken from `playbackState` instead, a
