@@ -13,7 +13,7 @@ import Kuchnia
 // A camera key fills the screen with one tile by growing its box, and not by changing context;
 // docs/contexts.md says why. The other four keep their sessions, so the way back costs nothing.
 //
-// `boxMs`, `covered` and the reset below are one rule between them - a zoom is never in flight
+// `zoomMs`, `covered` and the reset below are one rule between them - a zoom is never in flight
 // at the same time as a context change - and docs/contexts.md is where it is written.
 Context {
 	id: screen
@@ -45,6 +45,12 @@ Context {
 	// only ever animated here, and what a fullscreen camera stands on is only drawn here.
 	readonly property bool settled: screen.listening && !Nav.transitioning
 
+	// How long a zoom takes, and ZERO while anything else is in flight. A camera asked for from
+	// another context is zoomed once the context change is already under way - Cctv.show writes
+	// it after Nav.goTo - so this is what still puts it fullscreen before the first frame of the
+	// arrival rather than flying it open across one.
+	readonly property int zoomMs: screen.settled ? 320 : 0
+
 	// Everything a fullscreen camera is covering. It is out of sight either way; hiding it is
 	// what stops the grid being seen THROUGH that camera while it fades across a context
 	// change, which was the whole of what leaving a zoom looked like.
@@ -74,7 +80,7 @@ Context {
 		box: cameraOne.zoomed ? screen.content : screen.cell(0, 0)
 		z: cameraOne.zoomed ? 1 : 0
 		covered: screen.covered && !cameraOne.zoomed
-		boxMs: screen.listening ? 320 : 0
+		boxMs: screen.zoomMs
 
 		CameraTile {
 			anchors.fill: parent
@@ -142,7 +148,7 @@ Context {
 		box: cameraTwo.zoomed ? screen.content : screen.cell(1, 0)
 		z: cameraTwo.zoomed ? 1 : 0
 		covered: screen.covered && !cameraTwo.zoomed
-		boxMs: screen.listening ? 320 : 0
+		boxMs: screen.zoomMs
 
 		CameraTile {
 			anchors.fill: parent
@@ -216,7 +222,7 @@ Context {
 		box: cameraThree.zoomed ? screen.content : screen.cell(2, 0)
 		z: cameraThree.zoomed ? 1 : 0
 		covered: screen.covered && !cameraThree.zoomed
-		boxMs: screen.listening ? 320 : 0
+		boxMs: screen.zoomMs
 
 		CameraTile {
 			anchors.fill: parent
@@ -290,7 +296,7 @@ Context {
 		box: cameraFour.zoomed ? screen.content : screen.cell(0, 1)
 		z: cameraFour.zoomed ? 1 : 0
 		covered: screen.covered && !cameraFour.zoomed
-		boxMs: screen.listening ? 320 : 0
+		boxMs: screen.zoomMs
 
 		CameraTile {
 			anchors.fill: parent
@@ -364,7 +370,7 @@ Context {
 		box: cameraFive.zoomed ? screen.content : screen.cell(1, 1)
 		z: cameraFive.zoomed ? 1 : 0
 		covered: screen.covered && !cameraFive.zoomed
-		boxMs: screen.listening ? 320 : 0
+		boxMs: screen.zoomMs
 
 		CameraTile {
 			anchors.fill: parent

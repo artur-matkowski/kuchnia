@@ -113,19 +113,19 @@ The `Behavior` holds a `PropertyAnimation` because `box` is a rect - `NumberAnim
 interpolate one, and what that looks like is a box that snaps with nothing said anywhere.
 
 **A zoom is never in flight at the same time as a context change**, and `CamerasScreen` holds
-that three ways: `boxMs` is 0 off the CCTV screen, so a camera asked for from another context is
-already fullscreen before this screen animates in; `SceneElement.covered` takes what a
-fullscreen tile stands on out of the drawing, or the grid is seen flying about *through* that
-tile as it fades; and the zoom - with `returnTo` - is dropped when the screen has settled OFF
-and not when the key is answered, or the picture collapses into its cell while the screen it is
-leaving for is already coming in.
+that three ways: `zoomMs` is 0 unless the screen is settled, so a camera asked for from another
+context is fullscreen before the first frame of the arrival; `SceneElement.covered` takes what a
+fullscreen tile stands on out of the drawing, or the grid is seen flying about *through* it as
+it fades; and the zoom - with `returnTo` - is dropped once the screen has settled OFF, or the
+picture collapses into its cell while the screen it is leaving for is already coming in.
+
+**That drop is why `Cctv.show` writes the zoom AFTER `Nav.goTo`.** Within `settleMs` of leaving
+this screen or the carousel it is still `live` through `Nav.leaving`, which `goTo` reassigns
+before `current` - one pass in which the screen is neither, and the drop runs in it, on the zoom
+the key press has just written. The key then only navigates, and the way back goes with it.
 
 A camera key pressed on another context navigates to CCTV and `Cctv.returnTo` remembers where
-from, so dropping the zoom goes back there rather than leaving somebody on a screen they only
-asked one camera of. **Both halves of that are conditioned on the CCTV screen being the current
-one**: off it a camera key is a way on and never a toggle, and the way back is not taken at all
-- somebody who walked off with a context key has already chosen where they are, and a panel
-that sent them back would read as one navigating itself - which is also why `returnTo` does not
-outlive the visit. Only ring contexts are remembered; `carousel` would be returned to with its
-strip standing wherever it was left.
-See [input](docs/input.md).
+from, so dropping the zoom goes back there. **Both halves are conditioned on the CCTV screen
+being the current one**: off it a camera key is a way on and never a toggle, and the way back is
+not taken at all - somebody who left with a context key has already chosen where they are. Only
+ring contexts are remembered; `carousel` returns with its strip standing wherever it was left.

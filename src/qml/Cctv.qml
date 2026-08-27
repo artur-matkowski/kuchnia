@@ -27,9 +27,12 @@ QtObject {
 	// staying where it is.
 	function show(number) {
 		if (Nav.current !== "cameras") {
-			cctv.returnTo = Nav.cycle.indexOf(Nav.current) >= 0 ? Nav.current : ""
-			cctv.zoom = number
+			var from = Nav.cycle.indexOf(Nav.current) >= 0 ? Nav.current : ""
+			// AFTER goTo, and that order is the whole of it - see docs/contexts.md. Written
+			// first, this visit's zoom is what the screen's own teardown throws away.
 			Nav.goTo("cameras")
+			cctv.returnTo = from
+			cctv.zoom = number
 			return
 		}
 		if (cctv.zoom === number)
