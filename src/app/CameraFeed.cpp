@@ -324,18 +324,19 @@ void CameraFeed::noteFrame()
 // A second RTSP session, and deliberately so. One pipe carries one output, and giving the
 // video pipe a second consumer - a fifo, a second output - means a reader that falls behind
 // stops the picture. This one exists only while somebody is listening, which is at most one
-// camera in the application, and its cost is the two to three seconds it takes to open.
+// camera in the application, and it costs the RTSP open below - about a third of a second.
 void CameraFeed::spawnAudio()
 {
 	if (m_audio || m_url.isEmpty())
 		return;
 
-	QStringList args{"-hide_banner", "-nostdin", "-nostats", "-loglevel", "warning"};
+	// -allowed_media_types audio, and -vn is not a substitute: -vn drops the video AFTER the
+	// demuxer has resolved every track it set up, so without this the sound waits on the H.264
+	// track's parameters - a keyframe - and arrives seconds late with nothing reporting it.
+	QStringList args{"-hide_banner", "-nostdin", "-nostats", "-loglevel", "warning",
+	                 "-allowed_media_types", "audio"};
 	if (m_transport != QStringLiteral("auto"))
 		args << "-rtsp_transport" << m_transport;
-	// -map 0:a:0? and not -map 0:a:0 - the trailing question mark makes the stream optional,
-	// and three of these cameras have no microphone. Without it ffmpeg exits with an error on
-	// a camera that is behaving perfectly.
 	args << "-i" << m_url << "-vn" << "-map" << "0:a:0?"
 	     << "-f" << "s16le" << "-ar" << QString::number(kAudioRate)
 	     << "-ac" << QString::number(kAudioChannels) << "-";

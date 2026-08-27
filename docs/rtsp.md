@@ -71,5 +71,21 @@ Those three findings are why `CameraFeed` exists. The application now opens all 
 2.6–3.3 s and plays the proxied stream, which is what `--backend qt` is kept to re-measure
 against.
 
+## What the sound on a zoomed camera costs
+
+Time to the first PCM bytes off the audio child's pipe, three runs of each, against the same
+five streams. Two of them — `podjazd_sub` and `grill_sub` — carry an audio track at all.
+
+| the audio child asks for | with a microphone | without one |
+|---|---|---|
+| the whole stream, `-vn` | 3.3–5.3 s | 2.9–3.2 s to exit 234 |
+| `-allowed_media_types audio` | **0.30–0.34 s** | **0.13 s to exit 234** |
+
+**The video track is the whole of the difference**, and neither of the two things a reader
+reaches for next moves it: `-probesize 32 -analyzeduration 0 -fflags nobuffer` on top measures
+0.36–0.38 s, and asking go2rtc for an audio-only view of the same stream — `?audio` on the
+URL — measures 0.30–0.35 s. The flag is already at the floor, so the panel carries no second
+URL per camera and go2rtc is not configured for this at all.
+
 A desktop is not the board. None of the above is a statement about the Pi 4 until it has been
 run there — [targets](docs/targets.md), and `CLAUDE.md` on hardware being the oracle.

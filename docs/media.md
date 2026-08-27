@@ -25,13 +25,14 @@ fifo nobody drains blocks the writer, and the writer is the picture.
 
 The audio child exists **only while `audible`**, which is at most one camera in the whole
 application (`Cctv.audible`, and the radio wins — [radio](docs/radio.md)). There is no mute:
-silence is the absence of a process. The cost is that sound arrives about two to three seconds
-after a camera is zoomed, because that is a fresh RTSP open.
+silence is the absence of a process, and a zoom pays a fresh RTSP open for its sound.
 
-`-map 0:a:0?` carries a trailing question mark and it is load-bearing: three of these cameras
-have no microphone, and without it ffmpeg exits with an error on a camera that is behaving
-perfectly. A camera with no audio track ends its child immediately and the picture is
-unaffected.
+**`-allowed_media_types audio` is what holds that open under half a second.** `-vn` drops the
+video only after the demuxer has resolved every track it set up, so without the flag the sound
+waits on the H.264 track's parameters — a keyframe — and arrives three to five seconds after the
+zoom, with nothing anywhere reporting a delay. Two of these five cameras have a microphone; on
+the other three the child exits 234 with `Output file does not contain any stream` a tenth of a
+second later, with or without the trailing `?` on `-map 0:a:0?`, and nothing retries it.
 
 **The `QAudioSink` is opened on the first byte, not when the child starts.** It pulls, and one
 started against a process still opening its stream spends the whole open in underrun.
