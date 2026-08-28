@@ -19,7 +19,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE=git.example.com/<REDACTED>/kuchnia-builder:trixie
+# The builder image names a registry, and this tree is public, so it is not written down
+# here. CI passes the same value from its BUILDER_IMAGE variable - see docs/ci.md.
+IMAGE="${KUCHNIA_BUILDER_IMAGE:-}"
 HOST_ARCH=arm64
 # $HOST_ARCH's toolchain prefix, spelled out because dpkg-architecture is itself one of the
 # packages the check below runs before anything is installed.
@@ -44,6 +46,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$HERE" = 0 ]; then
+	[ -n "$IMAGE" ] || die "set KUCHNIA_BUILDER_IMAGE to the builder image, or use --here"
 	command -v docker >/dev/null || die "no docker - use --here inside a $IMAGE environment"
 	INNER=(bash scripts/build-deb.sh --here)
 	if [ -n "$VERSION" ]; then

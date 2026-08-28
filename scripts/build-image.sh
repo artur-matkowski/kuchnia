@@ -9,12 +9,13 @@
 # base is worth refreshing. A build against an image that has fallen behind still produces
 # the right package - build-deb.sh installs the delta - it just pays for it. See docs/ci.md.
 #
-# Pushing wants a prior `docker login git.example.com` with a token carrying write:package.
+# Pushing wants a prior `docker login` to that image's registry, with write:package.
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE=git.example.com/<REDACTED>/kuchnia-builder:trixie
+# Not written down here: it names a registry and this tree is public. See docs/ci.md.
+IMAGE="${KUCHNIA_BUILDER_IMAGE:?set it to the builder image to build and push}"
 
 die()   { echo "error: $*" >&2; exit 1; }
 usage() { sed -n '3,11p' "${BASH_SOURCE[0]}" | sed 's/^# \?//' >&2; exit 1; }

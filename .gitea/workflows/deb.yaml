@@ -22,7 +22,7 @@ jobs:
     # only permits it because its config.yaml names the path in container.valid_volumes; a
     # runner that does not fails the job here, before a step runs.
     container:
-      image: git.example.com/<REDACTED>/kuchnia-builder:trixie
+      image: ${{ vars.BUILDER_IMAGE }}
       options: -v /srv/ci-cache/kuchnia:/ccache
 
     steps:

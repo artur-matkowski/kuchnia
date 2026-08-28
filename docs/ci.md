@@ -30,9 +30,17 @@ repository or the `<REDACTED>` organisation stops being public.
 
 A run starting from `debian:trixie` spends five to fifteen minutes installing 668 packages
 before it compiles a line — two complete Qt stacks, because a Qt cross build needs the host
-tools and the target libraries both ([targets](docs/targets.md)). The image
-`git.example.com/<REDACTED>/kuchnia-builder:trixie` is that environment already installed,
-and the runner keeps it cached, so the download happens once rather than twice a day.
+tools and the target libraries both ([targets](docs/targets.md)). A prebuilt image is that
+environment already installed, and the runner keeps it cached, so the download happens once
+rather than twice a day.
+
+**The image is not named in this repository.** It names a registry and this tree is public,
+so the two places that need it read it from the operator: the workflow takes
+`vars.BUILDER_IMAGE`, a repository variable, and `scripts/build-deb.sh` and
+`scripts/build-image.sh` take `KUCHNIA_BUILDER_IMAGE`. **An unset `BUILDER_IMAGE` is an empty
+`image:`, and the job then dies at container start having named no image at all** — the same
+0-second failure an unreachable registry gives, with nothing in the log separating the two.
+The scripts fail with a sentence instead.
 
 **Nothing rebuilds it.** `scripts/build-image.sh` is run by hand, and **a change to
 `debian/control` is what makes it stale**. A stale image does not build the wrong package:
@@ -40,9 +48,9 @@ and the runner keeps it cached, so the download happens once rather than twice a
 the image lacks is installed during the run and the log says the environment did not satisfy
 it. Forgetting costs minutes, never a wrong artifact.
 
-The image is public, so the runner pulls it with no credentials. If the container package is
-ever made private the job fails at container start, and the fix is a `credentials:` block —
-Gitea's container registry, unlike its Debian one, does check the username beside the token.
+While the image is public the runner pulls it with no credentials. Made private, the job
+fails at container start, and the fix is a `credentials:` block — Gitea's container registry,
+unlike its Debian one, does check the username beside the token.
 
 `scripts/build-deb.sh` with no arguments runs in this same image, so a developer's build and
 CI's are one environment rather than two that resemble each other.
