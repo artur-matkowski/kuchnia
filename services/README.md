@@ -11,8 +11,8 @@ and everything that fails silently, is in [docs/location.md](../docs/location.md
 ## Deploy
 
 ```sh
-scp -r services/ user@<HOST_REDACTED>:/home/admin/kuchnia-location/
-cd /home/admin/kuchnia-location
+scp -r services/ <user>@<host>:~/kuchnia-location/
+cd ~/kuchnia-location
 cp .env.example .env      # set VNC_PASSWORD; the container refuses to start without one
 docker compose up -d --build
 ```

@@ -72,7 +72,7 @@ std::vector<ParamInitializer> specs()
 
 		ParamInitializer(STRING, "db-host", "<HOST_REDACTED>", "PostgreSQL host"),
 		ParamInitializer(INT,    "db-port", 0,              "PostgreSQL port"),
-		ParamInitializer(STRING, "db-name", "house_db",    "PostgreSQL database"),
+		ParamInitializer(STRING, "db-name", "house_db",        "PostgreSQL database"),
 		ParamInitializer(STRING, "db-user", "admin",           "PostgreSQL role"),
 		ParamInitializer(STRING, "db-password", "",            "PostgreSQL password"),
 		ParamInitializer(INT,    "db-interval-ms", 30000,      "Milliseconds between polls"),
@@ -114,10 +114,10 @@ std::vector<ParamInitializer> specs()
 			"appended to it unless it already ends in .png"),
 
 		ParamInitializer(STRING, "mqtt-host", "<HOST_REDACTED>", "Broker address"),
-		ParamInitializer(INT,    "mqtt-port", 0,             "Broker port"),
+		ParamInitializer(INT,    "mqtt-port", 0,               "Broker port"),
 		ParamInitializer(STRING, "mqtt-user", "kuchnia",
 			"Broker account the password authenticates, and not the client id"),
-		ParamInitializer(STRING, "mqtt-password", "",           "Broker password"),
+		ParamInitializer(STRING, "mqtt-password", "",             "Broker password"),
 		ParamInitializer(STRING, "mqtt-client-id", "kuchnia",
 			"Session name, not an account; unique on the broker or both clients flap"),
 		ParamInitializer(STRING_VECTOR, "mqtt-subscribe", kGateTopics,

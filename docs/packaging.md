@@ -20,6 +20,8 @@ draws as an ordinary client of whatever compositor the board logs into.
 
 ## Putting a board on the repository
 
+The host below is a placeholder — that registry is private; `scripts/build-deb.sh` builds one.
+
 ```sh
 curl -fsSL https://git.example.com/api/packages/<REDACTED>/debian/repository.key \
   | sudo tee /etc/apt/keyrings/gitea-<REDACTED>.asc >/dev/null

@@ -83,7 +83,9 @@ off.
 ## Where this runs
 
 A Raspberry Pi 4 on Raspberry Pi OS Desktop, autostarted inside the board's session and
-installed with `apt` from this Gitea's Debian registry:
+installed with `apt` from a Gitea Debian registry. That registry is private and the host
+below is a placeholder — this repository publishes no packages, and `scripts/build-deb.sh`
+is how you build the `.deb` yourself:
 
 ```sh
 curl -fsSL https://git.example.com/api/packages/<REDACTED>/debian/repository.key \

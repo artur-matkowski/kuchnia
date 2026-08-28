@@ -55,7 +55,8 @@ FIELDS = {
         "How long a cached tile is served before it is fetched again.",
     ),
     "tile_user_agent": (
-        "kuchnia-tiles/1.0 (+https://example.com; <REDACTED> kitchen panel)", "text",
+        "kuchnia-tiles/1.0 "
+        "(+https://github.com/artur-matkowski/kuchnia; <REDACTED> kitchen panel)", "text",
         "Sent upstream. The OpenStreetMap tile policy rejects a client that does not identify "
         "itself, and this proxy is the only client it ever sees - the panel's own User-Agent "
         "never reaches it.",
