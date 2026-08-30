@@ -146,7 +146,7 @@ Run `docs/check-docs.sh` after touching anything under `docs/`.
   7) **Only a human merges a PR.**
   8) Only human review application visuals, anything that requires screenshoting has to be 
      handover for human review. with some description, what is to be tested
-  9) kuchnia should ba always run with '--configpath ./config.conf' to use local config instead of /etc/... one
+  9) kuchnia should ba always run with '--configpath ./config.conf' to use local config instead of ~/.config/kuchnia/kucnia.conf one
 
 ## Build
 
