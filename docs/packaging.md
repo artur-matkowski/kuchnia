@@ -9,6 +9,7 @@
 > Owns: debian/source/format
 > Owns: scripts/build-deb.sh
 > See:  docs/ci.md docs/session.md docs/targets.md docs/app.md docs/integrations.md docs/volume.md
+> See:  docs/versioning.md
 
 The board runs Raspberry Pi OS Desktop, and the application reaches it as a `.deb` from this
 Gitea's own Debian registry. `apt` is the whole deployment system: an update is
@@ -82,13 +83,13 @@ How the unit, the autostart entry and the session fit together is
 
 `debian/changelog` is where the version lives, and `debian/rules` hands it to CMake as
 `KUCHNIA_VERSION`. So the string on that screen is the version `apt` installed and nothing
-else; CI rewrites the changelog on every build ([ci](docs/ci.md)), and the number never comes
-from git, because a commit is not something a board can be asked about.
+else; CI rewrites the changelog on every build with the number that build's history folds to
+([versioning](docs/versioning.md)).
 
-Outside the package `KUCHNIA_VERSION` is unset, CMake asks `git describe --always --dirty`,
-and a tree with no git at all reports `unknown`. **It is resolved when CMake configures**, so
-a desktop build keeps whatever string it was configured with: rebuilding after a commit still
-prints the old one until CMake runs again.
+Outside the package `KUCHNIA_VERSION` is unset and CMake asks `versioner` the same question; a
+tree with neither the submodule nor git reports `unknown`. **It is resolved when CMake
+configures**, so a desktop build keeps whatever string it was configured with: rebuilding
+after a commit still prints the old one until CMake runs again.
 
 ## The config file the package does not ship
 
@@ -113,9 +114,9 @@ them to is not knowable from a maintainer script.
 
 Branch `main` publishes to component `main`, branch `testing` to component `testing`, and
 every other branch builds without publishing. Promotion is a merge — how a version is
-numbered, and what the run costs, is [ci](docs/ci.md).
+numbered is [versioning](docs/versioning.md), what the run costs is [ci](docs/ci.md).
 
-Old versions stay in the pool, which is what makes `apt install kuchnia=1.0.6` a rollback.
+Old versions stay in the pool, which is what makes `apt install kuchnia=1.1.0` a rollback.
 
 `trixie` is written in `.gitea/workflows/deb.yaml`'s upload URL, in `scripts/build-deb.sh`,
 and in every board's `sources.list`. All three are the same distribution and none of them

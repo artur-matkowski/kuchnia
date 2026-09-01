@@ -1,0 +1,50 @@
+# Tag what reached main, and write the changelog that names it.
+#
+# The version is a fold over the history (docs/versioning.md), so a push either changes it or
+# does not: when it does, versioner regenerates CHANGELOG.md, commits `chore(release): vX.Y.Z`
+# and pushes the commit with an annotated tag; when it does not, the run prints `up to date`
+# and writes nothing. Its own push comes back here, and that second run is the one that stops.
+#
+# All of the logic is in the submodule, so `git submodule update --remote` ships a fix without
+# touching this file. Keep the branch filter and `production_branches` in
+# external-overrides/00-policy.conf naming the same branch.
+name: release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    # Not the builder image: this compiles nothing, and a release must not wait on an arm64
+    # build to say what the version is.
+    container:
+      image: debian:trixie
+
+    steps:
+      - name: Tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git ca-certificates
+
+      # A plain clone rather than actions/checkout, as everywhere here. Full depth: the
+      # version is folded from every commit, and a shallow clone would quietly compute a
+      # smaller number from the few it was given.
+      - name: Checkout
+        run: |
+          git config --global --add safe.directory '*'
+          git clone --quiet "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+          git checkout --quiet "${GITHUB_SHA}"
+          git submodule update --init --depth 1 versioner
+
+      # RELEASE_TOKEN needs write access, and main's branch protection has to let it push:
+      # the release commit and its tag are the one thing here that does not arrive through a
+      # pull request. Both failures are loud - the push is refused and the run goes red.
+      - name: Release
+        env:
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          git remote set-url origin \
+            "https://ci:${RELEASE_TOKEN}@${GITHUB_SERVER_URL#https://}/${GITHUB_REPOSITORY}.git"
+          ./versioner/ci/release.sh

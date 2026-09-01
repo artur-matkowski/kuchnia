@@ -35,20 +35,19 @@ jobs:
           git checkout --quiet "${GITHUB_SHA}"
           git submodule update --init --recursive --depth 1
 
-      # GITHUB_RUN_NUMBER is per repository and only ever climbs, so a testing build is
-      # newer than the last main build and the next main build is newer than both. The
-      # tilde is what keeps 1.0.7~testing below the 1.0.7 that eventually promotes it.
+      # The version is folded out of the commit messages - docs/versioning.md. The checkout
+      # above is detached, so versioner takes the branch from GITHUB_REF_NAME: a bare X.Y.Z
+      # on main, X.Y.Z-<branch>.<hash> everywhere else. A native package's version may not
+      # contain a hyphen, and the tilde it becomes is also what keeps a branch build sorting
+      # below the release it will be promoted into.
       - name: Version and channel
         id: channel
         run: |
-          version="1.0.${GITHUB_RUN_NUMBER}"
+          version="$(./versioner/bin/versioner version | tr -- '-' '~')"
           case "${GITHUB_REF_NAME}" in
             main)    component=main ;;
-            testing) component=testing; version="${version}~testing" ;;
-            # A native package's version may not contain a hyphen, and a branch name
-            # usually does.
-            *)       component=""
-                     version="${version}~$(printf '%s' "${GITHUB_REF_NAME}" | tr -c 'A-Za-z0-9' '.')" ;;
+            testing) component=testing ;;
+            *)       component="" ;;
           esac
           echo "version=${version}"     >> "$GITHUB_OUTPUT"
           echo "component=${component}" >> "$GITHUB_OUTPUT"
@@ -64,13 +63,40 @@ jobs:
 
       # Gitea authenticates a token by the token, not by the name beside it, so the
       # username here is a placeholder and only PACKAGE_TOKEN has to exist.
+      #
+      # apt takes the highest version it can see and never reports one it passed over, so
+      # both ways this can go wrong are silent on a board: a version already in the pool
+      # would upload nothing new, and a version below it would sit there unfetched for ever.
+      # The pool is read first and each is answered separately - docs/versioning.md.
       - name: Publish
         if: steps.channel.outputs.component != ''
         run: |
+          version="${{ steps.channel.outputs.version }}"
+          component="${{ steps.channel.outputs.component }}"
+          registry="${GITHUB_SERVER_URL}/api/packages/${GITHUB_REPOSITORY%%/*}/debian"
+          highest=""
+          # An absent index is a component's first upload, not a failure.
+          while read -r v; do
+            if [ -z "$highest" ] || dpkg --compare-versions "$v" gt "$highest"; then
+              highest="$v"
+            fi
+          done < <(curl --fail --silent "${registry}/dists/trixie/${component}/binary-arm64/Packages" \
+                     | sed -n 's/^Version: //p' || true)
+          if [ -n "$highest" ]; then
+            echo "==> ${component} holds ${highest}"
+            if dpkg --compare-versions "$version" eq "$highest"; then
+              echo "==> nothing in this push bumped the version; publishing nothing"
+              exit 0
+            fi
+            if ! dpkg --compare-versions "$version" gt "$highest"; then
+              echo "error: ${version} is below ${component}'s ${highest}; no board would fetch it" >&2
+              exit 1
+            fi
+          fi
           curl --fail --silent --show-error \
             --user "ci:${PACKAGE_TOKEN}" \
-            --upload-file "dist/kuchnia_${{ steps.channel.outputs.version }}_arm64.deb" \
-            "${GITHUB_SERVER_URL}/api/packages/${GITHUB_REPOSITORY%%/*}/debian/pool/trixie/${{ steps.channel.outputs.component }}/upload"
-          echo "==> published to ${{ steps.channel.outputs.component }}"
+            --upload-file "dist/kuchnia_${version}_arm64.deb" \
+            "${registry}/pool/trixie/${component}/upload"
+          echo "==> published ${version} to ${component}"
         env:
           PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}

@@ -26,15 +26,18 @@ qt_standard_project_setup(REQUIRES 6.5)
 # What the settings screen prints, and the one string in the process that says which build
 # this is. The package passes debian/changelog's version, which is the version apt installed
 # and the only one a board can be asked about - see docs/packaging.md. A desktop build has no
-# changelog speaking for it and says which commit it is instead.
+# changelog speaking for it and folds one out of the history instead - docs/versioning.md.
 #
 # Resolved at configure time, so a desktop build that has moved on since keeps the version it
-# was configured with until CMake runs again.
-set(KUCHNIA_VERSION "" CACHE STRING "Version the application reports; empty asks git")
+# was configured with until CMake runs again. Uncommitted work never appears in it at all:
+# the number names the last commit, whatever the tree looks like.
+set(KUCHNIA_VERSION "" CACHE STRING "Version the application reports; empty asks versioner")
 
 if(NOT KUCHNIA_VERSION)
+	# versioner reads the repository from the working directory, not from its own location.
 	execute_process(
-		COMMAND git -C "${CMAKE_CURRENT_SOURCE_DIR}" describe --always --dirty
+		COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/versioner/bin/versioner" version
+		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 		OUTPUT_VARIABLE KUCHNIA_VERSION
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 		ERROR_QUIET

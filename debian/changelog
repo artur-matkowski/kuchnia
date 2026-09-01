@@ -1,5 +1,5 @@
-kuchnia (1.0.0) trixie; urgency=medium
+kuchnia (1.1.0) trixie; urgency=medium
 
-  * Deliver the application as a Debian package.
+  * Take the version from the commit history rather than from a run counter.
 
- -- Artur <15357763+artur-matkowski@users.noreply.github.com>  Sat, 22 Aug 2026 18:00:00 +0200
+ -- Artur <15357763+artur-matkowski@users.noreply.github.com>  Mon, 01 Sep 2026 21:00:00 +0200

@@ -3,7 +3,7 @@
 > Owns: .gitea/workflows/deb.yaml
 > Owns: scripts/builder.Dockerfile
 > Owns: scripts/build-image.sh
-> See:  docs/packaging.md docs/targets.md
+> See:  docs/packaging.md docs/targets.md docs/versioning.md
 
 Every push to `main` or `testing` and every pull request cross-builds the arm64 `.deb` on
 this Gitea's own runner. The two branches publish it; everything else builds it and throws
@@ -14,11 +14,9 @@ it away.
 Branch `main` publishes to component `main`, branch `testing` to component `testing`, and
 every other branch builds without publishing. Promotion is a merge.
 
-The version is `1.0.<run number>`, with `~testing` appended on branch `testing`. The run
-number is per repository and only climbs, so a testing build always outranks the last main
-build; the tilde sorts below everything, so the `1.0.7` that eventually promotes
-`1.0.7~testing` outranks it in turn. It has nothing to do with the `VERSION` in
-`CMakeLists.txt`.
+The version is folded out of the commit messages the push carries, and the run publishes
+nothing at all when the fold did not move — [versioning](docs/versioning.md). It has nothing
+to do with the `VERSION` in `CMakeLists.txt`.
 
 Publishing needs a `PACKAGE_TOKEN` secret holding a Gitea token with `write:package`. Gitea
 authenticates the token and ignores the username beside it, so the workflow sends a
