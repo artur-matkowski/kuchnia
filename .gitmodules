@@ -1,9 +1,9 @@
 [submodule "deps/Module-cpp-config"]
 	path = deps/Module-cpp-config
-	url = https://github.com/artur-matkowski/cpp-config.git
+	url = ../../artur/cpp-config.git
 [submodule "deps/Module-cpp-logger"]
 	path = deps/Module-cpp-logger
-	url = https://github.com/artur-matkowski/cpp-logger.git
+	url = ../../artur/cpp-logger.git
 [submodule "versioner"]
 	path = versioner
 	url = ../../artur/versioner.git

@@ -20,9 +20,11 @@ to do with the `VERSION` in `CMakeLists.txt`.
 
 Publishing needs a `PACKAGE_TOKEN` secret holding a Gitea token with `write:package`. Gitea
 authenticates the token and ignores the username beside it, so the workflow sends a
-placeholder. Nothing else in the run is authenticated — the checkout clones anonymously and
-a board's `apt` reads the registry anonymously, both of which stop working the moment this
-repository or the organisation that owns it stops being public.
+placeholder. Nothing else in the run is authenticated — the checkout clones anonymously,
+submodules included, and a board's `apt` reads the registry anonymously. Both stop working
+the moment this repository or the organisation that owns it stops being public, and a
+submodule hosted where the runner cannot read it without credentials fails the run at the
+checkout, which is why all three are on this Gitea.
 
 ## The builder image
 
