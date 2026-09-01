@@ -125,8 +125,12 @@ Run `docs/check-docs.sh` after touching anything under `docs/`.
   comment or a doc node.
 * **Do not overengineer.** Simplicity is value. Design solutions **as simple as they can be,
   and as complicated as they have to be** to get the job done.
-* Commits: imperative subject with a scope prefix (`app:`, `qml:`, `build:`, `docs:`). The
-  body explains why.
+* Commits: Conventional Commits, `type(scope)!: subject`, imperative, no trailing period,
+  72 characters at most. The type is what the change *is* — `feat`, `fix`, `refactor`,
+  `perf`, `build`, `docs`, `ci`, `chore`, `test`, `style`, `revert` — and this repository's
+  old prefixes are now the scope: `fix(app):`, `feat(qml):`, `build(deb):`, `docs(ci):`. The
+  body explains why. **The type is the version**: it is folded into the number a board
+  installs, and a subject that does not parse bumps nothing — [versioning](docs/versioning.md).
 * **Delivery**
   1) Read the ticket from gitea, together with its milestone.
   2) Do not edit a ticket's description; use comments, so the record reads as a conversation.
@@ -167,5 +171,14 @@ Qt 6.5 or later, with `Gui`, `Qml` and `Quick`, plus `QtQuick.Shapes` at runtime
 
 ```sh
 sudo apt install libpoco-dev libpqxx-dev libpaho-mqttpp-dev libpaho-mqtt-dev
-git submodule update --init --recursive        # deps/, built from source
+git submodule update --init --recursive        # deps/, built from source; versioner
+./versioner/bin/versioner install              # the commit-msg hook; git never clones hooks
 ```
+
+## Versioning
+
+Commit messages, versions, `CHANGELOG.md` and release tags are governed by `versioner`, a git
+submodule at `./versioner`. **Nothing inside it is ever edited** — the policy this repository
+sets is `external-overrides/00-policy.conf`, and `./versioner/bin/versioner config` prints
+what is actually in effect. Read `versioner/AGENTS.md` before changing commit conventions or
+CI, and [docs/versioning.md](docs/versioning.md) for what that costs here.

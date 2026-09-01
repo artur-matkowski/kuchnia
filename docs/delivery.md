@@ -64,6 +64,12 @@ there.
 
 A promotion whose commits name no ticket needs only that line, so a version bump costs nothing.
 
+`chore(release):` is exempt from all of it. CI writes that commit on `main`
+([versioning](docs/versioning.md)), no person authored it and it names no ticket, so a
+`main` -> `testing` sync carrying it would fail refusal 2 with nothing anyone could fix. The
+same subject is in versioner's own ignore list: two files hold that string and neither reads
+the other.
+
 ## What does not announce itself
 
 **Prose springs the keyword.** Gitea reads `close #36` out of a sentence as readily as out of
@@ -72,6 +78,11 @@ body to explain why the ticket was being left open — closed #36 on that merge.
 catches this on the one base where a keyword is otherwise legitimate, but only because no
 commit named #36; a keyword aimed at a ticket the branch really does carry is indistinguishable
 from intent. `ticket 36` is how to write it.
+
+**A `fix` type is not a closing keyword, by one character.** The pattern wants `#<number>`
+straight after the word, so `fix(app): refuse the video track` and `fix: refuse #42 twice`
+both pass, while `fix: #42 the tank chart` is read as a close and refused. Name the ticket in
+the body, never at the head of a subject.
 
 **Two names in two files spell the status context.** Both branch protection rules require
 `tickets / gate (pull_request)`, which is `<workflow name> / <job id> (<event>)`. Rename the

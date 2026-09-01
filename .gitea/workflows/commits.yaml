@@ -1,0 +1,42 @@
+# Refuse a pull request whose commit messages are not Conventional Commits. The version is a
+# fold over those messages, so a subject that does not parse is a change that never reaches a
+# board - docs/versioning.md.
+#
+# The workflow name and the job id spell the status context both branch protection rules
+# require - `commits / gate (pull_request)`, beside `tickets / gate (pull_request)`. Rename
+# either and Gitea waits for a context that never arrives, exactly as docs/delivery.md says.
+name: commits
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    # A clone and a fold. Its own workflow rather than a job in deb.yaml so that the thing
+    # standing between a person and the merge button never waits on an arm64 build.
+    container:
+      image: debian:trixie
+
+    steps:
+      - name: Tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git ca-certificates
+
+      # A plain clone rather than actions/checkout, as in deb.yaml: no node in the container
+      # and no reachable action registry. Full depth, because the lint walks back to the
+      # merge base with the target branch.
+      - name: Checkout
+        run: |
+          git config --global --add safe.directory '*'
+          git clone --quiet "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+          git checkout --quiet "${GITHUB_SHA}"
+          git submodule update --init --depth 1 versioner
+
+      # All of the logic is in the submodule, so `git submodule update --remote` ships a fix
+      # without touching this file. It lints only the commits this pull request adds, which is
+      # what lets a repository adopt versioner without rewriting the history behind it.
+      - name: Check
+        run: ./versioner/ci/pr-gate.sh

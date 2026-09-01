@@ -4,3 +4,6 @@
 [submodule "deps/Module-cpp-logger"]
 	path = deps/Module-cpp-logger
 	url = https://github.com/artur-matkowski/cpp-logger.git
+[submodule "versioner"]
+	path = versioner
+	url = ../../artur/versioner.git
