@@ -3,7 +3,7 @@ Upstream-Name: kuchnia
 Source: https://github.com/artur-matkowski/kuchnia
 
 Files: *
-Copyright: 2026 Artur <15357763+artur-matkowski@users.noreply.github.com>
+Copyright: 2026 Artur Matkowski <artur.matkowski.zan@gmail.com>
 License: MIT
 
 Files: assets/fonts/*

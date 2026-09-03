@@ -15,7 +15,7 @@ compact screen; the weather on its own; and a map of everyone sharing a location
 forecast screen is two contexts - one per span it carries - and the two do not carry the same
 pair. The menu key puts all five screens on at once as miniatures to choose between, with a
 settings screen behind them where every key the panel answers is bound. Behind all of it are
-four clients of the <REDACTED> - PostgreSQL, two HTTP services and MQTT - each on its own thread,
+four clients of the house network - PostgreSQL, two HTTP services and MQTT - each on its own thread,
 reaching the scene through one seam.
 
 ## Nodes
@@ -43,7 +43,7 @@ reaching the scene through one seam.
 | [rtsp](docs/rtsp.md) | Whether a tile that will not come up is the stream, the network or Qt: the two tools that tell them apart |
 | [diagnostics](docs/diagnostics.md) | Where the GUI thread was when it stopped answering: the watchdog that reports mid-freeze, and how one is captured |
 | [map](docs/map.md) | The map context: the scrape that must not live here, the only list model in the repository, and the tiles that silently come from elsewhere |
-| [location](docs/location.md) | The <REDACTED> half: the Google session that cannot live on the panel, the empty roster that means two things, and the browser a person signs in on |
+| [location](docs/location.md) | The server half: the Google session that cannot live on the panel, the empty roster that means two things, and the browser a person signs in on |
 | [tiles](docs/tiles.md) | The map's tiles: the fetch that fails once and leaves a hole for good, and the expired tile that is better than none |
 | [delivery](docs/delivery.md) | How a ticket closes: the one place a closing keyword may live, and the gate that refuses the rest |
 

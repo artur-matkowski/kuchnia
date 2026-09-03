@@ -23,10 +23,10 @@ draws as an ordinary client of whatever compositor the board logs into.
 The host below is a placeholder — that registry is private; `scripts/build-deb.sh` builds one.
 
 ```sh
-curl -fsSL https://git.example.com/api/packages/<REDACTED>/debian/repository.key \
-  | sudo tee /etc/apt/keyrings/gitea-<REDACTED>.asc >/dev/null
-echo "deb [signed-by=/etc/apt/keyrings/gitea-<REDACTED>.asc] \
-https://git.example.com/api/packages/<REDACTED>/debian trixie main" \
+curl -fsSL https://git.example.com/api/packages/<org>/debian/repository.key \
+  | sudo tee /etc/apt/keyrings/gitea-kuchnia.asc >/dev/null
+echo "deb [signed-by=/etc/apt/keyrings/gitea-kuchnia.asc] \
+https://git.example.com/api/packages/<org>/debian trixie main" \
   | sudo tee /etc/apt/sources.list.d/kuchnia.list
 sudo apt update && sudo apt install kuchnia
 sudo raspi-config nonint do_boot_behaviour B4    # boot into the session, not the console

@@ -70,7 +70,7 @@ std::vector<ParamInitializer> specs()
 		ParamInitializer(BOOL, "fullscreen", true,
 			"Take the whole screen; false is a window the size the scene is composed at"),
 
-		ParamInitializer(STRING, "db-host", "<HOST_REDACTED>", "PostgreSQL host"),
+		ParamInitializer(STRING, "db-host", "db.example.invalid", "PostgreSQL host, which must be set"),
 		ParamInitializer(INT,    "db-port", 0,              "PostgreSQL port"),
 		ParamInitializer(STRING, "db-name", "house_db",        "PostgreSQL database"),
 		ParamInitializer(STRING, "db-user", "admin",           "PostgreSQL role"),
@@ -85,15 +85,16 @@ std::vector<ParamInitializer> specs()
 		// added here: every timestamp is parsed as UTC - see docs/rest.md.
 		ParamInitializer(STRING, "rest-url",
 			"https://api.open-meteo.com/v1/forecast"
-			"?latitude=<COORD_REDACTED>&longitude=<COORD_REDACTED>"
+			"?latitude=<set-me>&longitude=<set-me>"
 			"&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,"
 			"wind_direction_10m,cloud_cover,rain,snowfall"
 			"&hourly=temperature_2m,precipitation_probability,precipitation,cloud_cover"
 			"&daily=sunrise,sunset&forecast_days=8",
-			"Absolute URL fetched on every poll; http and https both work"),
+			"Absolute URL fetched on every poll; http and https both work. The latitude and "
+			"longitude are the panel's own and must be filled in"),
 		ParamInitializer(INT,    "rest-interval-ms", 300000,   "Milliseconds between fetches"),
 
-		// The location service, not Google: the scrape that produces this lives in the <REDACTED>
+		// The location service, not Google: the scrape that produces this lives on the house network
 		// so that its cookie jar does not - see docs/map.md. Every field this parses is
 		// required, so a service answering a different shape fails loudly rather than drawing
 		// an empty map.
@@ -113,7 +114,7 @@ std::vector<ParamInitializer> specs()
 			"Tile server for the map context, WITH a trailing slash; '%z/%x/%y.png' is "
 			"appended to it unless it already ends in .png"),
 
-		ParamInitializer(STRING, "mqtt-host", "<HOST_REDACTED>", "Broker address"),
+		ParamInitializer(STRING, "mqtt-host", "mqtt.example.invalid", "Broker address, which must be set"),
 		ParamInitializer(INT,    "mqtt-port", 0,               "Broker port"),
 		ParamInitializer(STRING, "mqtt-user", "kuchnia",
 			"Broker account the password authenticates, and not the client id"),

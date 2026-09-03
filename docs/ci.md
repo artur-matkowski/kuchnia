@@ -24,7 +24,7 @@ Publishing needs a `PACKAGE_TOKEN` secret holding a Gitea token with `write:pack
 authenticates the token and ignores the username beside it, so the workflow sends a
 placeholder. Nothing else in the run is authenticated — the checkout clones anonymously and
 a board's `apt` reads the registry anonymously, both of which stop working the moment this
-repository or the `<REDACTED>` organisation stops being public.
+repository or the organisation that owns it stops being public.
 
 ## The builder image
 

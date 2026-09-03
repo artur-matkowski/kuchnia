@@ -6,7 +6,7 @@ the board as a Debian package and started by the session it draws into.
 It shows a house across screens two keys cycle between: five RTSP cameras beside a
 clock and the hot water tank on one, the gate's state and its controls, the tank over the
 last day, the weather forecast and an internet radio on the next, and a map of everyone
-sharing a location on the last. Behind it are four clients of the <REDACTED> — PostgreSQL, two
+sharing a location on the last. Behind it are four clients of the house network — PostgreSQL, two
 HTTP services and MQTT — each on its own thread. This
 repository is where the *application* is built — screens, state, interaction — and Qt Quick
 is what draws it.
@@ -88,10 +88,10 @@ below is a placeholder — this repository publishes no packages, and `scripts/b
 is how you build the `.deb` yourself:
 
 ```sh
-curl -fsSL https://git.example.com/api/packages/<REDACTED>/debian/repository.key \
-  | sudo tee /etc/apt/keyrings/gitea-<REDACTED>.asc >/dev/null
-echo "deb [signed-by=/etc/apt/keyrings/gitea-<REDACTED>.asc] \
-https://git.example.com/api/packages/<REDACTED>/debian trixie main" \
+curl -fsSL https://git.example.com/api/packages/<org>/debian/repository.key \
+  | sudo tee /etc/apt/keyrings/gitea-kuchnia.asc >/dev/null
+echo "deb [signed-by=/etc/apt/keyrings/gitea-kuchnia.asc] \
+https://git.example.com/api/packages/<org>/debian trixie main" \
   | sudo tee /etc/apt/sources.list.d/kuchnia.list
 ```
 

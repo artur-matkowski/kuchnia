@@ -19,14 +19,14 @@ to, `MapPanel` draws.
 Location sharing has no official Google API. What reads it instead is a supervising daemon
 holding a credential that is full account access — [location](docs/location.md).
 
-So it runs in the <REDACTED>, `people-url` points at it and `map-tile-url` is the same host on a
+So it runs on the house network, `people-url` points at it and `map-tile-url` is the same host on a
 different path. **A change that starts logging into Google from this process is a change in
 the wrong repository.**
 
 The contract, which is the whole coupling:
 
 ```json
-{"people":[{"id":"…","name":"Ala","lat":<COORD_REDACTED>,"lon":<COORD_REDACTED>,
+{"people":[{"id":"…","name":"Ala","lat":…,"lon":…,
             "accuracy_m":25,"seen_at":1756100000,"battery":73}]}
 ```
 

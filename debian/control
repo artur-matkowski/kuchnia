@@ -57,5 +57,5 @@ Description: Kuchnia - a Qt Quick dashboard of the house
  everyone sharing a location.
  .
  It runs fullscreen inside the board's desktop session, started by a
- systemd user unit, and reaches the <REDACTED> over PostgreSQL, HTTP and
+ systemd user unit, and reaches the house network over PostgreSQL, HTTP and
  MQTT.

@@ -56,7 +56,7 @@ FIELDS = {
     ),
     "tile_user_agent": (
         "kuchnia-tiles/1.0 "
-        "(+https://github.com/artur-matkowski/kuchnia; <REDACTED> kitchen panel)", "text",
+        "(+https://github.com/artur-matkowski/kuchnia; kitchen panel)", "text",
         "Sent upstream. The OpenStreetMap tile policy rejects a client that does not identify "
         "itself, and this proxy is the only client it ever sees - the panel's own User-Agent "
         "never reaches it.",

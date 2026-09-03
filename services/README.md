@@ -1,4 +1,4 @@
-# The <REDACTED> half of the map context
+# The server half of the map context
 
 One container. It polls Google for everyone sharing a location, republishes them as the JSON
 the panel reads, proxies and caches the map's tiles, and holds the browser the Google session

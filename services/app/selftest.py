@@ -21,7 +21,9 @@ from .roster import Roster
 from .signin import SignIn, _is_google
 from .tiles import Tiles
 
-WARSAW = (<COORD_REDACTED>, <COORD_REDACTED>)
+# Any pair does, but the two must differ: both checks below compare against one index each,
+# so equal values would pass a service that swapped latitude for longitude.
+PLACE = (12.5, 34.75)
 
 
 class Stub(dict):
@@ -29,7 +31,7 @@ class Stub(dict):
 
 
 def entry(id_="1", display="Ala", fallback="ala@example.com",
-          lat=WARSAW[0], lon=WARSAW[1], ms=1756100000123, accuracy=25.0, battery=73,
+          lat=PLACE[0], lon=PLACE[1], ms=1756100000123, accuracy=25.0, battery=73,
           located=True):
     """One sharing person, in Google's own shape: a list with meaning only at fixed indices."""
     row = [None] * 14
@@ -60,9 +62,9 @@ def parser():
     person = people[0]
 
     ok.append(check("one sharing person parses", len(people) == 1 and without_fix == 0))
-    ok.append(check("latitude comes from location[1][2]", person["lat"] == WARSAW[0],
+    ok.append(check("latitude comes from location[1][2]", person["lat"] == PLACE[0],
                     f"got {person['lat']}"))
-    ok.append(check("longitude comes from location[1][1]", person["lon"] == WARSAW[1],
+    ok.append(check("longitude comes from location[1][1]", person["lon"] == PLACE[1],
                     f"got {person['lon']}"))
     # The whole of what separates the fix's own timestamp from the time this service polled:
     # seen_at is location[2], which Google puts on the position, and nothing here may ever
