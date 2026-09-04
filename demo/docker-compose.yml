@@ -1,0 +1,29 @@
+# The two things the demo cannot fake with a URL: the tank's archive and the shared-location
+# service. Everything else in demo/demo.conf is a public endpoint - see docs/demo.md.
+#
+#     docker compose -f demo/docker-compose.yml up -d
+#
+# Neither service has a volume, on purpose. hotwater.sql seeds rows relative to now(), so a
+# `down` followed by an `up` is how a seed that has aged out of the 24 h window is refreshed.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kuchnia-demo-db
+    environment:
+      POSTGRES_DB: kuchnia_demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    ports:
+      # A non-default port, so this never collides with a PostgreSQL already on the host.
+      - "127.0.0.1:55432:55432"
+    volumes:
+      - ./hotwater.sql:/docker-entrypoint-initdb.d/hotwater.sql:ro
+
+  people:
+    image: python:3-alpine
+    container_name: kuchnia-demo-people
+    command: ["python3", "/srv/roster.py"]
+    ports:
+      - "127.0.0.1:8087:8087"
+    volumes:
+      - ./roster.py:/srv/roster.py:ro

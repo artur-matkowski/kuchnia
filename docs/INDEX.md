@@ -47,6 +47,7 @@ reaching the scene through one seam.
 | [tiles](docs/tiles.md) | The map's tiles: the fetch that fails once and leaves a hole for good, and the expired tile that is better than none |
 | [delivery](docs/delivery.md) | How a ticket closes: the one place a closing keyword may live, and the gate that refuses the rest |
 | [versioning](docs/versioning.md) | The version folded out of the commit messages: the type that bumps nothing, and the gate that is the only thing to say so |
+| [demo](docs/demo.md) | The configuration a recording is made against: public streams instead of the house, and the config file it must not read |
 
 ## Navigating
 
