@@ -44,12 +44,14 @@ jobs:
         id: channel
         run: |
           version="$(./versioner/bin/versioner version | tr -- '-' '~')"
+          base="$(./versioner/bin/versioner version --strip-suffix)"
           case "${GITHUB_REF_NAME}" in
             main)    component=main ;;
             testing) component=testing ;;
             *)       component="" ;;
           esac
           echo "version=${version}"     >> "$GITHUB_OUTPUT"
+          echo "base=${base}"           >> "$GITHUB_OUTPUT"
           echo "component=${component}" >> "$GITHUB_OUTPUT"
           echo "==> ${version} -> ${component:-nowhere}"
 
@@ -72,6 +74,7 @@ jobs:
         if: steps.channel.outputs.component != ''
         run: |
           version="${{ steps.channel.outputs.version }}"
+          base="${{ steps.channel.outputs.base }}"
           component="${{ steps.channel.outputs.component }}"
           registry="${GITHUB_SERVER_URL}/api/packages/${GITHUB_REPOSITORY%%/*}/debian"
           highest=""
@@ -84,12 +87,14 @@ jobs:
                      | sed -n 's/^Version: //p' || true)
           if [ -n "$highest" ]; then
             echo "==> ${component} holds ${highest}"
-            if dpkg --compare-versions "$version" eq "$highest"; then
+            # Both sides drop the ~branch.hash: only X.Y.Z is ordered, and comparing a hash
+            # answers at random - docs/ci.md. The upload keeps the full version.
+            if dpkg --compare-versions "$base" eq "${highest%%~*}"; then
               echo "==> nothing in this push bumped the version; publishing nothing"
               exit 0
             fi
-            if ! dpkg --compare-versions "$version" gt "$highest"; then
-              echo "error: ${version} is below ${component}'s ${highest}; no board would fetch it" >&2
+            if ! dpkg --compare-versions "$base" gt "${highest%%~*}"; then
+              echo "error: ${base} is below ${component}'s ${highest%%~*}; no board would fetch it" >&2
               exit 1
             fi
           fi

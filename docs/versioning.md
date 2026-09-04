@@ -42,8 +42,7 @@ writes it, and until then the first thing to complain is CI. Run `install`, neve
 
 **The pool is a floor.** `apt` takes the highest version it can see and never reports one it
 passed over, so a package numbered at or below what is already published is not an error
-anywhere - it is a board that stays where it is. `main` holds `1.0.157` from the run counter
-this replaced and `testing` holds `1.0.154~testing`; `deb.yaml` reads the pool before every
+anywhere - it is a board that stays where it is. `deb.yaml` reads the pool before every
 upload and answers a version already there by publishing nothing, one below it by failing.
 
 **A native package's version may not contain a hyphen**, so `deb.yaml` maps `-` to `~`. Not

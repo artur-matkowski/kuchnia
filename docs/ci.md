@@ -18,6 +18,13 @@ The version is folded out of the commit messages the push carries, and the run p
 nothing at all when the fold did not move — [versioning](docs/versioning.md). It has nothing
 to do with the `VERSION` in `CMakeLists.txt`.
 
+**Only `X.Y.Z` decides that.** A branch build's version carries `~<branch>.<hash>`, and the
+hash orders nothing: `dpkg` reads its leading digits as a number, so `1.1.1~testing.8ca7da7`
+sorts *below* `1.1.1~testing.44d0443`. Publish compares the folded `X.Y.Z` on both sides and
+uploads under the full version. Compared whole, a `testing` push that bumped nothing fails
+half the time, and the other half **publishes a duplicate binary that every board on the
+channel then installs**. `main` shows neither, carrying no suffix to trip over.
+
 Publishing needs a `PACKAGE_TOKEN` secret holding a Gitea token with `write:package`. Gitea
 authenticates the token and ignores the username beside it, so the workflow sends a
 placeholder. Nothing else in the run is authenticated — the checkout clones anonymously,
