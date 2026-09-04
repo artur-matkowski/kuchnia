@@ -3,7 +3,8 @@
 > Owns: .gitea/workflows/deb.yaml
 > Owns: scripts/builder.Dockerfile
 > Owns: scripts/build-image.sh
-> See:  docs/packaging.md docs/targets.md docs/versioning.md
+> Owns: .gitmodules
+> See:  docs/packaging.md docs/targets.md docs/versioning.md docs/integrations.md
 
 Every push to `main` or `testing` and every pull request cross-builds the arm64 `.deb` on
 this Gitea's own runner. The two branches publish it; everything else builds it and throws
@@ -31,7 +32,12 @@ placeholder. Nothing else in the run is authenticated — the checkout clones an
 submodules included, and a board's `apt` reads the registry anonymously. Both stop working
 the moment this repository or the organisation that owns it stops being public, and a
 submodule hosted where the runner cannot read it without credentials fails the run at the
-checkout, which is why all three are on this Gitea.
+checkout.
+
+That is why the three URLs in `.gitmodules` are relative — `../../artur/<module>.git`. They
+resolve against whatever remote the superproject was cloned from, so the runner reaches all
+three anonymously and no host name is written down. A clone taken from anywhere else resolves
+them against that host instead.
 
 ## The builder image
 

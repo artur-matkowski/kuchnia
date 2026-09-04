@@ -71,7 +71,7 @@ std::vector<ParamInitializer> specs()
 			"Take the whole screen; false is a window the size the scene is composed at"),
 
 		ParamInitializer(STRING, "db-host", "db.example.invalid", "PostgreSQL host, which must be set"),
-		ParamInitializer(INT,    "db-port", 0,              "PostgreSQL port"),
+		ParamInitializer(INT,    "db-port", 0,                 "PostgreSQL port, which must be set"),
 		ParamInitializer(STRING, "db-name", "house_db",        "PostgreSQL database"),
 		ParamInitializer(STRING, "db-user", "admin",           "PostgreSQL role"),
 		ParamInitializer(STRING, "db-password", "",            "PostgreSQL password"),
@@ -115,7 +115,7 @@ std::vector<ParamInitializer> specs()
 			"appended to it unless it already ends in .png"),
 
 		ParamInitializer(STRING, "mqtt-host", "mqtt.example.invalid", "Broker address, which must be set"),
-		ParamInitializer(INT,    "mqtt-port", 0,               "Broker port"),
+		ParamInitializer(INT,    "mqtt-port", 0,                  "Broker port, which must be set"),
 		ParamInitializer(STRING, "mqtt-user", "kuchnia",
 			"Broker account the password authenticates, and not the client id"),
 		ParamInitializer(STRING, "mqtt-password", "",             "Broker password"),

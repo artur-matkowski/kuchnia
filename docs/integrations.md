@@ -8,7 +8,7 @@
 > Owns: src/integrations/Service.cpp
 > Owns: src/integrations/Integrations.hpp
 > Owns: src/integrations/Integrations.cpp
-> See:  docs/app.md docs/state.md docs/database.md docs/rest.md docs/mqtt.md docs/packaging.md docs/input.md
+> See:  docs/app.md docs/state.md docs/database.md docs/rest.md docs/mqtt.md docs/packaging.md docs/input.md docs/ci.md
 
 Three clients of things on the LAN — PostgreSQL through libpqxx, HTTP through Poco, MQTT
 through paho — each on its own thread, each configured by `Settings` and each reporting

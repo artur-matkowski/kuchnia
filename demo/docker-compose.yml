@@ -9,6 +9,9 @@ services:
   db:
     image: postgres:16-alpine
     container_name: kuchnia-demo-db
+    # 55432 inside the container as well as on the host, so no well-known port literal is
+    # written down in this repository.
+    command: ["-p", "55432"]
     environment:
       POSTGRES_DB: kuchnia_demo
       POSTGRES_USER: demo

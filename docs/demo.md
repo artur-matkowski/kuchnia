@@ -33,6 +33,12 @@ The fourth is worse for being invisible: without `--configpath` the settings com
 `~/.config/kuchnia/config.conf`, which is a working panel pointed at the house. Nothing on
 screen says which file it read.
 
+## The forecast needs coordinates before it draws
+
+`rest-url` carries `latitude=<set-me>&longitude=<set-me>` — no coordinate pair is written down
+in this repository. open-meteo answers an error until both are filled in, and the two forecast
+contexts stay empty with nothing on screen saying why.
+
 ## Why the cameras are not RTSP
 
 `camera-transport:auto` is load-bearing. Public RTSP demo endpoints are gone — the survivors
