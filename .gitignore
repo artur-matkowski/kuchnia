@@ -24,6 +24,11 @@ config.conf
 # The capture directory. One run per directory, and the report beside its log.
 /logs/
 
+# The screen recording demo/kuchnia.gif is made from, and any cut of it made for somewhere
+# else. The GIF is the only one of the three small enough to belong in every clone.
+/demo/*.mkv
+/demo/*.mp4
+
 # The container's own state, which is not the container. Each of these is a bind mount from
 # services/docker-compose.yml, kept in the repository so that throwing the deployment away is
 # `rm -rf` here rather than a hunt through /var/lib/docker.

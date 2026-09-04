@@ -3,6 +3,12 @@
 A Qt Quick application that runs fullscreen in a Raspberry Pi's desktop session, delivered to
 the board as a Debian package and started by the session it draws into.
 
+![The six contexts, cycled with the two context keys](demo/kuchnia.gif)
+
+*Running against [the demo configuration](docs/demo.md): public video streams instead of the
+house's cameras, Warsaw instead of its coordinates, and a roster of nobody. The gate card is
+red because that recording brought no broker up.*
+
 It shows a house across screens two keys cycle between: five RTSP cameras beside a
 clock and the hot water tank on one, the gate's state and its controls, the tank over the
 last day, the weather forecast and an internet radio on the next, and a map of everyone

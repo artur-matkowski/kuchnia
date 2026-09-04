@@ -6,6 +6,7 @@
 > Owns: demo/roster.py
 > Owns: demo/radio.m3u
 > Owns: demo/keys.ini
+> Owns: demo/kuchnia.gif
 > See:  docs/map.md docs/tiles.md docs/media.md docs/database.md docs/rest.md docs/radio.md docs/integrations.md
 
 A second configuration for recording the application with nothing private on screen. Every
@@ -89,3 +90,20 @@ Capture the window rather than a region and there is nothing to scale afterwards
 | 6 | `→` | the map: six markers across the city, one amber, two labels stacked at one address |
 | 7 | `Space` | the carousel, all five screens as miniatures |
 | 8 | `←` `→` `Return` | step along the strip and pick one. `Return` is the only way out — [input](docs/input.md) |
+
+`demo/kuchnia.gif` is what the README draws, and it is in every clone anybody ever makes of
+this repository. The recording it is cut from is not: `.gitignore` keeps `demo/*.mkv` and
+`demo/*.mp4` out, so a new take is made, converted, and the source left where it fell.
+
+The conversion, and it is a size budget rather than a taste:
+
+```sh
+ffmpeg -i <take>.mkv -vf "fps=8,scale=640:-1:flags=lanczos,split[a][b];\
+  [a]palettegen=max_colors=48:stats_mode=diff[p];\
+  [b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" demo/kuchnia.gif
+```
+
+Five camera tiles of moving video are what a GIF cannot compress, so the frame rate, the width
+and the palette are all three spent before it fits: the same 26 seconds at 960 px and 12 fps is
+21 MB, and at 720 px is still 8. **Check the byte count after re-cutting it** — a front page
+that takes ten seconds to paint is the failure here, and nothing warns about it.
