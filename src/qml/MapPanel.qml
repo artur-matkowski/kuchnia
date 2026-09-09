@@ -32,6 +32,10 @@ Card {
 	// centre and the zoom together and cannot be eased.
 	readonly property real followZoom: 16      // street scale: about three kilometres across
 
+	// One duration for both eases. Walking to another person moves the centre and the zoom
+	// together, and two durations there read as two separate movements rather than one.
+	readonly property int easeMs: 420
+
 	// Past this a marker turns amber; its age is drawn either way. Nobody is ever dropped for
 	// being stale: somebody disappearing off this map has to mean they stopped sharing, and a
 	// phone that slept for an afternoon looks exactly like one that is standing still.
@@ -55,6 +59,11 @@ Card {
 	// leaves the zoom where somebody put it. Picking another person clears it: a new choice of
 	// person is a new choice of framing.
 	property bool zoomed: false
+
+	// The zoom the keys are steering toward, which is NOT map.zoomLevel: read back mid-ease that
+	// is wherever the animation has reached, so three quick presses would add less than three
+	// levels. One writer, zoom(), which is also where it is clamped.
+	property real zoomTarget: 0
 
 	// Whether anything has been framed yet, which is what the pan animation waits for. A Map
 	// starts at 0,0.
@@ -126,11 +135,30 @@ Card {
 		}
 
 		// CoordinateAnimation and not NumberAnimation: a coordinate is not a number, and what
-		// that looks like is a pan that snaps with nothing said anywhere. Held off until
-		// something has been framed, or the very first fix is a 420 ms sweep from 0,0.
+		// that looks like is a pan that snaps with nothing said anywhere. Both Behaviors are
+		// held off until something has been framed, or the first fix is a sweep from 0,0 and
+		// from the plugin's default zoom.
+		//
+		// onFinished and not onStopped: a Behavior retargeted mid-flight STOPS its animation
+		// rather than finishing it, so walking the list fast prefetches once, when it settles,
+		// and not once per key press. prefetchData() is the only prefetch hook QtLocation gives
+		// QML and nothing else in the scene calls it - see docs/whereabouts.md.
 		Behavior on center {
 			enabled: root.framed
-			CoordinateAnimation { duration: 420; easing.type: Easing.InOutCubic }
+			CoordinateAnimation {
+				duration: root.easeMs
+				easing.type: Easing.InOutCubic
+				onFinished: map.prefetchData()
+			}
+		}
+
+		Behavior on zoomLevel {
+			enabled: root.framed
+			NumberAnimation {
+				duration: root.easeMs
+				easing.type: Easing.InOutCubic
+				onFinished: map.prefetchData()
+			}
 		}
 
 		// Assigned rather than bound: a binding for visibleRegion has to name visibleRegion
@@ -446,12 +474,19 @@ Card {
 		root.frame()
 	}
 
-	// Qt clamps to the plugin's own range, so a key at either end of it does nothing and there
-	// is nothing here to clamp. Deliberately not animated: read back mid-animation, zoomLevel is
-	// wherever the animation has got to, so three quick presses would add less than three levels.
+	// The clamp is not decoration. Qt clamps zoomLevel itself, but an unclamped TARGET keeps
+	// climbing past the end of the range, and ten presses past the maximum are then ten presses
+	// of nothing happening on the way back down - which reads as a key that has died. The range
+	// is asked of the plugin rather than written down here.
 	function zoom(delta) {
+		// From the target while a zoom is already in flight, and from the map itself otherwise:
+		// frame() writes zoomLevel too, and after it the target is stale.
+		var from = root.zoomed ? root.zoomTarget : map.zoomLevel
+
 		root.zoomed = true
-		map.zoomLevel = map.zoomLevel + delta
+		root.zoomTarget = Math.max(map.minimumZoomLevel,
+		                           Math.min(map.maximumZoomLevel, from + delta))
+		map.zoomLevel = root.zoomTarget
 	}
 
 	// Where the viewport goes, and the only place that decides it. Called once at startup and

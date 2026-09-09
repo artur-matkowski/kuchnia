@@ -4,8 +4,7 @@
 > See:  docs/map.md docs/tiles.md docs/input.md docs/settings.md docs/contexts.md docs/packaging.md
 
 One `Map`, a marker per person, and a list down the right-hand side that picks one of them to
-follow. Where the positions come from and what shape they arrive in is [map](docs/map.md); this
-is what is done with them once they are here.
+follow. Where the positions come from is [map](docs/map.md); this is what is done with them.
 
 ## Four things the plugin must be told, and all four fail silently
 
@@ -16,15 +15,13 @@ separator of its own, so a host written without one asks for `https://host8/83/1
 zoom level welded onto the host name. It reports itself as a DNS failure, which sends you
 looking at the network rather than at the setting. [tiles](docs/tiles.md) is the other end.
 
-**`activeMapType` must be the `CustomMap` entry.** The plugin only reaches
-`osm.mapping.custom.host` through that map type. Left on anything else it draws Qt's own
-hardcoded providers: tiles arrive, the map works, and they are not the configured ones.
-
-**`activeMapType` is assigned, never bound.** The plugin fills `supportedMapTypes` only once
-its provider has answered; a binding written against it can evaluate against an empty list, and
-it evaluates once. It is set from `onSupportedMapTypesChanged`, matching on `MapType.CustomMap`
-by style and not by position in the list. Nothing falls back to another type: a map quietly
-drawing somebody else's tiles is the failure being guarded, so it says so instead.
+**`activeMapType` must be the `CustomMap` entry, and must be assigned rather than bound.** The
+plugin reaches `osm.mapping.custom.host` through that map type alone — left on anything else it
+draws Qt's own hardcoded providers, so tiles arrive, the map works, and they are not the
+configured ones. It fills `supportedMapTypes` only once its provider has answered, and a binding
+against that list can evaluate against an empty one, once. So it is set from
+`onSupportedMapTypesChanged`, matched by style and not by position, and falls back to no other
+type: a map quietly drawing somebody else's tiles is the failure being guarded.
 
 **`osm.mapping.providersrepository.disabled` must stay true.** Enabled, the plugin fetches
 provider metadata from `maps-redirect.qt.io` at startup — an internet dependency at boot that
@@ -49,16 +46,21 @@ another person clears it. `refresh` does not: that key is the tiles and the rost
 the map is looking.
 
 **`Behavior on center` holds a `CoordinateAnimation`**, because a coordinate is not a number and
-a `NumberAnimation` on one snaps with nothing said anywhere. It is off until something has been
-framed, or the first fix arrives as a sweep from 0,0. `zoomLevel` is unanimated on purpose: read
-back mid-animation it is wherever the animation has reached, so three quick presses would add
-less than three levels.
+a `NumberAnimation` on one snaps with nothing said anywhere. Both Behaviors are off until
+something has been framed, or the first fix arrives as a sweep from 0,0 and from whatever zoom
+the plugin starts at.
 
-**`followZoom` is a zoom level where `minimumSpan` is a span**, and the split is not cosmetic: a
-span reaches the map only through `visibleRegion`, one assignment moving centre and zoom
-together, which cannot be eased. Writing `center` over a `visibleRegion` already assigned is
-safe only because nothing here resizes — `whereabouts.box` is a fixed cell — so a map that
-started changing size would have to clear it.
+**`zoomTarget` is what makes the zoom safe to ease.** `map.zoomLevel` read back mid-ease is
+wherever the animation has reached, so a key that added to *it* would give less than three levels
+for three quick presses. The target accumulates and the map follows it — and it is clamped
+against the plugin's `minimumZoomLevel`/`maximumZoomLevel`, because Qt clamps the *level* but not
+the target: ten presses past the maximum are otherwise ten presses of nothing on the way back.
+
+**`followZoom` is a zoom level where `minimumSpan` is a span**: a span reaches the map only
+through `visibleRegion`, one assignment moving centre and zoom together, which cannot be eased.
+Writing `center` over a `visibleRegion` already assigned is safe only because nothing here
+resizes — `whereabouts.box` is a fixed cell — so a map that started changing size would have to
+clear it.
 
 **Empty bounds are a real place.** `People.hasBounds` is false when nobody is sharing, and the
 viewport is then left alone. Four zeroes is a coordinate in the Gulf of Guinea; a map framed on
@@ -66,9 +68,26 @@ empty bounds is not blank, it is confidently wrong.
 
 **One person has no bounding box.** So does a household at one address: zero span asks the map
 for infinite zoom. `minimumSpan` floors it at 0.01 degrees, and `fitPadding`'s tenth is applied
-to the floored span rather than to the raw one. `visibleRegion` is assigned from
-`boundsChanged` and not bound, because a binding that leaves the viewport alone when there is
-nobody has to name `visibleRegion` on its own right-hand side.
+to the floored span rather than to the raw one. `visibleRegion` is assigned from `boundsChanged`
+and not bound, because a binding that leaves the viewport alone when there is nobody has to name
+`visibleRegion` on its own right-hand side.
+
+## The tiles ahead of the viewer
+
+`prefetchData()` is the **only** prefetch hook QtLocation gives QML, and nothing else in this
+scene calls it — in QtLocation the gesture area drives it, and this map has neither gestures nor
+a pointer. Both Behaviors call it when they settle.
+
+**`onFinished` and not `onStopped`.** A `Behavior` retargeted mid-flight *stops* its animation
+rather than finishing it, so a fast walk down the list prefetches once, when the motion settles,
+instead of once per key press.
+
+**Which layer it warms is Qt's own heuristic.** `setPrefetchStyle`, which would ask for both
+neighbours, is private API and not on the QML type — so a zoom step that still arrives cold is
+that heuristic warming the layer being left, to be reported rather than worked around with a C++
+subclass linked against private symbols. The fetch itself costs one warm request against the
+tile proxy ([tiles](docs/tiles.md)), and a whole extra layer of real ones against a public
+server ([demo](docs/demo.md)).
 
 ## The list
 

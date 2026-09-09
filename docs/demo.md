@@ -76,6 +76,11 @@ screen for the whole recording. Bringing an MQTT broker container up with one re
 `MapPanel.qml` sets, rather than through the caching proxy [tiles](docs/tiles.md) documents. A
 recording asks for a few hundred tiles of one city, once.
 
+Every pan and zoom that settles also prefetches a neighbouring layer —
+[whereabouts](docs/whereabouts.md) — which on the board is one warm fetch from the proxy and here
+is a whole extra layer of real requests to a public server. Fine for a take; not something to
+leave sitting on the map context zooming.
+
 That trades away the proxy's disk cache, and [map](docs/map.md) is where the consequence is
 written down: a tile whose fetch fails five times is a hole nobody repairs. `F5` on the map
 context is the way back, and it blanks and redraws the whole map — so take the hole out of the
