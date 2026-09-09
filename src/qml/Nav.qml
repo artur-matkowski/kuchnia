@@ -17,16 +17,14 @@ QtObject {
 	// third place is not an error: the element simply keeps its base pose and is never
 	// animated.
 	//
-	// Two of the three screens are two ids each - one screen seen over two forecast spans. The
-	// two differ in nothing but the width of the forecast window, which is why every element
-	// outside that window gives both the same pose: crossing between them must not move a
-	// single box.
+	// The weather screen is two ids - one screen seen over two forecast spans. The two differ
+	// in nothing but the width of the forecast window, which is why every element outside that
+	// window gives both the same pose: crossing between them must not move a single box.
 	//
-	// The weather ids come after the compact ids for a reason: the step between the two
+	// The weather ids come after the compact one for a reason: the step between the two
 	// screens is the one that carries three cards across rather than fading them, and it reads
 	// as a step only if it is a step.
-	readonly property var cycle: ["cameras", "compact-24h", "compact-72h",
-	                              "weather-72h", "weather-7d", "map"]
+	readonly property var cycle: ["cameras", "compact-72h", "weather-72h", "weather-7d", "map"]
 
 	// Every id `goTo` accepts. `settings` and `carousel` are off the ring on purpose: the
 	// carousel is the only way into settings and the only way out of it, and the carousel
@@ -47,10 +45,9 @@ QtObject {
 	property string leaving: nav.cycle[0]
 
 	// The forecast span last asked for, and it is one fact for both screens that carry a
-	// forecast. Leaving the compact screen at 72h and picking the weather card out of the
-	// carousel arrives at `weather-72h`: the miniature that was being looked at is the screen
-	// that opens.
-	property string lastSpan: "24h"
+	// forecast. Visiting the compact screen writes 72h, so a weather card picked out of the
+	// carousel after it opens at `weather-72h` and not at the week it was last left on.
+	property string lastSpan: "72h"
 
 	// How long the machine considers itself in flight. It gates nothing visual - each element
 	// owns its own duration - only the point at which an OFF context may tear its video down.
@@ -65,11 +62,11 @@ QtObject {
 	property Timer settle: Timer { interval: nav.settleMs; repeat: false }
 
 	// The id a card opens on, which is NOT simply the card plus the span last asked for: the
-	// two forecast screens do not carry the same spans - the compact screen has no week and
-	// the weather screen has no day - so `lastSpan` is regularly a span the card being opened
-	// does not have. `goTo` returns on an id that is not in `contexts`, and the visible result
-	// is a confirm key that does nothing and a chooser that will not close, with one line in
-	// the log to say why. Falling back to the card's first span is what keeps it working.
+	// compact screen carries only 72h, so a week left behind by the weather screen reaches
+	// this as `compact-7d`. `goTo` returns on an id that is not in `contexts`, and the visible
+	// result is a confirm key that does nothing and a chooser that will not close, with one
+	// line in the log to say why. Falling back to the card's first span is what keeps it
+	// working.
 	function spanId(card) {
 		var wanted = card + "-" + nav.lastSpan
 		if (nav.contexts.indexOf(wanted) >= 0)

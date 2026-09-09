@@ -8,12 +8,12 @@ A QML application on a Raspberry Pi 4, drawn by Qt Quick fullscreen in the board
 session. The weight sits in what it shows and what it does, not in a rendering architecture:
 that is `drm-hmi` next door, and a problem here wanting a renderer seam belongs there.
 
-The scene is a dashboard of the house across six contexts the two context keys cycle
+The scene is a dashboard of the house across five contexts the two context keys cycle
 between: five RTSP cameras beside a clock and the hot water tank on one; the gate's state and
 its controls, the tank over the last day, the weather forecast and an internet radio on the
-compact screen; the weather on its own; and a map of everyone sharing a location. Each
-forecast screen is two contexts - one per span it carries - and the two do not carry the same
-pair. The menu key puts all five screens on at once as miniatures to choose between, with a
+compact screen; the weather on its own; and a map of everyone sharing a location. The weather
+screen is two of those contexts, one per forecast span it carries, and the compact screen is
+one. The menu key puts all five screens on at once as miniatures to choose between, with a
 settings screen behind them where every key the panel answers is bound. Behind all of it are
 four clients of the house network - PostgreSQL, two HTTP services and MQTT - each on its own thread,
 reaching the scene through one seam.

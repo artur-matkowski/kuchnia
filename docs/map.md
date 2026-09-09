@@ -105,13 +105,13 @@ moves, so “12 min temu” written once is wrong a minute later with nothing to
 `qml6-module-qtlocation` and `qml6-module-qtpositioning` are QML imports, so `dh_shlibdeps`
 finds neither — [packaging](docs/packaging.md). A missing one does not cost one context:
 `MapScreen` is instantiated by `Main.qml`, so the unresolved import fails the root object and
-`main.cpp` turns it into `exit(1)`. The board restart-loops on a blank screen, and the five
+`main.cpp` turns it into `exit(1)`. The board restart-loops on a blank screen, and the four
 contexts with nothing to do with the map never draw.
 
 **`qt6-location-plugins` is the third, and it says nothing at all.** The QML module ships only
 the import; the `osm` back end is a separate package. Without it `Plugin { name: "osm" }`
 resolves to no provider, `supportedMapTypes` stays **empty forever** — the signal never fires —
-and `activeMapType` is assigned `undefined`. The scene loads, all six contexts cycle, the
+and `activeMapType` is assigned `undefined`. The scene loads, all five contexts cycle, the
 markers are drawn, and there are simply no tiles under them. One `QGeoMapType` warning at
 startup is the whole evidence.
 

@@ -25,7 +25,7 @@ Context {
 	// alike and comes back from all five alike; the States below still name them one at a time,
 	// because a State name is a literal and an element with no State for an id is silently
 	// unanimated - both screens then draw on top of each other.
-	readonly property string away: "compact-24h,compact-72h,weather-72h,weather-7d,settings,map"
+	readonly property string away: "compact-72h,weather-72h,weather-7d,settings,map"
 
 	// Everything inside the margin. Every box on this screen is cut out of it.
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
@@ -93,10 +93,6 @@ Context {
 		states: [
 			State { name: "cameras" },
 			State {
-				name: "compact-24h"
-				PropertyChanges { target: cameraOne; scale: 3.0; opacity: 0 }
-			},
-			State {
 				name: "compact-72h"
 				PropertyChanges { target: cameraOne; scale: 3.0; opacity: 0 }
 			},
@@ -160,10 +156,6 @@ Context {
 
 		states: [
 			State { name: "cameras" },
-			State {
-				name: "compact-24h"
-				PropertyChanges { target: cameraTwo; offsetY: -820; opacity: 0 }
-			},
 			State {
 				name: "compact-72h"
 				PropertyChanges { target: cameraTwo; offsetY: -820; opacity: 0 }
@@ -235,10 +227,6 @@ Context {
 		states: [
 			State { name: "cameras" },
 			State {
-				name: "compact-24h"
-				PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
-			},
-			State {
 				name: "compact-72h"
 				PropertyChanges { target: cameraThree; offsetY: 820; opacity: 0 }
 			},
@@ -309,10 +297,6 @@ Context {
 		states: [
 			State { name: "cameras" },
 			State {
-				name: "compact-24h"
-				PropertyChanges { target: cameraFour; offsetX: -1400; opacity: 0 }
-			},
-			State {
 				name: "compact-72h"
 				PropertyChanges { target: cameraFour; offsetX: -1400; opacity: 0 }
 			},
@@ -382,10 +366,6 @@ Context {
 
 		states: [
 			State { name: "cameras" },
-			State {
-				name: "compact-24h"
-				PropertyChanges { target: cameraFive; offsetX: 1400; opacity: 0 }
-			},
 			State {
 				name: "compact-72h"
 				PropertyChanges { target: cameraFive; offsetX: 1400; opacity: 0 }
@@ -504,10 +484,6 @@ Context {
 
 		states: [
 			State { name: "cameras" },
-			State {
-				name: "compact-24h"
-				PropertyChanges { target: readouts; scale: 0.85; opacity: 0 }
-			},
 			State {
 				name: "compact-72h"
 				PropertyChanges { target: readouts; scale: 0.85; opacity: 0 }

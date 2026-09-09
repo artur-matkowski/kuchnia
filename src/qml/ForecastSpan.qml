@@ -16,8 +16,8 @@ Item {
 	id: span
 
 	// The width of the window. Never bound to Nav.current directly: a binding steps when the
-	// key is pressed, and the whole point of the three spans is that the chart compresses.
-	property real ms: 24 * 3600 * 1000
+	// key is pressed, and the whole point of a span change is that the chart compresses.
+	property real ms: 72 * 3600 * 1000
 
 	// The window is anchored at now and runs forward, so the first thing on a chart is the
 	// next hour and not the small hours of this morning. Date.now() is not a property: bound
@@ -44,33 +44,24 @@ Item {
 
 	state: Nav.current
 
-	// restoreEntryValues is false on all four: leaving for the cameras would otherwise restore
-	// the base 24h, and a week-wide chart would snap shut while it is still flying off screen.
-	// The cameras context therefore names no value of its own - it keeps whatever was showing.
+	// restoreEntryValues is false on all three: leaving for the cameras would otherwise restore
+	// the base, and a week-wide chart would snap shut while it is still flying off screen. The
+	// cameras context therefore names no value of its own - it keeps whatever was showing.
 	states: [
 		State { name: "cameras" },
-		State { name: "compact-24h"; PropertyChanges { target: span; ms: 24 * 3600 * 1000; restoreEntryValues: false } },
 		State { name: "compact-72h"; PropertyChanges { target: span; ms: 72 * 3600 * 1000; restoreEntryValues: false } },
 		State { name: "weather-72h"; PropertyChanges { target: span; ms: 72 * 3600 * 1000; restoreEntryValues: false } },
 		State { name: "weather-7d";  PropertyChanges { target: span; ms: 168 * 3600 * 1000; restoreEntryValues: false } }
 	]
 
-	// The four ordered span pairs, and both of the screens' own. No pair crosses between the
-	// screens because no span does: the compact screen carries 24h and 72h, the weather screen
-	// 72h and 7d, and the step between them moves cards rather than the window.
+	// The two ordered span pairs, and both are the weather screen's. The step between the two
+	// screens needs none: the compact screen carries 72h and the weather screen opens on 72h,
+	// so crossing between them moves cards and leaves the window exactly where it is.
 	//
 	// Nothing here names a pair with the cameras in it either. The chart is off screen or
 	// arriving from off screen, and a window easing open behind an element that is still
 	// flying in is an animation nobody sees.
 	transitions: [
-		Transition {
-			from: "compact-24h"; to: "compact-72h"
-			NumberAnimation { properties: "ms"; duration: 560; easing.type: Easing.OutCubic }
-		},
-		Transition {
-			from: "compact-72h"; to: "compact-24h"
-			NumberAnimation { properties: "ms"; duration: 520; easing.type: Easing.InOutCubic }
-		},
 		Transition {
 			from: "weather-72h"; to: "weather-7d"
 			NumberAnimation { properties: "ms"; duration: 560; easing.type: Easing.OutCubic }

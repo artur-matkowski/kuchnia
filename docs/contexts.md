@@ -22,12 +22,13 @@ The two differ by `settings` and `carousel`, which are off the ring: `next()`/`p
 answer -1 for a context that is not on it and do nothing, which is what makes them inert
 in settings rather than jumping somewhere arbitrary.
 
-Eight ids and five screens, six of the ids on the ring. Two of the screens are two ids each -
-`compact-24h`/`compact-72h` and `weather-72h`/`weather-7d` are one screen seen over two forecast
-spans, which is why `Context.contextIds` is a list. Every element outside the weather charts
-gives both ids of its screen the same pose, and that is the requirement rather than a shortcut:
-crossing between the spans must not move a box by a pixel, so the only thing animated in those
-four pairs is the width of the chart window.
+Seven ids and five screens, five of the ids on the ring. One of the screens is two ids -
+`weather-72h`/`weather-7d` is one screen seen over two forecast spans, which is why
+`Context.contextIds` is a list. Every element outside the weather charts gives both ids the
+same pose, and that is the requirement rather than a shortcut: crossing between the spans must
+not move a box by a pixel, so the only thing animated in that pair is the width of the chart
+window. The compact screen keeps a span in its id - `compact-72h` - because that is where
+`ForecastSpan` reads the width of its window from.
 
 Every context is instantiated once, at startup, and stays instantiated. That is not a
 performance choice - a transition animates elements of both screens at the same time, so
@@ -39,10 +40,10 @@ On the element, never centrally. `SceneElement` carries no animation of its own;
 declares one `State` per context id and one `Transition` per **ordered** pair. Two
 consequences, and both are the point:
 
-* `cameras -> compact-24h` and the way back are separate entries and are free to look
+* `cameras -> compact-72h` and the way back are separate entries and are free to look
   nothing alike. A `Transition` with `from` and `to` is not reversible.
 * A pair that treats several ids alike names them on one side -
-  `to: "compact-24h,compact-72h"` - which is still every ordered pair, written
+  `to: "weather-72h,weather-7d"` - which is still every ordered pair, written
   once. Each screen keeps that list in one property so the ids are spelled once per file.
 * Within one pair every element has its own duration, easing and `PauseAnimation` delay, so
   the outgoing and incoming screens overlap and stagger rather than moving as two blocks.
@@ -70,14 +71,13 @@ neither snaps nor queues.
   sessions up for the length of an animation they take no part in - off screen, unseen, once
   per key press. `Nav.leaving` is what the screen tests itself against.
 * **A `PropertyChanges` that must survive leaving its state needs `restoreEntryValues:
-  false`.** The forecast span is one: restored, a week-wide chart snaps back to a day while
-  it is still flying off the screen.
-* **The two forecast screens do not carry the same spans** - the compact screen has no week
-  and the weather screen has no day - so `Nav.lastSpan` alone is not a valid id. A card opened
-  on `card + "-" + lastSpan` reaches `goTo` with an id that is not in `contexts`, and what that
-  looks like is a `down` key that does nothing and a chooser that will not close. `Nav.spanId`
-  falls back to the card's first span, and is the whole of what stands between that and an
-  application that appears to have frozen.
+  false`.** The forecast span is one: restored, a week-wide chart snaps back to the base
+  window while it is still flying off the screen.
+* **The compact screen carries one span and the weather screen two**, so `Nav.lastSpan` alone
+  is not a valid id: a week left behind by the weather screen opens the compact card on
+  `compact-7d`, which is not in `contexts`, and what that looks like is a `down` key that does
+  nothing and a chooser that will not close. `Nav.spanId` falls back to the card's first span,
+  and is the whole of what stands between that and an application that appears to have frozen.
 
 ## The ids are one fact in three places
 

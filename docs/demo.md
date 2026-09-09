@@ -90,9 +90,9 @@ Capture the window rather than a region and there is nothing to scale afterwards
 |---|---|---|
 | 1 | | five tiles playing under green `live` badges, the clock and the tank beside them |
 | 2 | `2`, `0` | tile two fills the screen, then the grid comes back |
-| 3 | `→` | the compact screen: the tank's 24 h line, the forecast, the radio, the failed gate |
+| 3 | `→` | the compact screen: the tank's 24 h line, the 72 h forecast, the radio, the failed gate |
 | 4 | `P` | the radio card goes `connecting`, then `live` under a station name; the title line stays empty because Qt hands over none — [radio](docs/radio.md) |
-| 5 | `→` `→` | the two forecast contexts, 72 h and 7 d, banded by Warsaw's sunrise and sunset |
+| 5 | `→` `→` | the weather screen's two contexts, 72 h and 7 d, banded by Warsaw's sunrise and sunset |
 | 6 | `→` | the map: six markers across the city, one amber, two labels stacked at one address |
 | 7 | `Space` | the carousel, all five screens as miniatures |
 | 8 | `←` `→` `Return` | step along the strip and pick one. `Return` is the only way out — [input](docs/input.md) |

@@ -15,7 +15,7 @@ Context {
 	// Every id that is not this screen. `carousel` is deliberately absent from it and present
 	// in contextIds: a screen that treats the chooser as somewhere else animates itself out
 	// from under its own miniature.
-	readonly property string away: "cameras,compact-24h,compact-72h,weather-72h,weather-7d,settings"
+	readonly property string away: "cameras,compact-72h,weather-72h,weather-7d,settings"
 
 	// Everything inside the margin - identical in all five screens, so a card that moves
 	// between two of them lands where the arithmetic already put it.
@@ -30,7 +30,6 @@ Context {
 
 		states: [
 			State { name: "cameras"; PropertyChanges { target: whereabouts; offsetY: 820; opacity: 0 } },
-			State { name: "compact-24h"; PropertyChanges { target: whereabouts; offsetY: 820; opacity: 0 } },
 			State { name: "compact-72h"; PropertyChanges { target: whereabouts; offsetY: 820; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: whereabouts; offsetY: 820; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: whereabouts; offsetY: 820; opacity: 0 } },

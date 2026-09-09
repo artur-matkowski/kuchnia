@@ -20,7 +20,7 @@ CardFrame {
 	property var compactBoxes: null
 	property var weatherBoxes: null
 
-	readonly property string spans: "compact-24h,compact-72h"
+	readonly property string compact: "compact-72h"
 	readonly property string weather: "weather-72h,weather-7d"
 
 	// The three contexts these cards are not on at all. Settings and the map both leave them
@@ -55,7 +55,6 @@ CardFrame {
 				name: "cameras"
 				PropertyChanges { target: temperature; offsetX: -1400; opacity: 0 }
 			},
-			State { name: "compact-24h" },
 			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
@@ -89,11 +88,11 @@ CardFrame {
 			// travelling as a block. No opacity in either direction - a card that blinks here
 			// is the exact thing this layer exists to prevent.
 			Transition {
-				from: layer.spans; to: layer.weather
+				from: layer.compact; to: layer.weather
 				PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.InOutCubic }
 			},
 			Transition {
-				from: layer.weather; to: layer.spans
+				from: layer.weather; to: layer.compact
 				SequentialAnimation {
 					PauseAnimation { duration: 120 }
 					PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.InOutCubic }
@@ -103,7 +102,7 @@ CardFrame {
 			// cameras context names none of its own: leaving the weather screen for it would
 			// otherwise snap the card back into its compact box before it had faded.
 			Transition {
-				from: layer.offIds; to: layer.spans + "," + layer.weather
+				from: layer.offIds; to: layer.compact + "," + layer.weather
 				SequentialAnimation {
 					PauseAnimation { duration: 200 }
 					ParallelAnimation {
@@ -113,7 +112,7 @@ CardFrame {
 				}
 			},
 			Transition {
-				from: layer.spans + "," + layer.weather; to: layer.offIds
+				from: layer.compact + "," + layer.weather; to: layer.offIds
 				ParallelAnimation {
 					PropertyAnimation { properties: "box"; duration: 380; easing.type: Easing.InCubic }
 					NumberAnimation { properties: "offsetX,opacity"; duration: 380; easing.type: Easing.InCubic }
@@ -157,7 +156,6 @@ CardFrame {
 				name: "cameras"
 				PropertyChanges { target: temperatureChart; offsetX: -1400; opacity: 0 }
 			},
-			State { name: "compact-24h" },
 			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
@@ -187,21 +185,21 @@ CardFrame {
 
 		transitions: [
 			Transition {
-				from: layer.spans; to: layer.weather
+				from: layer.compact; to: layer.weather
 				SequentialAnimation {
 					PauseAnimation { duration: 60 }
 					PropertyAnimation { properties: "box"; duration: 560; easing.type: Easing.InOutCubic }
 				}
 			},
 			Transition {
-				from: layer.weather; to: layer.spans
+				from: layer.weather; to: layer.compact
 				SequentialAnimation {
 					PauseAnimation { duration: 60 }
 					PropertyAnimation { properties: "box"; duration: 540; easing.type: Easing.InOutCubic }
 				}
 			},
 			Transition {
-				from: layer.offIds; to: layer.spans + "," + layer.weather
+				from: layer.offIds; to: layer.compact + "," + layer.weather
 				SequentialAnimation {
 					PauseAnimation { duration: 260 }
 					ParallelAnimation {
@@ -211,7 +209,7 @@ CardFrame {
 				}
 			},
 			Transition {
-				from: layer.spans + "," + layer.weather; to: layer.offIds
+				from: layer.compact + "," + layer.weather; to: layer.offIds
 				ParallelAnimation {
 					PropertyAnimation { properties: "box"; duration: 360; easing.type: Easing.InCubic }
 					NumberAnimation { properties: "offsetX,opacity"; duration: 360; easing.type: Easing.InCubic }
@@ -255,7 +253,6 @@ CardFrame {
 				name: "cameras"
 				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
 			},
-			State { name: "compact-24h" },
 			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
@@ -285,18 +282,18 @@ CardFrame {
 
 		transitions: [
 			Transition {
-				from: layer.spans; to: layer.weather
+				from: layer.compact; to: layer.weather
 				SequentialAnimation {
 					PauseAnimation { duration: 120 }
 					PropertyAnimation { properties: "box"; duration: 600; easing.type: Easing.InOutCubic }
 				}
 			},
 			Transition {
-				from: layer.weather; to: layer.spans
+				from: layer.weather; to: layer.compact
 				PropertyAnimation { properties: "box"; duration: 560; easing.type: Easing.InOutCubic }
 			},
 			Transition {
-				from: layer.offIds; to: layer.spans + "," + layer.weather
+				from: layer.offIds; to: layer.compact + "," + layer.weather
 				SequentialAnimation {
 					PauseAnimation { duration: 320 }
 					ParallelAnimation {
@@ -306,7 +303,7 @@ CardFrame {
 				}
 			},
 			Transition {
-				from: layer.spans + "," + layer.weather; to: layer.offIds
+				from: layer.compact + "," + layer.weather; to: layer.offIds
 				ParallelAnimation {
 					PropertyAnimation { properties: "box"; duration: 340; easing.type: Easing.InCubic }
 					NumberAnimation { properties: "offsetX,opacity"; duration: 340; easing.type: Easing.InCubic }

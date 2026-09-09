@@ -129,7 +129,6 @@ Context {
 		states: [
 			State { name: "cameras"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
 			State { name: "map"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
-			State { name: "compact-24h"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
 			State { name: "compact-72h"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: heading; offsetX: -900; opacity: 0 } },
@@ -167,7 +166,6 @@ Context {
 		states: [
 			State { name: "cameras"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
 			State { name: "map"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
-			State { name: "compact-24h"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
 			State { name: "compact-72h"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: soundKeys; offsetX: -900; opacity: 0 } },
@@ -203,7 +201,6 @@ Context {
 		states: [
 			State { name: "cameras"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "map"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
-			State { name: "compact-24h"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "compact-72h"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: gateKeys; offsetX: -900; opacity: 0 } },
@@ -242,7 +239,6 @@ Context {
 		states: [
 			State { name: "cameras"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
 			State { name: "map"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
-			State { name: "compact-24h"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
 			State { name: "compact-72h"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: cameraKeys; offsetX: -900; opacity: 0 } },
@@ -280,7 +276,6 @@ Context {
 		states: [
 			State { name: "cameras"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "map"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
-			State { name: "compact-24h"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "compact-72h"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-72h"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },
 			State { name: "weather-7d"; PropertyChanges { target: navKeys; offsetX: -900; opacity: 0 } },

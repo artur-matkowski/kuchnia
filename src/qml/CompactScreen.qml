@@ -5,10 +5,8 @@ import Kuchnia
 // Each panel is its own SceneElement, so the way this screen assembles itself is written
 // panel by panel and does not have to mirror the way the cameras leave.
 //
-// It is two contexts, not one: compact-24h and compact-72h differ in the width of the
-// forecast window and in nothing else. Every element here therefore gives both the same pose,
-// and the only thing that moves between them is the forecast window itself - the boxes must
-// not move by a pixel when the range changes.
+// One context, and its id still carries a span: `compact-72h` is what ForecastSpan reads the
+// width of the forecast window out of, and what ForecastCard titles itself with.
 //
 // The weather column is not built here: this file only says where its three boxes are. What
 // draws in them lives in WeatherLayer, above both screens, so that it can carry itself over to
@@ -16,12 +14,12 @@ import Kuchnia
 Context {
 	id: screen
 
-	contextIds: ["compact-24h", "compact-72h", "carousel"]
+	contextIds: ["compact-72h", "carousel"]
 	card: "compact"
 
-	// The two ids as one Transition side. The States below still name them one at a time - a
-	// State name is a literal - but a pair that treats the two alike says so once.
-	readonly property string spans: "compact-24h,compact-72h"
+	// This screen's own id, so the Transitions below spell it once. The States still name it
+	// one at a time: a State name is a literal and cannot read this.
+	readonly property string here: "compact-72h"
 
 	// Every id that is not this screen. The panels below are off screen in all of them and
 	// leave for the weather context exactly as they leave for the cameras.
@@ -79,7 +77,6 @@ Context {
 				name: "cameras"
 				PropertyChanges { target: gate; offsetY: -820; opacity: 0 }
 			},
-			State { name: "compact-24h" },
 			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
@@ -102,7 +99,7 @@ Context {
 
 		transitions: [
 			Transition {
-				from: screen.away; to: screen.spans
+				from: screen.away; to: screen.here
 				SequentialAnimation {
 					PauseAnimation { duration: 320 }
 					NumberAnimation {
@@ -113,7 +110,7 @@ Context {
 				}
 			},
 			Transition {
-				from: screen.spans; to: screen.away
+				from: screen.here; to: screen.away
 				NumberAnimation {
 					properties: "offsetY,opacity"
 					duration: 340
@@ -136,7 +133,6 @@ Context {
 				name: "cameras"
 				PropertyChanges { target: hotWater; scale: 0.8; opacity: 0 }
 			},
-			State { name: "compact-24h" },
 			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
@@ -159,7 +155,7 @@ Context {
 
 		transitions: [
 			Transition {
-				from: screen.away; to: screen.spans
+				from: screen.away; to: screen.here
 				SequentialAnimation {
 					PauseAnimation { duration: 260 }
 					NumberAnimation {
@@ -170,7 +166,7 @@ Context {
 				}
 			},
 			Transition {
-				from: screen.spans; to: screen.away
+				from: screen.here; to: screen.away
 				NumberAnimation {
 					properties: "scale,opacity"
 					duration: 300
@@ -193,7 +189,6 @@ Context {
 				name: "cameras"
 				PropertyChanges { target: radio; offsetY: 820; opacity: 0 }
 			},
-			State { name: "compact-24h" },
 			State { name: "compact-72h" },
 			State {
 				name: "weather-72h"
@@ -216,7 +211,7 @@ Context {
 
 		transitions: [
 			Transition {
-				from: screen.away; to: screen.spans
+				from: screen.away; to: screen.here
 				SequentialAnimation {
 					PauseAnimation { duration: 380 }
 					NumberAnimation {
@@ -227,7 +222,7 @@ Context {
 				}
 			},
 			Transition {
-				from: screen.spans; to: screen.away
+				from: screen.here; to: screen.away
 				NumberAnimation {
 					properties: "offsetY,opacity"
 					duration: 340
