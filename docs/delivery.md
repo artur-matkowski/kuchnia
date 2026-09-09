@@ -64,12 +64,6 @@ there.
 
 A promotion whose commits name no ticket needs only that line, so a version bump costs nothing.
 
-`chore(release):` is exempt from all of it. CI writes that commit on `main`
-([versioning](docs/versioning.md)), no person authored it and it names no ticket, so a
-`main` -> `testing` sync carrying it would fail refusal 2 with nothing anyone could fix. The
-same subject is in versioner's own ignore list: two files hold that string and neither reads
-the other.
-
 ## What does not announce itself
 
 **Prose springs the keyword.** Gitea reads `close #36` out of a sentence as readily as out of

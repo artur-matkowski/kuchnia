@@ -2,7 +2,6 @@
 
 > Owns: external-overrides/00-policy.conf
 > Owns: .gitea/workflows/commits.yaml
-> Owns: .gitea/workflows/release.yaml
 > See:  docs/delivery.md docs/ci.md docs/packaging.md
 
 The version is folded out of the commit messages by `versioner`, a git submodule at
@@ -10,10 +9,10 @@ The version is folded out of the commit messages by `versioner`, a git submodule
 the policy set here is `external-overrides/00-policy.conf`, and `versioner config` prints what
 is in effect and where each key came from.
 
-`production_branches=main` is the branch that prints a bare `X.Y.Z`. It is one fact in three
-files - that policy, and the branch filters in `.gitea/workflows/deb.yaml` and
-`.gitea/workflows/release.yaml`. Disagree, and a `main` build quietly carries a branch suffix,
-or a `testing` build prints a bare number and outranks the promotion it was waiting for.
+`production_branches=main` is the branch that prints a bare `X.Y.Z`. It is one fact in two
+files - that policy, and the branch filter in `.gitea/workflows/deb.yaml`. Disagree, and a
+`main` build quietly carries a branch suffix, or a `testing` build prints a bare number and
+outranks the promotion it was waiting for.
 
 `refactor`, `perf`, `build` and `revert` are mapped onto a patch beside the shipped `feat`,
 `fix` and breaking: each changes the binary a board runs, and a version that does not change
@@ -47,10 +46,6 @@ upload and answers a version already there by publishing nothing, one below it b
 
 **A native package's version may not contain a hyphen**, so `deb.yaml` maps `-` to `~`. Not
 only legality: `~` sorts below everything, keeping `1.1.0~testing.a1b2c3d` under its `1.1.0`.
-
-`release.yaml` turns a push to `main` into `CHANGELOG.md`, a `chore(release): vX.Y.Z` commit
-and an annotated tag. It needs `RELEASE_TOKEN` with write access **and** a branch protection
-rule that lets it push: that commit is the one thing here arriving outside a pull request.
 
 A desktop build asks the same question ([packaging](docs/packaging.md)), so one made on `main`
 prints a bare release number indistinguishable from a board's.

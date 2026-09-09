@@ -27,12 +27,6 @@ TRAILING = re.compile(r"^[\s.,;:)\]}—–-]+")
 
 NO_TICKET = "No ticket"
 
-# The release commit CI writes on main. It names no ticket and no person authored it, so a
-# main -> testing sync carrying it would fail refusal 2 with nothing anyone could fix. The
-# same subject is in versioner's ignore list, where it is skipped by the fold and the lint -
-# the two lists are one fact in two files (docs/versioning.md).
-RELEASE = re.compile(r"^chore\(release\):")
-
 
 def git(*args):
     return subprocess.run(("git",) + args, capture_output=True, text=True, check=True).stdout
@@ -57,14 +51,14 @@ def commits(base, head):
     """(sha, subject, message) for every commit this pull request adds to base.
 
     --no-merges because a merge commit carries no authored content: it names no ticket and
-    there is nothing to ask of it. A release commit is dropped for the same reason.
+    there is nothing to ask of it.
     """
     shas = git("log", "--no-merges", "--format=%H", f"{base}..{head}").split()
     added = [
         (sha[:7], git("show", "-s", "--format=%s", sha).strip(), git("show", "-s", "--format=%B", sha))
         for sha in shas
     ]
-    return [c for c in added if not RELEASE.match(c[1])]
+    return added
 
 
 def hits(pattern, text):
