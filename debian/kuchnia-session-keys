@@ -1,0 +1,38 @@
+#!/bin/sh
+# Give the three audio keys back to whoever has keyboard focus. labwc binds them to
+# wf-panel-pi and consumes what it matches, so XF86AudioRaiseVolume never reaches this
+# application at all - see docs/session.md.
+#
+# ExecStartPre of kuchnia.service, so it runs in the session account with the compositor
+# already up, and again on every restart of the unit. The unit prefixes it with '-': a panel
+# that will not start is worse than volume keys that do not work, so everything below is a
+# journal line and never a dark screen.
+set -eu
+
+shipped=/usr/share/kuchnia/labwc-rc.xml
+target="${XDG_CONFIG_HOME:-$HOME/.config}/labwc/rc.xml"
+
+# One unit serves the X session beside the labwc one, where none of this applies.
+pgrep -u "$(id -u)" -x labwc >/dev/null 2>&1 || exit 0
+
+# The path taken on every start after the first: nothing is written and labwc is not reloaded.
+if [ -e "$target" ] && cmp -s "$shipped" "$target"; then
+	exit 0
+fi
+
+# Somebody else's file. It is the whole of their compositor configuration, so it is left
+# exactly as it is and the reason the keys stay dead is said out loud rather than merged into.
+if [ -e "$target" ]; then
+	echo "kuchnia: $target is not the file this package ships - leaving it untouched." >&2
+	echo "kuchnia: the volume keys stay with the compositor until it unbinds" >&2
+	echo "kuchnia: XF86AudioRaiseVolume, XF86AudioLowerVolume and XF86AudioMute." >&2
+	exit 0
+fi
+
+# labwc merges this over /etc/xdg/labwc/rc.xml rather than replacing it, because labwc-pi
+# starts the compositor with --merge-config. Started without it, this file would be the only
+# one read and every other keybind on the board would go away with it.
+mkdir -p "$(dirname "$target")"
+cp "$shipped" "$target"
+labwc --reconfigure
+echo "kuchnia: wrote $target - the audio keys now reach the focused window."

@@ -6,6 +6,13 @@ After=graphical-session.target
 
 [Service]
 Type=simple
+
+# Takes the three audio keys back off the compositor, which otherwise consumes them before any
+# client sees them. Prefixed with '-' on purpose: the panel starting matters more than the
+# volume keys, so a failure here is a journal line and not a unit that will not come up. It
+# writes nothing once the file is in place - see docs/session.md.
+ExecStartPre=-/usr/libexec/kuchnia-session-keys
+
 ExecStart=/usr/bin/kuchnia
 Restart=always
 RestartSec=2

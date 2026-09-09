@@ -1,2 +1,4 @@
 debian/kuchnia.desktop etc/xdg/autostart/
 debian/kuchnia-autostart usr/libexec/
+debian/kuchnia-session-keys usr/libexec/
+debian/labwc-rc.xml usr/share/kuchnia/

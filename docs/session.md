@@ -3,7 +3,9 @@
 > Owns: debian/kuchnia.user.service
 > Owns: debian/kuchnia.desktop
 > Owns: debian/kuchnia-autostart
-> See:  docs/packaging.md docs/scene.md docs/media.md docs/volume.md docs/integrations.md
+> Owns: debian/kuchnia-session-keys
+> Owns: debian/labwc-rc.xml
+> See:  docs/packaging.md docs/scene.md docs/media.md docs/volume.md docs/integrations.md docs/input.md
 
 The application is an ordinary client of whatever compositor the board logs into. It picks no
 platform and owns no connector: `QT_QPA_PLATFORM` is deliberately absent from the unit, so
@@ -33,6 +35,29 @@ it cannot write is a start that refuses.
 
 Fullscreen is the application's own request and not compositor configuration — the window is
 [scene](docs/scene.md), the parameter behind it [integrations](docs/integrations.md).
+
+## The keys the compositor eats
+
+`/etc/xdg/labwc/rc.xml` binds `XF86AudioRaiseVolume`, `XF86AudioLowerVolume` and
+`XF86AudioMute` to `wfpanelctl volumepulse`, and a matched labwc keybind is **consumed** — so
+those three reach no client, and a key bound to them in the settings screen is dead with
+nothing anywhere to say why ([input](docs/input.md)). `debian/labwc-rc.xml` takes them back,
+as three empty `<keybind>` elements, which is labwc's idiom for unbinding.
+
+**It augments the system file only because `labwc-pi` execs `labwc -m`.** Without
+`--merge-config` labwc reads the *first* rc.xml it finds and nothing else, and this file would
+then be the whole configuration — every other keybind on the board gone, silently.
+
+**No XML comment may be added to it.** labwc has been reported to ignore an rc.xml that carries
+one, and the file it is merged over holds none either. The failure is the whole file going
+unread, which looks like the keys were never unbound.
+
+`debian/kuchnia-session-keys` places it, from `ExecStartPre` of the unit: there it is already
+the session account, `$HOME` is right without parsing lightdm's autologin setting, and the
+compositor is up to be reloaded. It writes only when the file is absent, and never over one it
+did not write. **`/etc/xdg/labwc/rc.xml` is a conffile of `rpd-wayland-core` and must not be
+edited** — a package that edits it takes a dpkg prompt on every upgrade of that package, and
+loses the edit to whoever answers it.
 
 ## The one thing the unit does set
 
