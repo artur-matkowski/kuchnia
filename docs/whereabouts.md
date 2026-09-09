@@ -40,10 +40,11 @@ One `QGeoMapType` warning at startup is the whole evidence.
 `people-interval-ms`. It is the only place the viewport is decided, and everything it must not
 undo is tested inside it.
 
-**`zoomed` is what makes a zoom key work twice.** Without it `frame()` rewrites the zoom within
-one interval; while it is set the poll moves the centre and leaves the zoom alone. Picking
-another person clears it. `refresh` does not: that key is the tiles and the roster, not where
-the map is looking.
+**`zoomed` is a hold, and it is what makes a zoom key work twice.** Without it `frame()` rewrites
+the zoom within one interval; while it is set the poll moves the centre and leaves the zoom alone.
+A walk from one person to the next keeps it; it lapses `zoomHoldMs` after the last zoom key, when
+`frame()` takes the framing back; and `Wszyscy` drops it at once, since a fit to the bounds cannot
+be honoured while a level is held. `refresh` drops nothing — it is the tiles and the roster.
 
 **`Behavior on center` holds a `CoordinateAnimation`**, because a coordinate is not a number and
 a `NumberAnimation` on one snaps with nothing said anywhere. Both Behaviors are off until
@@ -84,10 +85,9 @@ instead of once per key press.
 
 **Which layer it warms is Qt's own heuristic.** `setPrefetchStyle`, which would ask for both
 neighbours, is private API and not on the QML type — so a zoom step that still arrives cold is
-that heuristic warming the layer being left, to be reported rather than worked around with a C++
-subclass linked against private symbols. The fetch itself costs one warm request against the
-tile proxy ([tiles](docs/tiles.md)), and a whole extra layer of real ones against a public
-server ([demo](docs/demo.md)).
+that heuristic warming the layer being left, and is to be reported rather than worked around. The
+fetch itself costs one warm request against the tile proxy ([tiles](docs/tiles.md)), and a whole
+extra layer of real ones against a public server ([demo](docs/demo.md)).
 
 ## The list
 

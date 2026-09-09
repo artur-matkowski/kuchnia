@@ -46,8 +46,9 @@ Card {
 	// Empty is everyone, which is the `Wszyscy` row at the top of the list.
 	property string followId: ""
 
-	// Their name, resolved in frame() and drawn in the title. It is the only evidence, with the
-	// list shut, that the map is showing one person rather than all of them.
+	// Their name, written by frame() on every one of its paths and drawn in the title. It is the
+	// only evidence, with the list shut, that the map is showing one person rather than all of
+	// them.
 	property string followName: ""
 
 	// Whether the roster list is out.
@@ -56,9 +57,13 @@ Card {
 	// Whether a zoom key has been used. boundsChanged fires on EVERY poll, so a frame() that
 	// always wrote the zoom would take one back within people-interval-ms - a zoom key that
 	// works and then quietly stops having worked. While this is set a poll moves the centre and
-	// leaves the zoom where somebody put it. Picking another person clears it: a new choice of
-	// person is a new choice of framing.
+	// leaves the zoom where somebody put it. It is a hold and not a mode: holdZoom() is its one
+	// writer, and what keeps it and what drops it is docs/whereabouts.md.
 	property bool zoomed: false
+
+	// How long that hold lasts, counted from the last zoom key. Not staleAfterMs, which is the
+	// same number about a different thing.
+	readonly property int zoomHoldMs: 15 * 60 * 1000
 
 	// The zoom the keys are steering toward, which is NOT map.zoomLevel: read back mid-ease that
 	// is wherever the animation has reached, so three quick presses would add less than three
@@ -80,6 +85,18 @@ Card {
 		running: root.visible
 		triggeredOnStart: true    // or the ages are a minute stale every time the map arrives
 		onTriggered: root.now = Date.now()
+	}
+
+	// The hold's lifetime. Deliberately not gated on root.visible, unlike the timer above: a
+	// hold left behind on the way out of the map has to lapse while the context is away, or the
+	// map comes back hours later still parked where a key put it.
+	Timer {
+		id: zoomHold
+		interval: root.zoomHoldMs
+		onTriggered: {
+			root.holdZoom(false)
+			root.frame()          // or nothing takes the framing back until the next poll
+		}
 	}
 
 	Plugin {
@@ -464,7 +481,12 @@ Card {
 
 	function select(row) {
 		root.followId = row < 0 ? "" : People.idAt(row)
-		root.zoomed = false
+
+		// A walk from one person to the next keeps a held zoom - it is the same framing with
+		// another centre. `Wszyscy` drops it, because a fit to the bounds cannot be honoured
+		// while a level is held, and the row would then move nothing at all.
+		if (root.followId.length === 0)
+			root.holdZoom(false)
 
 		if (row < 0)
 			rosterView.positionViewAtBeginning()
@@ -480,13 +502,24 @@ Card {
 	// is asked of the plugin rather than written down here.
 	function zoom(delta) {
 		// From the target while a zoom is already in flight, and from the map itself otherwise:
-		// frame() writes zoomLevel too, and after it the target is stale.
+		// frame() writes zoomLevel too, and after it the target is stale. Read before the hold
+		// is renewed below, which is what makes three quick presses three levels.
 		var from = root.zoomed ? root.zoomTarget : map.zoomLevel
 
-		root.zoomed = true
+		root.holdZoom(true)
 		root.zoomTarget = Math.max(map.minimumZoomLevel,
 		                           Math.min(map.maximumZoomLevel, from + delta))
 		map.zoomLevel = root.zoomTarget
+	}
+
+	// The one writer of the hold, so that `zoomed` and the timer cannot disagree: a set flag
+	// with no timer armed is a zoom the map never takes back.
+	function holdZoom(on) {
+		root.zoomed = on
+		if (on)
+			zoomHold.restart()
+		else
+			zoomHold.stop()
 	}
 
 	// Where the viewport goes, and the only place that decides it. Called once at startup and
@@ -507,9 +540,13 @@ Card {
 			// - and falling through is the frame. Left alone, the viewport stays parked on a
 			// coordinate somebody has left, tracking a marker that is no longer drawn.
 			root.followId = ""
-			root.followName = ""
-			root.zoomed = false
+			root.holdZoom(false)
 		}
+
+		// Nobody is followed below the return above, so the name is cleared here and not in
+		// select(): a path that leaves it strands the last person's name in the title, with
+		// nothing else on screen wrong.
+		root.followName = ""
 
 		if (People.hasBounds && !root.zoomed) {
 			map.visibleRegion = root.regionOf()
