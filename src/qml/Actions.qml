@@ -100,6 +100,19 @@ QtObject {
 					return
 				break
 
+			// The map's own five. Nothing here performs them - the roster list, the follow and
+			// the zoom are all state of the Map in MapPanel.qml - so all this decides is the
+			// context, once, the way `refresh` above decides it. Off the map they do nothing and
+			// announce nothing: a zoom key pressed on the weather screen has nothing to zoom.
+			case "map-people":
+			case "map-previous":
+			case "map-next":
+			case "map-zoom-in":
+			case "map-zoom-out":
+				if (Nav.current !== "map")
+					return
+				break
+
 			default:
 				console.warn("[actions] no such action: " + id)
 				return

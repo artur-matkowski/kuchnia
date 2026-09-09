@@ -1,13 +1,13 @@
 # The map's tiles
 
 > Owns: services/app/tiles.py
-> See:  docs/map.md docs/location.md docs/input.md
+> See:  docs/map.md docs/whereabouts.md docs/location.md docs/input.md
 
 The board reaches one host for the map and not two: `/tiles/{z}/{x}/{y}.png` proxies
 `tile_upstream` and keeps what it fetched. The panel's osm plugin appends `{z}/{x}/{y}.png` to
 `map-tile-url` with no separator of its own, so that setting **ends in a slash**, and it and
-this prefix are one fact written in two repositories — [map](docs/map.md) has what a missing
-slash does.
+this prefix are one fact written in two repositories — [whereabouts](docs/whereabouts.md) has
+what a missing slash does.
 
 The identifying `User-Agent` is not politeness. The OpenStreetMap tile policy rejects a client
 that does not identify itself, and this proxy is the only client that server ever sees: the

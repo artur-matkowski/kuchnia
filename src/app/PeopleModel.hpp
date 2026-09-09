@@ -4,6 +4,7 @@
 #include <QByteArray>
 #include <QHash>
 #include <QString>
+#include <QVariantMap>
 #include <QVector>
 
 #include "integrations/Sinks.hpp"
@@ -47,6 +48,18 @@ public:
 
 	// GUI thread only. AppState is what guarantees that.
 	void set(const std::vector<Person>& people);
+
+	// What the map's roster list asks of the rows, reached from QML through People. A row index
+	// is what the list walks and an id is what the map follows, because a removal shifts every
+	// row below it: an index held across a poll is a different person, silently.
+	QString     idAt(int row) const;
+	int         rowOf(const QString& id) const;
+
+	// {name, latitude, longitude}, and EMPTY when nobody has that id any more. The empty answer
+	// is load-bearing - it is how a followed person who stopped sharing drops the follow rather
+	// than leaving the viewport parked on a coordinate they left. Plain doubles, as the roles
+	// are: a QGeoCoordinate here puts Qt6::Positioning back on the link line.
+	QVariantMap person(const QString& id) const;
 
 private:
 	// Numbers everyone at one address 0, 1, 2 so the delegate can lift each label clear of the

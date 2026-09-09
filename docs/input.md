@@ -3,8 +3,7 @@
 > Owns: src/app/KeyBindings.hpp
 > Owns: src/app/KeyBindings.cpp
 > Owns: src/qml/Actions.qml
-> Owns: src/qml/SettingsScreen.qml
-> See:  docs/contexts.md docs/carousel.md docs/media.md docs/radio.md docs/volume.md docs/state.md docs/map.md
+> See:  docs/contexts.md docs/carousel.md docs/media.md docs/radio.md docs/volume.md docs/state.md docs/map.md docs/settings.md
 
 A USB keyboard is the whole of the input; there is no pointer on the board. Every press
 arrives at one handler in `src/qml/Main.qml`, becomes an action id through `KeyBindings`, and
@@ -49,11 +48,31 @@ screen re-reads the radio playlists ([radio](docs/radio.md)), the map screen dro
 cache and re-polls the roster ([map](docs/map.md)), and on the other four contexts it does
 nothing. Only the map's half is announced, because that tile cache belongs to the `Map` in
 `MapPanel.qml`; the radio's is `Radio` singleton state, done in `run` itself, which then
-**returns before announcing**. `MapPanel`'s handler is unconditional, and correct only because
-nothing else announces this id.
+**returns before announcing**.
 
 It ships bound to **F5**, on the reasoning below that binds the camera keys: it commands no
 hardware and undoes itself.
+
+## The map's five are decided here and performed there
+
+`map-people` opens and shuts the roster list, `map-previous`/`map-next` walk it, and
+`map-zoom-in`/`map-zoom-out` move the zoom. `Actions.run` performs none of them: all of that
+state belongs to the `Map` in `MapPanel.qml`, so `run` only **returns before announcing** off
+the map context, exactly as `refresh` does. That gate is what lets `MapPanel`'s one handler
+switch on the id and test nothing else — these six are announced on the map context and nowhere
+else, and a seventh id announced there would silently reach it too.
+
+They ship **bound**, on the same reasoning as the camera keys: none commands hardware and each
+undoes itself. The defaults are F2 for the list, Up and Down for the walk, and PageUp/PageDown
+for the zoom.
+
+**Not Plus and Minus, which is what a reader reaches for.** The main row's unshifted key arrives
+as `Key_Equal` and only its shifted form as `Key_Plus`, so a `Key_Plus` binding answers the
+keypad and Shift rather than the key with `+` printed on it.
+
+Up and Down are free everywhere but the settings screen, which answers them itself before the
+action lookup — [settings](docs/settings.md). Harmless here, because none of the five does
+anything off the map, but an action bound to either is an action that cannot fire there.
 
 **A panel hears `invoked` only because every context is instantiated at startup and stays
 instantiated** - see [contexts](docs/contexts.md). A panel built when its screen is opened would
@@ -63,6 +82,9 @@ An id is written in `KeyBindings`' table, in `Actions.run`'s switch, and in the 
 its row. `run` warns about an id it does not know and `BindingRow` warns about one the table
 does not have; a table entry that no `case` handles is the silent one - its key is simply a
 key that does nothing.
+
+The table's **order** is load-bearing too: it is the order the settings screen walks its rows,
+and the two are not compared — [settings](docs/settings.md).
 
 The `label` beside it is what the settings screen prints, and it is Polish where the id is
 not: `labels()` decodes the label with `fromUtf8` and the id with `fromLatin1`. Latin-1 on a
@@ -83,30 +105,6 @@ These six ship **bound**, to 1-5 and 0, where the radio's and the gate's ship un
 that fills the screen with a camera commands no hardware and undoes itself. A bindings file
 written before they existed has no entry for them, which is "never touched" and takes the
 default - the rule above is what makes that work.
-
-## The settings screen
-
-The rows are drawn in the order the table lists them and nothing checks that they agree. Drawn
-in another order, the selection appears to jump about the screen as it moves. The four cards
-stand in two columns and the walk is **column-major** - down the left one, then down the right
-- so the table's order is that walk and not a left-to-right reading of the screen.
-
-Up and down walk the rows, and they are the only hardwired keys left in the application. That
-is deliberate: they are not actions because a screen whose rows cannot be reached is a screen
-that cannot be repaired.
-
-An armed row takes every key press until it ends, which is what stops a binding being made out
-of a key that did something on the way in. Three things end it:
-
-* **Escape** unbinds the row and saves it that way. It is therefore the one key no action can
-  hold.
-* **Whatever `confirm` holds** cancels, leaving the row as it was.
-* **Anything else** binds - unless the key is refused, and then the row says why and stays
-  armed, so the next key can simply be tried. Two things are refused: a key another action
-  already holds, and a key the platform has no name for.
-
-Every other action stays live on this screen: a key bound to the gate opens the gate from
-here too. Only an armed row swallows it.
 
 ## Keys that cannot be bound, and keys that never arrive
 

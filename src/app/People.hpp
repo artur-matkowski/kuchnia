@@ -4,6 +4,7 @@
 
 #include <QAbstractListModel>
 #include <QString>
+#include <QVariantMap>
 
 #include "Panel.hpp"
 #include "PeopleModel.hpp"
@@ -54,6 +55,13 @@ public:
 
 	// Only wakes the worker; the poll itself happens on its thread. Nothing here blocks.
 	Q_INVOKABLE void refresh();
+
+	// The roster list's three questions, forwarded to the model. They are here because this is
+	// what is registered as the QML singleton - the model reaches QML only as `model`, and a
+	// method called through that resolves against the base type it is declared as.
+	Q_INVOKABLE QString     idAt(int row) const { return m_model.idAt(row); }
+	Q_INVOKABLE int         rowOf(const QString& id) const { return m_model.rowOf(id); }
+	Q_INVOKABLE QVariantMap person(const QString& id) const { return m_model.person(id); }
 
 signals:
 	void boundsChanged();

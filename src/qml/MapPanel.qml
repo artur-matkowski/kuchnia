@@ -3,24 +3,17 @@ import QtLocation
 import QtPositioning
 import Kuchnia
 
-// The map, and everyone on it.
+// The map, everyone on it, and the list that picks one of them.
 //
-// Three things here are silent when they are wrong, and all three look like a working map:
-//
-// 1. `activeMapType` must be the CustomMap entry. The osm plugin only reaches
-//    osm.mapping.custom.host through that map type; left on the default it draws Qt's own
-//    hardcoded providers instead, so the wrong tiles arrive with no error anywhere.
-//    map-tile-url must also end in a slash - the plugin appends "%z/%x/%y.png" straight
-//    onto it, and without one the zoom level is welded to the host name.
-// 2. The plugin is given no `providersrepository.address` and told the repository is
-//    disabled, so it never calls maps-redirect.qt.io. Enabled, that lookup is an internet
-//    dependency at startup that nothing in this repository declares.
-// 3. `People.hasBounds` gates the viewport. Four zeroes is a real coordinate in the Gulf of
-//    Guinea, and a map framed on empty bounds is not blank - it is confidently wrong.
+// Everything here that is silent when it is wrong looks like a working map: the plugin's four
+// settings, the bounds gate - four zeroes is a real coordinate in the Gulf of Guinea - and what
+// the viewport is not allowed to forget between polls. All of it is docs/whereabouts.md.
 Card {
 	id: root
 
-	title: "Gdzie kto jest"
+	title: root.followName.length > 0
+	     ? "Gdzie kto jest · " + root.followName
+	     : "Gdzie kto jest"
 	status: People.status
 	statusDetail: People.statusDetail
 
@@ -34,10 +27,38 @@ Card {
 	// readable, so the street is drawn at a zoom nobody can place.
 	readonly property real minimumSpan: 0.01   // degrees, roughly a kilometre of latitude
 
+	// Where the viewport is taken when it is following one person. A zoom level and not a span,
+	// because a span has to go through visibleRegion, which is one assignment that moves the
+	// centre and the zoom together and cannot be eased.
+	readonly property real followZoom: 16      // street scale: about three kilometres across
+
 	// Past this a marker turns amber; its age is drawn either way. Nobody is ever dropped for
 	// being stale: somebody disappearing off this map has to mean they stopped sharing, and a
 	// phone that slept for an afternoon looks exactly like one that is standing still.
 	readonly property int staleAfterMs: 15 * 60 * 1000
+
+	// The person the viewport is following, by id and never by row: a removal shifts every row
+	// below it, so an index held across a poll is a different person with nothing to say so.
+	// Empty is everyone, which is the `Wszyscy` row at the top of the list.
+	property string followId: ""
+
+	// Their name, resolved in frame() and drawn in the title. It is the only evidence, with the
+	// list shut, that the map is showing one person rather than all of them.
+	property string followName: ""
+
+	// Whether the roster list is out.
+	property bool listOpen: false
+
+	// Whether a zoom key has been used. boundsChanged fires on EVERY poll, so a frame() that
+	// always wrote the zoom would take one back within people-interval-ms - a zoom key that
+	// works and then quietly stops having worked. While this is set a poll moves the centre and
+	// leaves the zoom where somebody put it. Picking another person clears it: a new choice of
+	// person is a new choice of framing.
+	property bool zoomed: false
+
+	// Whether anything has been framed yet, which is what the pan animation waits for. A Map
+	// starts at 0,0.
+	property bool framed: false
 
 	// Wall-clock, resampled, because "12 min temu" written once is wrong a minute later and
 	// nothing on the row changes to say so - seenAt does not move, only now does. It ticks only
@@ -56,7 +77,7 @@ Card {
 		id: osm
 		name: "osm"
 
-		// Ours, and the only one. See the note above about what happens without these two.
+		// Ours, and the only one. Neither of these is optional - docs/whereabouts.md.
 		PluginParameter { name: "osm.mapping.providersrepository.disabled"; value: true }
 		PluginParameter { name: "osm.mapping.custom.host"; value: People.tileUrl }
 		PluginParameter { name: "osm.useragent"; value: "kuchnia" }
@@ -104,6 +125,14 @@ Card {
 			             " map types - map-tile-url is not being drawn from")
 		}
 
+		// CoordinateAnimation and not NumberAnimation: a coordinate is not a number, and what
+		// that looks like is a pan that snaps with nothing said anywhere. Held off until
+		// something has been framed, or the very first fix is a 420 ms sweep from 0,0.
+		Behavior on center {
+			enabled: root.framed
+			CoordinateAnimation { duration: 420; easing.type: Easing.InOutCubic }
+		}
+
 		// Assigned rather than bound: a binding for visibleRegion has to name visibleRegion
 		// on its own right-hand side to say "leave it alone when there is nobody", and that
 		// is a binding loop. Set from the one signal that means the extent moved.
@@ -114,16 +143,36 @@ Card {
 			function onBoundsChanged() { root.frame() }
 		}
 
-		// The refresh key, answered here rather than in Actions because the tile cache belongs
-		// to this Map. clearData() blanks the whole map for a moment - see docs/map.md.
-		// Unconditional on the context: Actions only announces this id on the map screen.
+		// The map's six keys, answered here rather than in Actions because all of the state
+		// they move belongs to this Map. Actions has already decided the context: every id
+		// below is announced on the map screen and nowhere else - see docs/input.md.
 		Connections {
 			target: Actions
 			function onInvoked(id) {
-				if (id !== "refresh")
-					return
-				map.clearData()
-				People.refresh()
+				switch (id) {
+				case "refresh":
+					// clearData() blanks the whole map for a moment - see docs/map.md. The
+					// viewport is deliberately left alone: this is about the tiles and the
+					// roster, and the list's own `Wszyscy` row is the way back from a framing.
+					map.clearData()
+					People.refresh()
+					break
+				case "map-people":
+					root.listOpen = !root.listOpen
+					break
+				case "map-previous":
+					root.step(-1)
+					break
+				case "map-next":
+					root.step(1)
+					break
+				case "map-zoom-in":
+					root.zoom(1)
+					break
+				case "map-zoom-out":
+					root.zoom(-1)
+					break
+				}
 			}
 		}
 
@@ -219,6 +268,128 @@ Card {
 		}
 	}
 
+	// One entry of the roster list: who, and the same second line the marker carries.
+	component RosterRow: Rectangle {
+		id: entry
+
+		property string who: ""
+		property string detail: ""
+		property bool   selected: false
+		property bool   stale: false
+
+		height: body.height + Theme.gap
+		radius: 4
+		color: entry.selected ? Theme.highlight : "transparent"
+
+		Column {
+			id: body
+			anchors {
+				left: parent.left
+				right: parent.right
+				top: parent.top
+				topMargin: Theme.gap / 2
+				leftMargin: Theme.gap
+				rightMargin: Theme.gap
+			}
+
+			Text {
+				width: body.width
+				text: entry.who
+				color: Theme.text
+				font.pixelSize: Theme.fontBody
+				elide: Text.ElideRight
+			}
+
+			Text {
+				width: body.width
+				text: entry.detail
+				color: entry.stale ? Theme.connecting : Theme.textDim
+				font.pixelSize: Theme.fontLabel
+				elide: Text.ElideRight
+			}
+		}
+	}
+
+	// The roster list, and the clip it slides behind. The clip is not decoration: the carousel
+	// scales this whole screen into a miniature, and a shut list drawn outside the card is drawn
+	// across the card beside it.
+	Item {
+		anchors.fill: map
+		clip: true
+
+		Rectangle {
+			id: panel
+
+			anchors {
+				top: parent.top
+				right: parent.right
+				bottom: parent.bottom
+				margins: Theme.gap
+			}
+			width: Theme.fontBody * 9
+
+			color: Theme.surface
+			border.color: Theme.border
+			border.width: 1
+			radius: 4
+
+			transform: Translate {
+				x: root.listOpen ? 0 : panel.width + Theme.gap * 2
+				Behavior on x {
+					NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+				}
+			}
+
+			// The way back from following anybody, and it is not a row of the model - so it is
+			// drawn above the view rather than as its header, where a long roster would scroll
+			// it out of reach.
+			RosterRow {
+				id: everyone
+				anchors { top: parent.top; left: parent.left; right: parent.right; margins: Theme.gap }
+				who: "Wszyscy"
+				detail: People.count + " na mapie"
+				selected: root.followId.length === 0
+			}
+
+			ListView {
+				id: rosterView
+
+				anchors {
+					top: everyone.bottom
+					left: parent.left
+					right: parent.right
+					bottom: parent.bottom
+					margins: Theme.gap
+					topMargin: Theme.gap / 2
+				}
+
+				// Neither is a default worth taking. Focus here starves the one Keys.onPressed
+				// in Main.qml, exactly as a MapView would; interactive is a flick gesture on a
+				// panel with no pointer to make one, which could only ever leave the list
+				// scrolled somewhere nothing here put it.
+				focus: false
+				interactive: false
+				clip: true
+
+				model: People.model
+				spacing: Theme.gap / 2
+
+				delegate: RosterRow {
+					required property string personId
+					required property string name
+					required property double seenAt
+					required property int battery
+
+					width: ListView.view.width
+					who: name
+					detail: root.detailOf(seenAt, battery)
+					stale: root.now - seenAt > root.staleAfterMs
+					selected: root.followId === personId
+				}
+			}
+		}
+	}
+
 	// The second line under a name: when the fix was taken, and the phone's charge when the
 	// service reported one. A seenAt of 0 asks for no age at all.
 	//
@@ -231,7 +402,7 @@ Card {
 			parts.push(root.ageOf(root.now - seenAt))
 		if (battery >= 0)
 			parts.push(battery + "%")
-		return parts.join(" \u00b7 ")
+		return parts.join(" · ")
 	}
 
 	function ageOf(ms) {
@@ -251,10 +422,64 @@ Card {
 		return days === 1 ? "1 dzień temu" : days + " dni temu"
 	}
 
-	// Frames everyone, or leaves the viewport alone when there is nobody to frame.
+	// Which row the list is standing on, where -1 is `Wszyscy`. The walk wraps through it, so
+	// there is no end of the list to be stuck at and the way back costs no second key.
+	function step(delta) {
+		var at = root.followId.length > 0 ? People.rowOf(root.followId) : -1
+		var next = at + delta
+		if (next < -1)
+			next = People.count - 1
+		if (next >= People.count)
+			next = -1
+		root.select(next)
+	}
+
+	function select(row) {
+		root.followId = row < 0 ? "" : People.idAt(row)
+		root.zoomed = false
+
+		if (row < 0)
+			rosterView.positionViewAtBeginning()
+		else
+			rosterView.positionViewAtIndex(row, ListView.Contain)
+
+		root.frame()
+	}
+
+	// Qt clamps to the plugin's own range, so a key at either end of it does nothing and there
+	// is nothing here to clamp. Deliberately not animated: read back mid-animation, zoomLevel is
+	// wherever the animation has got to, so three quick presses would add less than three levels.
+	function zoom(delta) {
+		root.zoomed = true
+		map.zoomLevel = map.zoomLevel + delta
+	}
+
+	// Where the viewport goes, and the only place that decides it. Called once at startup and
+	// then on every poll, so everything it must not undo is tested here.
 	function frame() {
-		if (People.hasBounds)
+		if (root.followId.length > 0) {
+			var who = People.person(root.followId)
+			if (who.name !== undefined) {
+				root.followName = who.name
+				map.center = QtPositioning.coordinate(who.latitude, who.longitude)
+				if (!root.zoomed)
+					map.zoomLevel = root.followZoom
+				root.framed = true
+				return
+			}
+
+			// They stopped sharing. Written straight rather than through select(), which frames
+			// - and falling through is the frame. Left alone, the viewport stays parked on a
+			// coordinate somebody has left, tracking a marker that is no longer drawn.
+			root.followId = ""
+			root.followName = ""
+			root.zoomed = false
+		}
+
+		if (People.hasBounds && !root.zoomed) {
 			map.visibleRegion = root.regionOf()
+			root.framed = true
+		}
 	}
 
 	// The bounding box, padded, and never narrower than minimumSpan. Built here rather than in

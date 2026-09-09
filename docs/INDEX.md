@@ -8,15 +8,14 @@ A QML application on a Raspberry Pi 4, drawn by Qt Quick fullscreen in the board
 session. The weight sits in what it shows and what it does, not in a rendering architecture:
 that is `drm-hmi` next door, and a problem here wanting a renderer seam belongs there.
 
-The scene is a dashboard of the house across five contexts the two context keys cycle
-between: five RTSP cameras beside a clock and the hot water tank on one; the gate's state and
-its controls, the tank over the last day, the weather forecast and an internet radio on the
-compact screen; the weather on its own; and a map of everyone sharing a location. The weather
-screen is two of those contexts, one per forecast span it carries, and the compact screen is
-one. The menu key puts all five screens on at once as miniatures to choose between, with a
-settings screen behind them where every key the panel answers is bound. Behind all of it are
-four clients of the house network - PostgreSQL, two HTTP services and MQTT - each on its own thread,
-reaching the scene through one seam.
+The scene is a dashboard of the house across five contexts the two context keys cycle between:
+five RTSP cameras beside a clock and the hot water tank on one; the gate's state and its
+controls, the tank over the last day, the weather forecast and an internet radio on the compact
+screen; the weather on its own, over two forecast spans that are a context each; and a map of
+everyone sharing a location, pannable to one of them. The menu key puts all five screens on at
+once as miniatures to choose between, with a settings screen behind them where every key the
+panel answers is bound. Behind all of it are four clients of the house network - PostgreSQL, two
+HTTP services and MQTT - each on its own thread, reaching the scene through one seam.
 
 ## Nodes
 
@@ -26,7 +25,8 @@ reaching the scene through one seam.
 | [state](docs/state.md) | The seam: how a worker thread's data becomes a QML property without corrupting one |
 | [contexts](docs/contexts.md) | The contexts the two context keys cycle, the forecast spans among them, and where an element's animation is written |
 | [carousel](docs/carousel.md) | The chooser on the menu key: whole screens shrunk into a strip, and the copies that must not overlap the originals |
-| [input](docs/input.md) | Every key press: the action it becomes, the file the bindings are kept in, and the row that swallows the keyboard |
+| [input](docs/input.md) | Every key press: the action it becomes, the file the bindings are kept in, and the keys that never arrive |
+| [settings](docs/settings.md) | The screen every key is bound on: the table order that is a walk, and the card that cannot take another row |
 | [scene](docs/scene.md) | The panels, the type scale the board's panel is measured in, and the QML names that are already taken |
 | [charts](docs/charts.md) | One line from a series: what an empty one draws, the grid that must not be a Repeater, and the window a forecast is drawn through |
 | [media](docs/media.md) | The five cameras: the mute that a mixer cannot see, and the dead stream that reports nothing |
@@ -42,7 +42,8 @@ reaching the scene through one seam.
 | [session](docs/session.md) | How the application gets on screen: the target that is never reached, and the variable systemd does not have |
 | [rtsp](docs/rtsp.md) | Whether a tile that will not come up is the stream, the network or Qt: the two tools that tell them apart |
 | [diagnostics](docs/diagnostics.md) | Where the GUI thread was when it stopped answering: the watchdog that reports mid-freeze, and how one is captured |
-| [map](docs/map.md) | The map context: the scrape that must not live here, the only list model in the repository, and the tiles that silently come from elsewhere |
+| [map](docs/map.md) | The map context: the scrape that must not live here, and the only list model in the repository |
+| [whereabouts](docs/whereabouts.md) | The map panel: the plugin settings that fail silently, what a poll may not take back from the viewport, and the list that picks one person |
 | [location](docs/location.md) | The server half: the Google session that cannot live on the panel, the empty roster that means two things, and the browser a person signs in on |
 | [tiles](docs/tiles.md) | The map's tiles: the fetch that fails once and leaves a hole for good, and the expired tile that is better than none |
 | [delivery](docs/delivery.md) | How a ticket closes: the one place a closing keyword may live, and the gate that refuses the rest |

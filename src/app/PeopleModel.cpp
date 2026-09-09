@@ -49,6 +49,35 @@ QHash<int, QByteArray> PeopleModel::roleNames() const
 	};
 }
 
+QString PeopleModel::idAt(int row) const
+{
+	if (row < 0 || row >= m_rows.size())
+		return QString();
+	return m_rows.at(row).id;
+}
+
+int PeopleModel::rowOf(const QString& id) const
+{
+	for (int i = 0; i < m_rows.size(); ++i)
+		if (m_rows.at(i).id == id)
+			return i;
+	return -1;
+}
+
+QVariantMap PeopleModel::person(const QString& id) const
+{
+	const int at = rowOf(id);
+	if (at < 0)
+		return QVariantMap();
+
+	const Row& row = m_rows.at(at);
+	return {
+		{QStringLiteral("name"),      row.name},
+		{QStringLiteral("latitude"),  row.latitude},
+		{QStringLiteral("longitude"), row.longitude},
+	};
+}
+
 void PeopleModel::set(const std::vector<Person>& people)
 {
 	QSet<QString> incoming;

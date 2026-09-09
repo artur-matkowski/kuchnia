@@ -8,12 +8,15 @@
 namespace {
 
 // The whole action set, in the order the settings screen walks it - which is the order that
-// screen draws its rows in, and nothing checks that either. An id is written here and again in
-// the QML that draws its row: a misspelt one is a row with no label that can never be bound.
+// screen draws its rows in, and nothing checks that either. That walk is column-major and the
+// two columns hold a different number of cards, so this table is the left column's three cards
+// top to bottom and then the right column's two: see docs/settings.md. An id is written here
+// and again in the QML that draws its row: a misspelt one is a row with no label that can never
+// be bound.
 //
 // The six panel actions ship unbound on purpose: a key that opens a gate is not something to
-// guess at on someone's behalf. The camera keys, refresh and the two volume keys are
-// bound, because none of them commands any hardware and each undoes itself.
+// guess at on someone's behalf. Everything else is bound, because none of it commands any
+// hardware and each of them undoes itself.
 struct Definition {
 	const char* id;
 	const char* label;
@@ -21,15 +24,32 @@ struct Definition {
 };
 
 const Definition kActions[] = {
+	{"context-previous", "poprzedni widok",   Qt::Key_Left},
+	{"context-next",     "następny widok",    Qt::Key_Right},
+	{"menu",             "menu",              Qt::Key_Space},
+	{"confirm",          "zatwierdź",         Qt::Key_Return},
+	{"refresh",          "odśwież",           Qt::Key_F5},
+
+	// The map's five. PageUp/PageDown and not Plus/Minus, which is what a reader reaches for:
+	// the main row's unshifted key arrives as Key_Equal and only its shifted form as Key_Plus,
+	// so a Key_Plus binding answers the keypad and Shift rather than the key with + printed on
+	// it. Up and Down are free everywhere but the settings screen, which hardwires them - and
+	// none of these five does anything off the map context anyway.
+	{"map-people",       "lista osób",        Qt::Key_F2},
+	{"map-previous",     "poprzednia osoba",  Qt::Key_Up},
+	{"map-next",         "następna osoba",    Qt::Key_Down},
+	{"map-zoom-in",      "przybliż",          Qt::Key_PageUp},
+	{"map-zoom-out",     "oddal",             Qt::Key_PageDown},
+
+	{"gate-open",        "otwórz",            0},
+	{"gate-stop",        "stop",              0},
+	{"gate-close",       "zamknij",           0},
+
 	{"radio-play-stop",  "graj / stop",       0},
 	{"radio-next",       "następna stacja",   0},
 	{"radio-previous",   "poprzednia stacja", 0},
 	{"volume-up",        "głośniej",          Qt::Key_VolumeUp},
 	{"volume-down",      "ciszej",            Qt::Key_VolumeDown},
-
-	{"gate-open",        "otwórz",            0},
-	{"gate-stop",        "stop",              0},
-	{"gate-close",       "zamknij",           0},
 
 	{"camera-1",         "kamera 1",          Qt::Key_1},
 	{"camera-2",         "kamera 2",          Qt::Key_2},
@@ -37,12 +57,6 @@ const Definition kActions[] = {
 	{"camera-4",         "kamera 4",          Qt::Key_4},
 	{"camera-5",         "kamera 5",          Qt::Key_5},
 	{"camera-grid",      "powrót do siatki",  Qt::Key_0},
-
-	{"context-previous", "poprzedni widok",   Qt::Key_Left},
-	{"context-next",     "następny widok",    Qt::Key_Right},
-	{"menu",             "menu",              Qt::Key_Space},
-	{"confirm",          "zatwierdź",         Qt::Key_Return},
-	{"refresh",          "odśwież",           Qt::Key_F5},
 };
 
 const char* const kGroup = "keys/";
