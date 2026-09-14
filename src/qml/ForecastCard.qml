@@ -9,7 +9,7 @@ import Kuchnia
 // homes for one fact - a series or a range changed in one and not the other is two charts
 // that disagree about the same weather.
 ChartCard {
-	title: ForecastSpan.label ? "Prognoza · " + ForecastSpan.label : "Prognoza"
+	title: ForecastSpan.label ? "Temperatura · " + ForecastSpan.label : "Temperatura"
 	series: Weather.temperatureForecast
 	stroke: Theme.cool
 	unit: "°"
