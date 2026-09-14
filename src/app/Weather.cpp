@@ -21,6 +21,9 @@ void Weather::update(const WeatherUpdate& update)
 	m_cloudCoverMidForecast  = ChartSeries::from(update.cloudCoverMidForecast);
 	m_cloudCoverHighForecast = ChartSeries::from(update.cloudCoverHighForecast);
 	m_visibilityForecast     = ChartSeries::from(update.visibilityForecast);
+	m_cloudBaseForecast      = ChartSeries::listFrom(update.cloudBaseForecast);
+	m_cloudTopForecast       = ChartSeries::from(update.cloudTopForecast);
+	m_cloudProfileHours      = ChartSeries::from(update.cloudProfileHours);
 	m_daylight               = DaylightBand::listFrom(update.daylight);
 	emit forecastChanged();
 }

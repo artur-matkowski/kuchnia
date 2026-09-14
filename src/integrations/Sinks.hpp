@@ -65,6 +65,14 @@ struct WeatherUpdate {
 	Series cloudCoverHighForecast;  // percent
 	Series visibilityForecast;      // metres
 
+	// The column over the board, from cover at each pressure level - see Rest.cpp. One base
+	// series per coverage threshold, laxest first, each the lowest level past it; an hour with
+	// no such level has no point. That is a clear sky at the hours cloudProfileHours holds, and
+	// unknown everywhere else.
+	std::vector<Series> cloudBaseForecast;  // km above sea level
+	Series cloudTopForecast;                // km, the highest level past the laxest threshold
+	Series cloudProfileHours;               // levels above the ground; only the time is read
+
 	// Empty when the query did not ask for the daily block: the charts then draw no bands,
 	// which is the same silent omission every other field here has.
 	std::vector<Daylight> daylight;

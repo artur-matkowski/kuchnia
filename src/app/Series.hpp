@@ -33,6 +33,7 @@ public:
 	double       yMax = 0.0;
 
 	static ChartSeries from(const Series& samples);
+	static QVariantList listFrom(const std::vector<Series>& series);
 };
 
 // One daylight band on its way into QML, in the same milliseconds ChartSeries uses so a

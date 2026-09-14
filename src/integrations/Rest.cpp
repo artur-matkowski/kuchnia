@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <cstdio>
 #include <ctime>
+#include <iterator>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -89,16 +91,97 @@ std::vector<Daylight> daylight(const Poco::JSON::Object::Ptr& block)
 	return bands;
 }
 
+// The pressure levels the cloud column is read at, ground up; above 200 hPa there is no cloud
+// over the board. Each is two hourly fields, asked for and read from this one table.
+constexpr int kCloudLevels[] = {1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200};
+
+// ICM's coverage thresholds for a cloud base, in octas, laxest first. The legend in
+// CloudLayersCard.qml and Theme.cloudBase follow this order and length - see docs/rest.md.
+constexpr double kCloudBaseOktas[] = {0.1, 2.5, 4.5, 6.5, 7.9};
+
+std::string levelKey(const char* quantity, int level)
+{
+	return quantity + std::to_string(level) + "hPa";
+}
+
+// The column over the board, hour by hour: for each threshold the lowest level whose cover
+// passes it, the highest level past the laxest one, and every hour the column was whole.
+// Read by index, never through hourly(): that skips nulls, and one level shortened by a null
+// would pair every later hour with another hour's cover - see docs/rest.md.
+void cloudProfile(const Poco::JSON::Object::Ptr& block, double elevation, WeatherUpdate& update)
+{
+	update.cloudBaseForecast.assign(std::size(kCloudBaseOktas), Series());
+	if (!block || !block->isArray("time"))
+		return;
+
+	std::vector<std::pair<Poco::JSON::Array::Ptr, Poco::JSON::Array::Ptr>> levels;
+	for (const int level : kCloudLevels) {
+		const std::string cover = levelKey("cloud_cover_", level);
+		const std::string height = levelKey("geopotential_height_", level);
+		if (!block->isArray(cover) || !block->isArray(height))
+			return;
+		levels.emplace_back(block->getArray(cover), block->getArray(height));
+	}
+
+	struct Layer {
+		double cover;  // percent
+		double km;     // above sea level
+	};
+
+	const Poco::JSON::Array::Ptr times = block->getArray("time");
+	for (unsigned at = 0; at < times->size(); ++at) {
+		const double time = epochOf(times->getElement<std::string>(at));
+		if (time <= 0.0)
+			continue;
+
+		// A level at or under the ground - 1000 hPa in a low - holds extrapolated cloud that
+		// would draw as fog, so it is left out of the column rather than failing the hour.
+		std::vector<Layer> column;
+		bool whole = true;
+		for (const auto& [cover, height] : levels) {
+			if (at >= cover->size() || at >= height->size() || cover->isNull(at) ||
+			    height->isNull(at)) {
+				whole = false;
+				break;
+			}
+			const double metres = height->getElement<double>(at);
+			if (metres > elevation)
+				column.push_back({cover->getElement<double>(at), metres / 1000.0});
+		}
+		if (!whole)
+			continue;
+
+		update.cloudProfileHours.push_back({time, static_cast<double>(column.size())});
+		for (std::size_t k = 0; k < std::size(kCloudBaseOktas); ++k) {
+			const auto base = std::find_if(column.begin(), column.end(), [k](const Layer& layer) {
+				return layer.cover > kCloudBaseOktas[k] * 12.5;
+			});
+			if (base != column.end())
+				update.cloudBaseForecast[k].push_back({time, base->km});
+		}
+		const auto top = std::find_if(column.rbegin(), column.rend(), [](const Layer& layer) {
+			return layer.cover > kCloudBaseOktas[0] * 12.5;
+		});
+		if (top != column.rend())
+			update.cloudTopForecast.push_back({time, top->km});
+	}
+}
+
 // The whole query beyond the coordinates, and the only place it is written: parseForecast()
-// below reads exactly these names. A field is added here and there, never in a config file -
-// a config default reaches only a file that does not exist yet. forecast_days is 8 and not 7,
-// and no timezone is ever asked for; docs/rest.md says why for both.
-constexpr const char* kForecastFields =
-	"current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,"
-	"wind_direction_10m,cloud_cover,rain,snowfall"
-	"&hourly=temperature_2m,precipitation_probability,cloud_cover_low,cloud_cover_mid,"
-	"cloud_cover_high,visibility,relative_humidity_2m,rain,snowfall"
-	"&daily=sunrise,sunset&forecast_days=8";
+// and cloudProfile() read exactly these names. A field is added here and there, never in a
+// config file - a config default reaches only a file that does not exist yet. forecast_days
+// is 8 and not 7, and no timezone is ever asked for; docs/rest.md says why for both.
+std::string forecastFields()
+{
+	std::string fields = "temperature_2m,precipitation_probability,cloud_cover_low,cloud_cover_mid,"
+	                     "cloud_cover_high,visibility,relative_humidity_2m,rain,snowfall";
+	for (const int level : kCloudLevels)
+		fields += "," + levelKey("cloud_cover_", level) + "," + levelKey("geopotential_height_", level);
+
+	return "current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,"
+	       "wind_direction_10m,cloud_cover,rain,snowfall&hourly=" + fields +
+	       "&daily=sunrise,sunset&forecast_days=8";
+}
 
 // rest-url with the fields above appended. One that names any of them itself is refused rather
 // than merged: open-meteo unions a repeated parameter, so a stale list in a config file would
@@ -113,7 +196,7 @@ std::string forecastUrl(const std::string& configured)
 			throw std::runtime_error("rest-url carries " + name + "= - the client asks for its "
 			                         "own fields, so leave only latitude and longitude there");
 	}
-	return configured + (configured.find('?') == std::string::npos ? "?" : "&") + kForecastFields;
+	return configured + (configured.find('?') == std::string::npos ? "?" : "&") + forecastFields();
 }
 
 WeatherUpdate parseForecast(const char* topic, const std::string& body)
@@ -146,12 +229,14 @@ WeatherUpdate parseForecast(const char* topic, const std::string& body)
 	update.cloudCoverHighForecast = hourly(block, "cloud_cover_high");
 	update.visibilityForecast     = hourly(block, "visibility");
 	update.daylight               = daylight(root->getObject("daily"));
+	cloudProfile(block, number(root, "elevation"), update);
 
 	LOG_INFO(topic) << "temperature " << update.temperature << " C, humidity "
 	                << update.humidity << " %, code " << update.weatherCode << ", wind "
 	                << update.windSpeed << " km/h from " << update.windDirection << " deg, cloud "
 	                << update.cloudCover << " %, " << update.temperatureForecast.size()
-	                << " forecast point(s), " << update.daylight.size() << " daylight band(s)";
+	                << " forecast point(s), " << update.cloudProfileHours.size()
+	                << " cloud profile hour(s), " << update.daylight.size() << " daylight band(s)";
 	return update;
 }
 

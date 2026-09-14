@@ -27,6 +27,9 @@ class Weather : public Panel {
 	Q_PROPERTY(ChartSeries cloudCoverMidForecast READ cloudCoverMidForecast NOTIFY forecastChanged)
 	Q_PROPERTY(ChartSeries cloudCoverHighForecast READ cloudCoverHighForecast NOTIFY forecastChanged)
 	Q_PROPERTY(ChartSeries visibilityForecast READ visibilityForecast NOTIFY forecastChanged)
+	Q_PROPERTY(QVariantList cloudBaseForecast READ cloudBaseForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries cloudTopForecast READ cloudTopForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries cloudProfileHours READ cloudProfileHours NOTIFY forecastChanged)
 	Q_PROPERTY(QVariantList daylight READ daylight NOTIFY forecastChanged)
 
 public:
@@ -53,6 +56,10 @@ public:
 	ChartSeries cloudCoverMidForecast() const { return m_cloudCoverMidForecast; }
 	ChartSeries cloudCoverHighForecast() const { return m_cloudCoverHighForecast; }
 	ChartSeries visibilityForecast() const { return m_visibilityForecast; }
+	// One ChartSeries per coverage threshold, laxest first; WeatherUpdate says what a point is.
+	QVariantList cloudBaseForecast() const { return m_cloudBaseForecast; }
+	ChartSeries cloudTopForecast() const { return m_cloudTopForecast; }
+	ChartSeries cloudProfileHours() const { return m_cloudProfileHours; }
 	QVariantList daylight() const { return m_daylight; }
 
 	// GUI thread only.
@@ -80,5 +87,8 @@ private:
 	ChartSeries m_cloudCoverMidForecast;
 	ChartSeries m_cloudCoverHighForecast;
 	ChartSeries m_visibilityForecast;
+	QVariantList m_cloudBaseForecast;
+	ChartSeries m_cloudTopForecast;
+	ChartSeries m_cloudProfileHours;
 	QVariantList m_daylight;
 };

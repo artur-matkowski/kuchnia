@@ -4,7 +4,7 @@
 > Owns: src/integrations/Rest.cpp
 > Owns: src/integrations/Http.hpp
 > Owns: src/integrations/Http.cpp
-> See:  docs/integrations.md docs/state.md docs/map.md
+> See:  docs/integrations.md docs/state.md docs/map.md docs/charts.md
 
 A `Service` like the other three — read [integrations](docs/integrations.md) first for the
 thread, the backoff and the settings. What is particular to this one is below.
@@ -33,9 +33,10 @@ board. A `rest-url` naming any of those parameters, or `timezone`, fails the wea
 the parameter in the detail instead of being merged: open-meteo unions a repeated parameter, so
 a stale list would ride along unnoticed. The fix is deleting everything after the longitude.
 
-**open-meteo answers 200 with the fields it was asked for and omits the rest.** A typo in the
-client's list is therefore a valid response with a missing key, not an error — the panel that
-wanted it simply stays empty. Dropping a field there silently removes a chart.
+**A misspelt field fails every weather panel; a dropped one fails nothing.** open-meteo answers
+a name it does not know with a 400, and `http::get` reports the status without open-meteo's
+reason, so the detail names no field. A name left out of the list is a valid response without
+that key, and the panel that wanted it simply stays empty.
 
 Its timestamps carry no zone and the query asks for none, so they are UTC and are parsed
 with `timegm`. `mktime` would read them as local time and slide the whole forecast by this
@@ -52,4 +53,24 @@ The `daily` block is read for `sunrise` and `sunset`, one pair per day, and beco
 charts' day/night bands. A day where either end is null - which is how open-meteo reports a
 sun that does not set - is dropped whole, because half a band is a band that ends in 1970.
 
+## The cloud column
 
+`kCloudLevels` feeds both the query and `cloudProfile()`: each level is a `cloud_cover_<P>hPa`
+and a `geopotential_height_<P>hPa`, asked for and read from the one table.
+
+**The column is read by index, never through `hourly()`.** That skips nulls, and one level
+shortened by a null pairs every later hour with another hour's cover. An hour missing any level
+is dropped from every series, and `cloudProfileHours` is the list of hours that were whole: a
+stretch without a base is a clear sky inside it and unknown outside it, and it is the only
+thing that tells the chart which.
+
+A level at or under the response's `elevation` is below the ground and is skipped. Its cover is
+extrapolated, and at the board 1000 hPa sinks under the ground in a low - kept, it draws as fog.
+
+**`kCloudBaseOktas` is one fact in three places**: its order and length are also the legend in
+`src/qml/CloudLayersCard.qml` and `Theme.cloudBase` in `src/qml/Theme.qml`. Nothing checks that
+they agree, and a threshold without a colour draws white, which reads as overcast.
+
+Cover at a pressure level is open-meteo's estimate from the humidity there, not the model's own
+`cloud_cover_low`/`mid`/`high`, so "Warstwy chmur" and "Zachmurzenie" can disagree about the
+same hour. That is the data, not a bug to reconcile.

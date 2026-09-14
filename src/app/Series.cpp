@@ -23,6 +23,15 @@ ChartSeries ChartSeries::from(const Series& samples)
 	return out;
 }
 
+QVariantList ChartSeries::listFrom(const std::vector<Series>& series)
+{
+	QVariantList out;
+	out.reserve(static_cast<int>(series.size()));
+	for (const Series& samples : series)
+		out.append(QVariant::fromValue(from(samples)));
+	return out;
+}
+
 QVariantList DaylightBand::listFrom(const std::vector<Daylight>& bands)
 {
 	QVariantList out;
