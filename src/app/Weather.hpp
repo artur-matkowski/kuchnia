@@ -20,8 +20,13 @@ class Weather : public Panel {
 	Q_PROPERTY(double snowfall READ snowfall NOTIFY currentChanged)
 	Q_PROPERTY(ChartSeries temperatureForecast READ temperatureForecast NOTIFY forecastChanged)
 	Q_PROPERTY(ChartSeries precipitationForecast READ precipitationForecast NOTIFY forecastChanged)
-	Q_PROPERTY(ChartSeries precipitationAmountForecast READ precipitationAmountForecast NOTIFY forecastChanged)
-	Q_PROPERTY(ChartSeries cloudCoverForecast READ cloudCoverForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries rainForecast READ rainForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries snowForecast READ snowForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries humidityForecast READ humidityForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries cloudCoverLowForecast READ cloudCoverLowForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries cloudCoverMidForecast READ cloudCoverMidForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries cloudCoverHighForecast READ cloudCoverHighForecast NOTIFY forecastChanged)
+	Q_PROPERTY(ChartSeries visibilityForecast READ visibilityForecast NOTIFY forecastChanged)
 	Q_PROPERTY(QVariantList daylight READ daylight NOTIFY forecastChanged)
 
 public:
@@ -39,11 +44,15 @@ public:
 	double      rain() const { return m_rain; }
 	double      snowfall() const { return m_snowfall; }
 	ChartSeries temperatureForecast() const { return m_temperatureForecast; }
-	// Percent probability. Not the same series as the one below, and not in the same unit.
+	// Percent probability. Not the same series as the amounts below, and not in the same unit.
 	ChartSeries precipitationForecast() const { return m_precipitationForecast; }
-	// Millimetres per hour, rain and snow together.
-	ChartSeries precipitationAmountForecast() const { return m_precipitationAmountForecast; }
-	ChartSeries cloudCoverForecast() const { return m_cloudCoverForecast; }
+	ChartSeries rainForecast() const { return m_rainForecast; }
+	ChartSeries snowForecast() const { return m_snowForecast; }
+	ChartSeries humidityForecast() const { return m_humidityForecast; }
+	ChartSeries cloudCoverLowForecast() const { return m_cloudCoverLowForecast; }
+	ChartSeries cloudCoverMidForecast() const { return m_cloudCoverMidForecast; }
+	ChartSeries cloudCoverHighForecast() const { return m_cloudCoverHighForecast; }
+	ChartSeries visibilityForecast() const { return m_visibilityForecast; }
 	QVariantList daylight() const { return m_daylight; }
 
 	// GUI thread only.
@@ -64,7 +73,12 @@ private:
 	double      m_snowfall = 0.0;
 	ChartSeries m_temperatureForecast;
 	ChartSeries m_precipitationForecast;
-	ChartSeries m_precipitationAmountForecast;
-	ChartSeries m_cloudCoverForecast;
+	ChartSeries m_rainForecast;
+	ChartSeries m_snowForecast;
+	ChartSeries m_humidityForecast;
+	ChartSeries m_cloudCoverLowForecast;
+	ChartSeries m_cloudCoverMidForecast;
+	ChartSeries m_cloudCoverHighForecast;
+	ChartSeries m_visibilityForecast;
 	QVariantList m_daylight;
 };

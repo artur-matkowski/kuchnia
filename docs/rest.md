@@ -28,6 +28,11 @@ board has nobody to ask.
 query string is therefore a valid response with a missing key, not an error — the panel that
 wanted it simply stays empty. Dropping a field from `rest-url` silently removes a chart.
 
+The `hourly` block currently asks for `temperature_2m`, `precipitation_probability`,
+`cloud_cover_low`, `cloud_cover_mid`, `cloud_cover_high`, `visibility`, `relative_humidity_2m`,
+`rain` and `snowfall` — nine names, a typo in any one of which is the silent omission above and
+not a build error.
+
 Its timestamps carry no zone and the query asks for none, so they are UTC and are parsed
 with `timegm`. `mktime` would read them as local time and slide the whole forecast by this
 machine's offset: a chart that looks entirely plausible and is drawn hours from where it

@@ -79,7 +79,7 @@ std::vector<ParamInitializer> specs()
 		ParamInitializer(INT,    "db-history-hours", 24,
 			"Width of the hot water history window"),
 
-		// The scene draws current.*, both hourly.* arrays and the daily sunrise/sunset pair.
+		// The scene draws current.*, the hourly.* arrays and the daily sunrise/sunset pair.
 		// Dropping a field from this query does not fail the request - open-meteo simply omits
 		// it, and the panel that wanted it stays empty. A timezone parameter must never be
 		// added here: every timestamp is parsed as UTC - see docs/rest.md.
@@ -88,7 +88,8 @@ std::vector<ParamInitializer> specs()
 			"?latitude=<set-me>&longitude=<set-me>"
 			"&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,"
 			"wind_direction_10m,cloud_cover,rain,snowfall"
-			"&hourly=temperature_2m,precipitation_probability,precipitation,cloud_cover"
+			"&hourly=temperature_2m,precipitation_probability,cloud_cover_low,cloud_cover_mid,"
+			"cloud_cover_high,visibility,relative_humidity_2m,rain,snowfall"
 			"&daily=sunrise,sunset&forecast_days=8",
 			"Absolute URL fetched on every poll; http and https both work. The latitude and "
 			"longitude are the panel's own and must be filled in"),

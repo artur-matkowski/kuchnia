@@ -12,10 +12,15 @@ void Weather::update(const WeatherUpdate& update)
 	m_snowfall      = update.snowfall;
 	emit currentChanged();
 
-	m_temperatureForecast         = ChartSeries::from(update.temperatureForecast);
-	m_precipitationForecast       = ChartSeries::from(update.precipitationForecast);
-	m_precipitationAmountForecast = ChartSeries::from(update.precipitationAmountForecast);
-	m_cloudCoverForecast          = ChartSeries::from(update.cloudCoverForecast);
-	m_daylight                    = DaylightBand::listFrom(update.daylight);
+	m_temperatureForecast    = ChartSeries::from(update.temperatureForecast);
+	m_precipitationForecast  = ChartSeries::from(update.precipitationForecast);
+	m_rainForecast           = ChartSeries::from(update.rainForecast);
+	m_snowForecast           = ChartSeries::from(update.snowForecast);
+	m_humidityForecast       = ChartSeries::from(update.humidityForecast);
+	m_cloudCoverLowForecast  = ChartSeries::from(update.cloudCoverLowForecast);
+	m_cloudCoverMidForecast  = ChartSeries::from(update.cloudCoverMidForecast);
+	m_cloudCoverHighForecast = ChartSeries::from(update.cloudCoverHighForecast);
+	m_visibilityForecast     = ChartSeries::from(update.visibilityForecast);
+	m_daylight               = DaylightBand::listFrom(update.daylight);
 	emit forecastChanged();
 }

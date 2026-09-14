@@ -108,18 +108,22 @@ WeatherUpdate parseForecast(const char* topic, const std::string& body)
 	update.snowfall      = number(current, "snowfall");
 
 	const Poco::JSON::Object::Ptr block = root->getObject("hourly");
-	update.temperatureForecast         = hourly(block, "temperature_2m");
-	update.precipitationForecast       = hourly(block, "precipitation_probability");
-	update.precipitationAmountForecast = hourly(block, "precipitation");
-	update.cloudCoverForecast          = hourly(block, "cloud_cover");
-	update.daylight                    = daylight(root->getObject("daily"));
+	update.temperatureForecast    = hourly(block, "temperature_2m");
+	update.precipitationForecast  = hourly(block, "precipitation_probability");
+	update.rainForecast           = hourly(block, "rain");
+	update.snowForecast           = hourly(block, "snowfall");
+	update.humidityForecast       = hourly(block, "relative_humidity_2m");
+	update.cloudCoverLowForecast  = hourly(block, "cloud_cover_low");
+	update.cloudCoverMidForecast  = hourly(block, "cloud_cover_mid");
+	update.cloudCoverHighForecast = hourly(block, "cloud_cover_high");
+	update.visibilityForecast     = hourly(block, "visibility");
+	update.daylight               = daylight(root->getObject("daily"));
 
 	LOG_INFO(topic) << "temperature " << update.temperature << " C, humidity "
 	                << update.humidity << " %, code " << update.weatherCode << ", wind "
 	                << update.windSpeed << " km/h from " << update.windDirection << " deg, cloud "
 	                << update.cloudCover << " %, " << update.temperatureForecast.size()
-	                << " forecast point(s), " << update.cloudCoverForecast.size()
-	                << " cloud point(s), " << update.daylight.size() << " daylight band(s)";
+	                << " forecast point(s), " << update.daylight.size() << " daylight band(s)";
 	return update;
 }
 

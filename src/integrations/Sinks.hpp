@@ -48,13 +48,22 @@ struct WeatherUpdate {
 
 	Series temperatureForecast;
 
-	// Two precipitation series in two units, and only the names keep them apart: one is the
-	// chance of rain and is pinned to 0-100, the other is how much falls. Charted against the
-	// wrong scale either reads as an entirely plausible forecast of the other thing.
-	Series precipitationForecast;        // percent probability
-	Series precipitationAmountForecast;  // millimetres per hour, rain and snow together
+	// Four series about precipitation and moisture, four different units, and only the names
+	// keep them apart: precipitationForecast is a 0-100 chance of rain; rainForecast and
+	// snowForecast are amounts, in open-meteo's own unit for each; humidityForecast is a
+	// percentage of a different quantity again. Charted against the wrong scale any pair of
+	// these reads as an entirely plausible forecast of the wrong thing.
+	Series precipitationForecast;  // percent probability of rain
+	Series rainForecast;           // millimetres per hour
+	Series snowForecast;           // centimetres per hour
+	Series humidityForecast;       // percent
 
-	Series cloudCoverForecast;  // percent
+	// Split by altitude band rather than one flat percentage. Each is independently empty
+	// when the model has nothing for that layer at that hour - not a zero, an absence.
+	Series cloudCoverLowForecast;   // percent
+	Series cloudCoverMidForecast;   // percent
+	Series cloudCoverHighForecast;  // percent
+	Series visibilityForecast;      // metres
 
 	// Empty when the query did not ask for the daily block: the charts then draw no bands,
 	// which is the same silent omission every other field here has.
