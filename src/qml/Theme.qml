@@ -14,12 +14,16 @@ QtObject {
 	readonly property color hot:        "#ff7a45"
 	readonly property color cool:       "#4ad0ff"
 
-	// The three cloud-altitude bands, low to high. Used by both CloudLayersCard and
-	// CloudCoverCard - the same layer must read as the same colour on each, or the two cards
-	// disagree about what "low cloud" looks like.
+	// CloudCoverCard's three cloud-altitude bands, low to high.
 	readonly property color cloudLow:   "#5c8fd6"
 	readonly property color cloudMid:   "#8fa8c2"
 	readonly property color cloudHigh:  "#c8d3e0"
+
+	// CloudLayersCard's cloud bases, one per coverage threshold in Rest.cpp and in its order -
+	// see docs/rest.md. Dim to bright, the reverse of ICM's, because the ground here is dark.
+	readonly property var   cloudBase:  ["#4d5263", "#6f7689", "#949bad", "#bfc5d3", "#f2f4f8"]
+	readonly property color cloudTop:   "#e0524b"
+	readonly property color visibility: "#ffa133"
 
 	readonly property color rain:       cool
 	readonly property color snow:       "#c9d6e6"

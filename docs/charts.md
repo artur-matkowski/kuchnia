@@ -4,6 +4,7 @@
 > Owns: src/qml/ChartCard.qml
 > Owns: src/qml/OverlayChart.qml
 > Owns: src/qml/DualAxisChart.qml
+> Owns: src/qml/CloudBaseChart.qml
 > See:  docs/scene.md docs/state.md docs/contexts.md docs/rest.md docs/diagnostics.md
 
 One line drawn from a `ChartSeries`, and the card that holds one of the forecast's. The series
@@ -63,6 +64,25 @@ The spike series is still a `Repeater` bound to a count, never to the series' ow
 The count is data-dependent — how many samples fall in the window — but it is still a count,
 and each delegate still works out its own position from `index`: the rule above is about a
 `Repeater`'s `model` never being a list whose *elements* move, not about the count being fixed.
+
+## The cloud chart is dots on a bent axis
+
+`CloudBaseChart` shares the window, the bands and the day grid with the two above. Three things
+about it do not show from outside.
+
+**Both vertical axes go through `_curve`, which puts `mid` at exactly half height**; on a linear
+15 km axis every low cloud sits in the bottom few pixels. Each axis therefore prints three
+labels - top, `mid` and 0 - and nothing between: the plot is about 100 px tall, and a label
+anywhere else on a bent scale names the wrong height.
+
+**`hasVisible` is counted from `hours`, never from the dots.** A base series is empty under a
+clear sky, so counting dots would print `brak danych` over a sunny forecast. Past the last hour
+`hours` holds, a dimmed band says the sky there is unknown - [rest](docs/rest.md) builds it.
+
+**The dot Repeaters count the whole series, not the window.** A `Repeater` handed a new count
+rebuilds every delegate, and the in-window count changes on nearly every frame of a span change;
+counted whole, the delegates only move. The bases are drawn laxest first and the tops beneath
+them, so where two dots meet, the higher coverage shows.
 
 ## The chart's window is what the forecast spans animate
 

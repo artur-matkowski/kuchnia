@@ -118,6 +118,7 @@ set(KUCHNIA_QML
 	src/qml/Cells.qml
 	src/qml/ChartCard.qml
 	src/qml/Clock.qml
+	src/qml/CloudBaseChart.qml
 	src/qml/CloudCoverCard.qml
 	src/qml/CloudLayersCard.qml
 	src/qml/CompactScreen.qml
