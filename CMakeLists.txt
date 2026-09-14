@@ -118,6 +118,8 @@ set(KUCHNIA_QML
 	src/qml/Cells.qml
 	src/qml/ChartCard.qml
 	src/qml/Clock.qml
+	src/qml/CloudCoverCard.qml
+	src/qml/CloudLayersCard.qml
 	src/qml/CompactScreen.qml
 	src/qml/ConditionsCard.qml
 	src/qml/Context.qml
@@ -133,6 +135,7 @@ set(KUCHNIA_QML
 	src/qml/MapScreen.qml
 	src/qml/Nav.qml
 	src/qml/OverlayChart.qml
+	src/qml/PrecipitationCard.qml
 	src/qml/RadioPanel.qml
 	src/qml/RainChanceCard.qml
 	src/qml/SceneElement.qml

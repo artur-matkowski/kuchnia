@@ -15,6 +15,9 @@
 > Owns: src/qml/ConditionsCard.qml
 > Owns: src/qml/ForecastCard.qml
 > Owns: src/qml/RainChanceCard.qml
+> Owns: src/qml/CloudLayersCard.qml
+> Owns: src/qml/CloudCoverCard.qml
+> Owns: src/qml/PrecipitationCard.qml
 > See:  docs/charts.md docs/state.md docs/media.md docs/radio.md docs/app.md docs/contexts.md docs/carousel.md docs/input.md
 
 The panels the screens are assembled from - the clock, the gauge, the charts, the gate and

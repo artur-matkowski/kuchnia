@@ -4,9 +4,10 @@ import Kuchnia
 // The weather on its own, over two forecast spans like the compact screen.
 //
 // One rule decides what goes where: the top row is what the weather is doing NOW, and the
-// four rows under it are what it is going to do. The three cards in WeatherLayer fill two of
-// those slots and are not built here - they arrive from the compact screen carrying the data
-// they were already showing.
+// four rows under it are what it is going to do. Two of WeatherLayer's three cards fill one of
+// those slots and the reading row above it, and are not built here - they arrive from the
+// compact screen carrying the data they were already showing. The third, RainChanceCard, stays
+// off this screen entirely - see WeatherLayer.qml.
 Context {
 	id: screen
 
@@ -45,8 +46,7 @@ Context {
 	// misspelt one is a card that never arrives.
 	readonly property var weatherBoxes: ({
 		temperature: screen.reading(0, 3),
-		temperatureChart: screen.cell(1),
-		rainChance: screen.cell(2)
+		temperatureChart: screen.cell(1)
 	})
 
 	SceneElement {
@@ -132,19 +132,51 @@ Context {
 	}
 
 	SceneElement {
+		id: cloudLayers
+		box: screen.cell(2)
+
+		CloudLayersCard { anchors.fill: parent }
+
+		states: [
+			State { name: "cameras"; PropertyChanges { target: cloudLayers; offsetX: 900; opacity: 0 } },
+			State { name: "compact-72h"; PropertyChanges { target: cloudLayers; offsetX: 900; opacity: 0 } },
+			State { name: "weather-72h" },
+			State { name: "weather-7d" },
+			State { name: "settings"; PropertyChanges { target: cloudLayers; offsetX: 900; opacity: 0 } },
+			State { name: "map"; PropertyChanges { target: cloudLayers; offsetX: 900; opacity: 0 } },
+			State { name: "carousel" }
+		]
+
+		transitions: [
+			Transition {
+				from: screen.away; to: screen.spans
+				SequentialAnimation {
+					PauseAnimation { duration: 240 }
+					NumberAnimation {
+						properties: "offsetX,opacity"
+						duration: 520
+						easing.type: Easing.OutCubic
+					}
+				}
+			},
+			Transition {
+				from: screen.spans; to: screen.away
+				NumberAnimation {
+					properties: "offsetX,opacity"
+					duration: 300
+					easing.type: Easing.InQuad
+				}
+			},
+			CarouselIn {},
+			CarouselOut {}
+		]
+	}
+
+	SceneElement {
 		id: cloud
 		box: screen.cell(3)
 
-		ChartCard {
-			anchors.fill: parent
-			title: "Zachmurzenie"
-			series: Weather.cloudCoverForecast
-			stroke: Theme.textDim
-			unit: "%"
-			decimals: 0
-			fixedLow: 0
-			fixedHigh: 100
-		}
+		CloudCoverCard { anchors.fill: parent }
 
 		states: [
 			State { name: "cameras"; PropertyChanges { target: cloud; offsetX: 900; opacity: 0 } },
@@ -185,20 +217,7 @@ Context {
 		id: fall
 		box: screen.cell(4)
 
-		// Millimetres, and the card two rows above is percent. The two are the weather screen's
-		// one real trap: a chart of how much rain falls and a chart of how likely rain is look
-		// identical and are never the same shape, so the titles and the units on the axis are
-		// what tell them apart.
-		ChartCard {
-			anchors.fill: parent
-			title: "Deszcz i śnieg"
-			series: Weather.precipitationAmountForecast
-			stroke: Theme.cool
-			unit: "mm"
-			decimals: 1
-			fixedLow: 0
-			minimumSpan: 2
-		}
+		PrecipitationCard { anchors.fill: parent }
 
 		states: [
 			State { name: "cameras"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },

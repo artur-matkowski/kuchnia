@@ -1,17 +1,23 @@
 import QtQuick
 import Kuchnia
 
-// The three weather cards that are on two screens at once.
+// Three cards; two of them are on two screens at once.
 //
-// They belong to neither screen, and that is the whole design. The compact screen stacks them
-// in one quarter of itself and the weather screen spreads them down half of it; crossing
-// between the two must not fade them out and build them again, so there is one instance of
-// each, drawn above both screens, animating its own box between the boxes the two screens ask
-// for. A reading the eye is already following is carried across rather than interrupted.
+// `temperature` and `temperatureChart` belong to neither screen, and that is the whole design
+// for those two: the compact screen stacks them in one quarter of itself and the weather
+// screen spreads them down part of it; crossing between the two must not fade them out and
+// build them again, so there is one instance of each, drawn above both screens, animating its
+// own box between the boxes the two screens ask for. A reading the eye is already following is
+// carried across rather than interrupted.
 //
-// Both screens name their boxes `temperature`, `temperatureChart` and `rainChance`. Nothing
-// checks that they do: a screen that spells one differently is a card that stays where it was,
-// with no warning anywhere.
+// `rainChance` is the third card, and lives on the compact screen only - the weather screen
+// has its own cloud and precipitation cards instead, see WeatherScreen.qml. It stays built
+// here, beside the two that do migrate, because the carousel still needs one instance of it.
+//
+// The compact screen names its boxes `temperature`, `temperatureChart` and `rainChance`; the
+// weather screen names only the first two. Nothing checks that either does: a screen that
+// spells one differently, or omits one this file still expects, is a card that stays where it
+// was, with no warning anywhere.
 CardFrame {
 	id: layer
 
@@ -254,13 +260,18 @@ CardFrame {
 				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
 			},
 			State { name: "compact-72h" },
+			// Off screen on the weather context, unlike temperature/temperatureChart above:
+			// "Szansa opadów" is not one of this screen's boxes any more - once rain and snow
+			// amounts are on screen as lines, the probability figure is redundant with what the
+			// amount chart already answers. It stays live on the compact screen and the
+			// carousel; see WeatherScreen.qml's own header comment.
 			State {
 				name: "weather-72h"
-				PropertyChanges { target: rainChance; box: layer.weatherBoxes.rainChance }
+				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
 			},
 			State {
 				name: "weather-7d"
-				PropertyChanges { target: rainChance; box: layer.weatherBoxes.rainChance }
+				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
 			},
 			State {
 				name: "settings"
@@ -270,13 +281,12 @@ CardFrame {
 				name: "map"
 				PropertyChanges { target: rainChance; offsetX: -1400; opacity: 0 }
 			},
+			// No weather-side position exists any more, so the carousel always parks this
+			// card's miniature in the compact screen's slot, even when opened from the weather
+			// screen - unlike temperature/temperatureChart, which still follow anchorCard.
 			State {
 				name: "carousel"
-				PropertyChanges {
-					target: rainChance
-					box: Carousel.anchorCard === "weather"
-						? layer.weatherBoxes.rainChance : layer.compactBoxes.rainChance
-				}
+				PropertyChanges { target: rainChance; box: layer.compactBoxes.rainChance }
 			}
 		]
 

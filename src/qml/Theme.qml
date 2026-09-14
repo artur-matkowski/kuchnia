@@ -14,6 +14,17 @@ QtObject {
 	readonly property color hot:        "#ff7a45"
 	readonly property color cool:       "#4ad0ff"
 
+	// The three cloud-altitude bands, low to high. Used by both CloudLayersCard and
+	// CloudCoverCard - the same layer must read as the same colour on each, or the two cards
+	// disagree about what "low cloud" looks like.
+	readonly property color cloudLow:   "#5c8fd6"
+	readonly property color cloudMid:   "#8fa8c2"
+	readonly property color cloudHigh:  "#c8d3e0"
+
+	readonly property color rain:       cool
+	readonly property color snow:       "#c9d6e6"
+	readonly property color humidity:   accent
+
 	// The selected row of a list, and not the pressed state of a button. Accent at full
 	// strength behind a whole row is a slab from three metres away; this is the same colour at
 	// a fifth of it, so the row is marked rather than inverted.
