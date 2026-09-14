@@ -24,21 +24,25 @@ to an https endpoint whose certificate is verified against the system trust stor
 target needs a CA bundle; the handler rejects rather than prompts, because an unattended
 board has nobody to ask.
 
-**open-meteo answers 200 with the fields it was asked for and omits the rest.** A typo in the
-query string is therefore a valid response with a missing key, not an error — the panel that
-wanted it simply stays empty. Dropping a field from `rest-url` silently removes a chart.
+**`rest-url` is the endpoint and the coordinates; the rest of the query is the client's.**
+`src/integrations/Rest.cpp` appends every `current`, `hourly` and `daily` field it parses, and
+`forecast_days`, beside the code that reads them. A query kept in a config file is one the
+application cannot change: the file is written once, from the defaults of whichever version
+first started, and no later default reaches it — a new chart would draw `brak danych` on every
+board. A `rest-url` naming any of those parameters, or `timezone`, fails the weather panel with
+the parameter in the detail instead of being merged: open-meteo unions a repeated parameter, so
+a stale list would ride along unnoticed. The fix is deleting everything after the longitude.
 
-The `hourly` block currently asks for `temperature_2m`, `precipitation_probability`,
-`cloud_cover_low`, `cloud_cover_mid`, `cloud_cover_high`, `visibility`, `relative_humidity_2m`,
-`rain` and `snowfall` — nine names, a typo in any one of which is the silent omission above and
-not a build error.
+**open-meteo answers 200 with the fields it was asked for and omits the rest.** A typo in the
+client's list is therefore a valid response with a missing key, not an error — the panel that
+wanted it simply stays empty. Dropping a field there silently removes a chart.
 
 Its timestamps carry no zone and the query asks for none, so they are UTC and are parsed
 with `timegm`. `mktime` would read them as local time and slide the whole forecast by this
 machine's offset: a chart that looks entirely plausible and is drawn hours from where it
-belongs. **A `timezone` parameter must never be added to `rest-url`** - it makes open-meteo
-answer in local time in the same zone-less format, which slides everything by the same
-invisible amount from the other direction.
+belongs. **A `timezone` parameter is never asked for, and `rest-url` may not carry one** - it
+makes open-meteo answer in local time in the same zone-less format, which slides everything by
+the same invisible amount from the other direction.
 
 `forecast_days=8` and not 7: the scene's window starts at *now* and runs forward, so a
 seven-day span needs an eighth day to reach into. Shortened, the last hours of the widest

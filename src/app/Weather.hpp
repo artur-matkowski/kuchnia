@@ -5,8 +5,8 @@
 
 // The open-meteo cache: what it is doing now, and the hourly forecast behind it.
 //
-// Any field the rest-url query does not ask for arrives absent rather than as an error, so a
-// zero here can mean "no data" as easily as "zero degrees"; an empty series is the honest
+// Any field the query in Rest.cpp does not ask for arrives absent rather than as an error, so
+// a zero here can mean "no data" as easily as "zero degrees"; an empty series is the honest
 // signal that a field was not requested, and the scene checks it.
 class Weather : public Panel {
 	Q_OBJECT

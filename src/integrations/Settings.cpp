@@ -79,20 +79,15 @@ std::vector<ParamInitializer> specs()
 		ParamInitializer(INT,    "db-history-hours", 24,
 			"Width of the hot water history window"),
 
-		// The scene draws current.*, the hourly.* arrays and the daily sunrise/sunset pair.
-		// Dropping a field from this query does not fail the request - open-meteo simply omits
-		// it, and the panel that wanted it stays empty. A timezone parameter must never be
-		// added here: every timestamp is parsed as UTC - see docs/rest.md.
+		// The endpoint and the panel's coordinates, and nothing else. The fields are the
+		// client's, appended in Rest.cpp: a default written here reaches only a config file that
+		// does not exist yet, so a query kept here would never change on a board that already
+		// has one. A rest-url naming current, hourly, daily, forecast_days or timezone fails the
+		// weather panel - see docs/rest.md.
 		ParamInitializer(STRING, "rest-url",
-			"https://api.open-meteo.com/v1/forecast"
-			"?latitude=<set-me>&longitude=<set-me>"
-			"&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,"
-			"wind_direction_10m,cloud_cover,rain,snowfall"
-			"&hourly=temperature_2m,precipitation_probability,cloud_cover_low,cloud_cover_mid,"
-			"cloud_cover_high,visibility,relative_humidity_2m,rain,snowfall"
-			"&daily=sunrise,sunset&forecast_days=8",
-			"Absolute URL fetched on every poll; http and https both work. The latitude and "
-			"longitude are the panel's own and must be filled in"),
+			"https://api.open-meteo.com/v1/forecast?latitude=<set-me>&longitude=<set-me>",
+			"Forecast endpoint and the panel's latitude and longitude, which must be filled in; "
+			"http and https both work. The fields are the client's and may not be added here"),
 		ParamInitializer(INT,    "rest-interval-ms", 300000,   "Milliseconds between fetches"),
 
 		// The location service, not Google: the scrape that produces this lives on the house network

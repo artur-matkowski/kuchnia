@@ -10,6 +10,7 @@
 #include <Poco/JSON/Array.h>
 #include <Poco/JSON/Object.h>
 #include <Poco/JSON/Parser.h>
+#include <Poco/URI.h>
 
 #include "Http.hpp"
 #include "Log.hpp"
@@ -88,6 +89,33 @@ std::vector<Daylight> daylight(const Poco::JSON::Object::Ptr& block)
 	return bands;
 }
 
+// The whole query beyond the coordinates, and the only place it is written: parseForecast()
+// below reads exactly these names. A field is added here and there, never in a config file -
+// a config default reaches only a file that does not exist yet. forecast_days is 8 and not 7,
+// and no timezone is ever asked for; docs/rest.md says why for both.
+constexpr const char* kForecastFields =
+	"current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,"
+	"wind_direction_10m,cloud_cover,rain,snowfall"
+	"&hourly=temperature_2m,precipitation_probability,cloud_cover_low,cloud_cover_mid,"
+	"cloud_cover_high,visibility,relative_humidity_2m,rain,snowfall"
+	"&daily=sunrise,sunset&forecast_days=8";
+
+// rest-url with the fields above appended. One that names any of them itself is refused rather
+// than merged: open-meteo unions a repeated parameter, so a stale list in a config file would
+// ride along unnoticed, and a timezone would slide every timestamp.
+std::string forecastUrl(const std::string& configured)
+{
+	const Poco::URI uri(configured);
+	for (const auto& parameter : uri.getQueryParameters()) {
+		const std::string& name = parameter.first;
+		if (name == "current" || name == "hourly" || name == "daily" ||
+		    name == "forecast_days" || name == "timezone")
+			throw std::runtime_error("rest-url carries " + name + "= - the client asks for its "
+			                         "own fields, so leave only latitude and longitude there");
+	}
+	return configured + (configured.find('?') == std::string::npos ? "?" : "&") + kForecastFields;
+}
+
 WeatherUpdate parseForecast(const char* topic, const std::string& body)
 {
 	Poco::JSON::Parser parser;
@@ -143,7 +171,7 @@ Rest::~Rest()
 
 void Rest::step()
 {
-	const std::string body = http::get(m_settings.restUrl, "rest-url", topic());
+	const std::string body = http::get(forecastUrl(m_settings.restUrl), "rest-url", topic());
 
 	const WeatherUpdate update = parseForecast(topic(), body);
 	reportHealth(Health::Live);
