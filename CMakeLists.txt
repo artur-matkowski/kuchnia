@@ -121,6 +121,7 @@ set(KUCHNIA_QML
 	src/qml/CompactScreen.qml
 	src/qml/ConditionsCard.qml
 	src/qml/Context.qml
+	src/qml/DualAxisChart.qml
 	src/qml/ForecastCard.qml
 	src/qml/ForecastSpan.qml
 	src/qml/GatePanel.qml
@@ -131,6 +132,7 @@ set(KUCHNIA_QML
 	src/qml/MapPanel.qml
 	src/qml/MapScreen.qml
 	src/qml/Nav.qml
+	src/qml/OverlayChart.qml
 	src/qml/RadioPanel.qml
 	src/qml/RainChanceCard.qml
 	src/qml/SceneElement.qml

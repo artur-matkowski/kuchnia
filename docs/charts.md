@@ -2,6 +2,8 @@
 
 > Owns: src/qml/LineChart.qml
 > Owns: src/qml/ChartCard.qml
+> Owns: src/qml/OverlayChart.qml
+> Owns: src/qml/DualAxisChart.qml
 > See:  docs/scene.md docs/state.md docs/contexts.md docs/rest.md docs/diagnostics.md
 
 One line drawn from a `ChartSeries`, and the card that holds one of the forecast's. The series
@@ -37,6 +39,30 @@ delegate works out its own value from `index`, because a count holds still while
 is a steady line and not sensor noise magnified. `fixedLow`/`fixedHigh` take the range away
 from the data altogether, and neither changes what `hasVisible` means: the point count is
 still taken over the window, so an empty window draws `brak danych` and not an empty frame.
+
+## Two siblings generalize one line into several
+
+`OverlayChart` draws several lines through one shared axis; `DualAxisChart` adds a second,
+independent axis and a spike series. Both stand beside `LineChart`, which stays single-series
+and untouched — re-verifying its hardened logic against a shape none of its four callers need
+was worse than one small file per shape.
+
+Both flatten every series into the same `{xs, ys}` pairs `LineChart`'s `_flat` already uses,
+once per series-list change, and both bracket every series with the same binary search — the
+spike series is counted from that same bracket, not a separate scan.
+
+`hasVisible` is the **max**, not the sum, of each series' in-window point count: one empty
+layer must not blank the other two, and three empty layers must not look "visible" between
+them. `DualAxisChart` splits this into `hasLeftVisible`/`hasRightVisible` for the same reason —
+an axis with nothing on it hides its own labels rather than printing a `0` that reads as real.
+
+**Only the left axis draws horizontal gridlines.** Two grids at two unrelated pixel heights
+read as noise rather than as two axes; the right axis is its own gutter and labels only.
+
+The spike series is still a `Repeater` bound to a count, never to the series' own point list.
+The count is data-dependent — how many samples fall in the window — but it is still a count,
+and each delegate still works out its own position from `index`: the rule above is about a
+`Repeater`'s `model` never being a list whose *elements* move, not about the count being fixed.
 
 ## The chart's window is what the forecast spans animate
 
