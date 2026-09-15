@@ -138,7 +138,6 @@ set(KUCHNIA_QML
 	src/qml/OverlayChart.qml
 	src/qml/PrecipitationCard.qml
 	src/qml/RadioPanel.qml
-	src/qml/RainChanceCard.qml
 	src/qml/SceneElement.qml
 	src/qml/SegmentedBar.qml
 	src/qml/SettingsScreen.qml

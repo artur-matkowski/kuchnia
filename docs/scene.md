@@ -14,7 +14,6 @@
 > Owns: src/qml/WindCard.qml
 > Owns: src/qml/ConditionsCard.qml
 > Owns: src/qml/ForecastCard.qml
-> Owns: src/qml/RainChanceCard.qml
 > Owns: src/qml/CloudLayersCard.qml
 > Owns: src/qml/CloudCoverCard.qml
 > Owns: src/qml/PrecipitationCard.qml

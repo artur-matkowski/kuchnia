@@ -98,8 +98,8 @@ first menu press, from `CarouselWeather`'s copies, and it is why `ForecastSpan` 
 point rather than two reals.
 
 **A `ChartCard` follows the window only while it can be seen.** An invisible item stops
-rendering but not evaluating, and four of the six charts are off screen at any moment - the
-two on whichever forecast screen is not showing, and the carousel's two copies. `visible` is
+rendering but not evaluating, and several charts are off screen at any moment - those on
+whichever forecast screen is not showing, and the carousel's copies. `visible` is
 effective visibility, so the `Binding` releases when the card's `SceneElement` fades out and
 is back on the frame opacity first rises, before the card has been drawn.
 

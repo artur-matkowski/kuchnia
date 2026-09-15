@@ -3,10 +3,6 @@ import QtQuick.Layouts
 import Kuchnia
 
 // A card holding one forecast chart, drawn through the shared window in ForecastSpan.
-//
-// Four of the weather screen's seven cards are this file, two of them arriving from the
-// compact screen as ForecastCard and RainChanceCard. What differs between them is a series, a
-// colour and a range, and none of that is worth a file each.
 Card {
 	id: root
 
@@ -51,11 +47,11 @@ Card {
 		}
 	}
 
-	// The window is bound only while the card can be seen. Four of the scene's six charts are
-	// off screen at any moment - the two on whichever forecast screen is not showing, and the
-	// carousel's two copies - and an invisible item stops rendering but does not stop
-	// evaluating: each of them would remap its series once per frame of a span change for
-	// something nobody is looking at.
+	// The window is bound only while the card can be seen. Several of the scene's charts are
+	// off screen at any moment - those on whichever forecast screen is not showing, and the
+	// carousel's copies - and an invisible item stops rendering but does not stop evaluating:
+	// each of them would remap its series once per frame of a span change for something
+	// nobody is looking at.
 	//
 	// RestoreNone leaves the parked window in place instead of reverting it to zero. The
 	// binding is back on the frame opacity first rises above zero, which is before the card

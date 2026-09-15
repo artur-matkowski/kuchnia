@@ -34,7 +34,7 @@ Context {
 	readonly property rect leftCol:  Cells.box(screen.content, [-1, -1], [-1], 0, 0)
 	readonly property rect rightCol: Cells.box(screen.content, [-1, -1], [-1], 1, 0)
 
-	// The left column: the reading, the forecast, the rain chance and the tank. Row 0 is
+	// The left column: the reading, the forecast, the precipitation and the tank. Row 0 is
 	// Theme.readingRow because the weather screen opens with the same height - the temperature
 	// card crossing between the two screens must move, not resize.
 	function leftCell(row) {
@@ -63,7 +63,7 @@ Context {
 	readonly property var weatherBoxes: ({
 		temperature: screen.leftCell(0),
 		temperatureChart: screen.leftCell(1),
-		rainChance: screen.leftCell(2)
+		precipitation: screen.leftCell(2)
 	})
 
 	SceneElement {

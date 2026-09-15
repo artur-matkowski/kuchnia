@@ -4,10 +4,9 @@ import Kuchnia
 // The weather on its own, over two forecast spans like the compact screen.
 //
 // One rule decides what goes where: the top row is what the weather is doing NOW, and the
-// four rows under it are what it is going to do. Two of WeatherLayer's three cards fill one of
-// those slots and the reading row above it, and are not built here - they arrive from the
-// compact screen carrying the data they were already showing. The third, RainChanceCard, stays
-// off this screen entirely - see WeatherLayer.qml.
+// four rows under it are what it is going to do. WeatherLayer's three cards fill the first
+// reading and the first and last of those rows, and are not built here - they arrive from the
+// compact screen carrying the data they were already showing.
 Context {
 	id: screen
 
@@ -46,7 +45,8 @@ Context {
 	// misspelt one is a card that never arrives.
 	readonly property var weatherBoxes: ({
 		temperature: screen.reading(0, 3),
-		temperatureChart: screen.cell(1)
+		temperatureChart: screen.cell(1),
+		precipitation: screen.cell(4)
 	})
 
 	SceneElement {
@@ -197,47 +197,6 @@ Context {
 						properties: "offsetX,opacity"
 						duration: 520
 						easing.type: Easing.OutCubic
-					}
-				}
-			},
-			Transition {
-				from: screen.spans; to: screen.away
-				NumberAnimation {
-					properties: "offsetX,opacity"
-					duration: 300
-					easing.type: Easing.InQuad
-				}
-			},
-			CarouselIn {},
-			CarouselOut {}
-		]
-	}
-
-	SceneElement {
-		id: fall
-		box: screen.cell(4)
-
-		PrecipitationCard { anchors.fill: parent }
-
-		states: [
-			State { name: "cameras"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
-			State { name: "compact-72h"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
-			State { name: "weather-72h" },
-			State { name: "weather-7d" },
-			State { name: "settings"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
-			State { name: "map"; PropertyChanges { target: fall; offsetX: 900; opacity: 0 } },
-			State { name: "carousel" }
-		]
-
-		transitions: [
-			Transition {
-				from: screen.away; to: screen.spans
-				SequentialAnimation {
-					PauseAnimation { duration: 360 }
-					NumberAnimation {
-						properties: "offsetX,opacity"
-						duration: 520
-						easing.type: Easing.OutBack
 					}
 				}
 			},
