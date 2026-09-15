@@ -64,6 +64,7 @@ The spike series is still a `Repeater` bound to a count, never to the series' ow
 The count is data-dependent — how many samples fall in the window — but it is still a count,
 and each delegate still works out its own position from `index`: the rule above is about a
 `Repeater`'s `model` never being a list whose *elements* move, not about the count being fixed.
+**Declared before the lines, the spikes paint beneath them**; after, they hide the rain line.
 
 ## The cloud chart is dots on a bent axis
 

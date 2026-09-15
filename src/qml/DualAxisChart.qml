@@ -350,27 +350,11 @@ Item {
 			}
 		}
 
-		Repeater {
-			model: root.series.length
-
-			Shape {
-				anchors.fill: parent
-				visible: root.hasVisible && root._kindOf(root.series[index]) === "line"
-				ShapePath {
-					strokeColor: root.series[index].stroke
-					strokeWidth: 3
-					fillColor: "transparent"
-					capStyle: ShapePath.RoundCap
-					joinStyle: ShapePath.RoundJoin
-					PathPolyline { path: root.hasVisible ? root._plotFor(index) : [] }
-				}
-			}
-		}
-
 		// The one spike series, as a Repeater bound to a COUNT - the size of the same bracket a
 		// line series would plot from - and not to the series' live point list: each delegate
 		// works out its own x/height from `index` via a flat-array lookup, so the model only
-		// ever changes in size, never in the identity of what it holds. See docs/charts.md.
+		// ever changes in size, never in the identity of what it holds. Declared before the
+		// lines so they are drawn over the spikes. See docs/charts.md.
 		Repeater {
 			model: root.hasVisible && root._spikeIndex >= 0
 				? root._windows[root._spikeIndex].last - root._windows[root._spikeIndex].first
@@ -389,6 +373,23 @@ Item {
 				height: Math.max(1, Math.round((value - root._spikeRange.low) / ySpan * plot.height))
 				y: plot.height - height
 				color: root.series[root._spikeIndex].stroke
+			}
+		}
+
+		Repeater {
+			model: root.series.length
+
+			Shape {
+				anchors.fill: parent
+				visible: root.hasVisible && root._kindOf(root.series[index]) === "line"
+				ShapePath {
+					strokeColor: root.series[index].stroke
+					strokeWidth: 3
+					fillColor: "transparent"
+					capStyle: ShapePath.RoundCap
+					joinStyle: ShapePath.RoundJoin
+					PathPolyline { path: root.hasVisible ? root._plotFor(index) : [] }
+				}
 			}
 		}
 	}

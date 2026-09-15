@@ -66,6 +66,12 @@ under it, so a single multiplier goes wrong the moment the scale moves:
 Nothing clips. A row too short for what is in it draws over the card beneath it, which reads as
 two panels fighting rather than as a band that is a few pixels out.
 
+## Series differ in lightness
+
+The panel is read by someone colour-blind, so series sharing a chart must differ in lightness,
+not in hue alone. Two blues side by side, or a ramp of blue-greys, read as one line, and nothing
+reports it. Every series colour is in `Theme`, beside the others it is drawn with.
+
 ## The status detail needs a width
 
 `StatusBadge`'s text elides, and elide needs a width. `Card` gives it whatever its title

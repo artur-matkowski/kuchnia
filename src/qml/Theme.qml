@@ -14,10 +14,10 @@ QtObject {
 	readonly property color hot:        "#ff7a45"
 	readonly property color cool:       "#4ad0ff"
 
-	// CloudCoverCard's three cloud-altitude bands, low to high.
-	readonly property color cloudLow:   "#5c8fd6"
-	readonly property color cloudMid:   "#8fa8c2"
-	readonly property color cloudHigh:  "#c8d3e0"
+	// CloudCoverCard's cloud-altitude bands, low to high, told apart by lightness - docs/scene.md.
+	readonly property color cloudLow:   "#3d8bff"
+	readonly property color cloudMid:   "#e0e0e0"
+	readonly property color cloudHigh:  "#6e6e78"
 
 	// CloudLayersCard's cloud bases, one per coverage threshold in Rest.cpp and in its order -
 	// see docs/rest.md. Dim to bright, the reverse of ICM's, because the ground here is dark.
@@ -25,9 +25,10 @@ QtObject {
 	readonly property color cloudTop:   "#e0524b"
 	readonly property color visibility: "#ffa133"
 
+	// PrecipitationCard's series, told apart by lightness as well as hue - docs/scene.md.
 	readonly property color rain:       cool
-	readonly property color snow:       "#c9d6e6"
-	readonly property color humidity:   accent
+	readonly property color snow:       "#ffffff"
+	readonly property color humidity:   "#44ee44"
 
 	// The selected row of a list, and not the pressed state of a button. Accent at full
 	// strength behind a whole row is a slab from three metres away; this is the same colour at
