@@ -13,7 +13,6 @@ void Weather::update(const WeatherUpdate& update)
 	emit currentChanged();
 
 	m_temperatureForecast    = ChartSeries::from(update.temperatureForecast);
-	m_precipitationForecast  = ChartSeries::from(update.precipitationForecast);
 	m_rainForecast           = ChartSeries::from(update.rainForecast);
 	m_snowForecast           = ChartSeries::from(update.snowForecast);
 	m_humidityForecast       = ChartSeries::from(update.humidityForecast);

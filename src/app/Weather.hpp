@@ -19,7 +19,6 @@ class Weather : public Panel {
 	Q_PROPERTY(double rain READ rain NOTIFY currentChanged)
 	Q_PROPERTY(double snowfall READ snowfall NOTIFY currentChanged)
 	Q_PROPERTY(ChartSeries temperatureForecast READ temperatureForecast NOTIFY forecastChanged)
-	Q_PROPERTY(ChartSeries precipitationForecast READ precipitationForecast NOTIFY forecastChanged)
 	Q_PROPERTY(ChartSeries rainForecast READ rainForecast NOTIFY forecastChanged)
 	Q_PROPERTY(ChartSeries snowForecast READ snowForecast NOTIFY forecastChanged)
 	Q_PROPERTY(ChartSeries humidityForecast READ humidityForecast NOTIFY forecastChanged)
@@ -47,8 +46,6 @@ public:
 	double      rain() const { return m_rain; }
 	double      snowfall() const { return m_snowfall; }
 	ChartSeries temperatureForecast() const { return m_temperatureForecast; }
-	// Percent probability. Not the same series as the amounts below, and not in the same unit.
-	ChartSeries precipitationForecast() const { return m_precipitationForecast; }
 	ChartSeries rainForecast() const { return m_rainForecast; }
 	ChartSeries snowForecast() const { return m_snowForecast; }
 	ChartSeries humidityForecast() const { return m_humidityForecast; }
@@ -79,7 +76,6 @@ private:
 	double      m_rain = 0.0;
 	double      m_snowfall = 0.0;
 	ChartSeries m_temperatureForecast;
-	ChartSeries m_precipitationForecast;
 	ChartSeries m_rainForecast;
 	ChartSeries m_snowForecast;
 	ChartSeries m_humidityForecast;

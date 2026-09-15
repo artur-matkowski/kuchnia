@@ -48,12 +48,10 @@ struct WeatherUpdate {
 
 	Series temperatureForecast;
 
-	// Four series about precipitation and moisture, four different units, and only the names
-	// keep them apart: precipitationForecast is a 0-100 chance of rain; rainForecast and
-	// snowForecast are amounts, in open-meteo's own unit for each; humidityForecast is a
-	// percentage of a different quantity again. Charted against the wrong scale any pair of
-	// these reads as an entirely plausible forecast of the wrong thing.
-	Series precipitationForecast;  // percent probability of rain
+	// Three series about precipitation and moisture, three different units, and only the names
+	// keep them apart: rainForecast and snowForecast are amounts, in open-meteo's own unit for
+	// each; humidityForecast is a percentage. Charted against the wrong scale any pair of these
+	// reads as an entirely plausible forecast of the wrong thing.
 	Series rainForecast;           // millimetres per hour
 	Series snowForecast;           // centimetres per hour
 	Series humidityForecast;       // percent

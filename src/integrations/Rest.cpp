@@ -173,8 +173,8 @@ void cloudProfile(const Poco::JSON::Object::Ptr& block, double elevation, Weathe
 // is 8 and not 7, and no timezone is ever asked for; docs/rest.md says why for both.
 std::string forecastFields()
 {
-	std::string fields = "temperature_2m,precipitation_probability,cloud_cover_low,cloud_cover_mid,"
-	                     "cloud_cover_high,visibility,relative_humidity_2m,rain,snowfall";
+	std::string fields = "temperature_2m,cloud_cover_low,cloud_cover_mid,cloud_cover_high,"
+	                     "visibility,relative_humidity_2m,rain,snowfall";
 	for (const int level : kCloudLevels)
 		fields += "," + levelKey("cloud_cover_", level) + "," + levelKey("geopotential_height_", level);
 
@@ -220,7 +220,6 @@ WeatherUpdate parseForecast(const char* topic, const std::string& body)
 
 	const Poco::JSON::Object::Ptr block = root->getObject("hourly");
 	update.temperatureForecast    = hourly(block, "temperature_2m");
-	update.precipitationForecast  = hourly(block, "precipitation_probability");
 	update.rainForecast           = hourly(block, "rain");
 	update.snowForecast           = hourly(block, "snowfall");
 	update.humidityForecast       = hourly(block, "relative_humidity_2m");
