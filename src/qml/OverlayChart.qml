@@ -44,8 +44,7 @@ Item {
 	readonly property real xHigh:
 		root.window.y > root.window.x ? root.window.y : (hasData ? _dataXMax() : 0)
 
-	// One bracket per series - the same bracket a line series plots from is what a spike series
-	// in DualAxisChart.qml counts from, and it is why that file needs no spike-specific logic.
+	// One bracket per series, which the range and every line are taken over.
 	readonly property var _windows: _flat.map(f => _bracket(f.xs))
 
 	readonly property var range: _range()

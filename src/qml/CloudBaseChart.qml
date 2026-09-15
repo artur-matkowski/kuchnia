@@ -54,6 +54,7 @@ Item {
 		hasVisible && _sightWindow.last - _sightWindow.first > 1
 
 	readonly property var _dayGrid: _days()
+	readonly property int _stride: Theme.sampleStride(plot.width * 3600000 / Math.max(1, xHigh - xLow))
 
 	function _flatten(data) {
 		const points = (data !== null && data !== undefined && data.points !== undefined)
@@ -275,15 +276,23 @@ Item {
 			opacity: 0.6
 		}
 
-		// Every dot Repeater counts its whole series, not the window - see docs/charts.md.
+		// Every dot Repeater counts its whole series and thins by `_stride`; `x` is gated on
+		// `visible`, so a thinned-out dot stops following the window - see docs/charts.md.
 		Repeater {
 			model: root.hasVisible ? root._topFlat.xs.length : 0
 
 			Rectangle {
+				readonly property real at: root._topFlat.xs[index]
+				readonly property int hour: new Date(at).getHours()
+
+				opacity: hour % root._stride === 0 ? 1 : 0
+				visible: opacity > 0
+				Behavior on opacity { NumberAnimation { duration: 200 } }
+
 				width: root._dot
 				height: root._dot
 				radius: root._dot / 2
-				x: Math.round(root._xOf(root._topFlat.xs[index]) - width / 2)
+				x: visible ? Math.round(root._xOf(at) - width / 2) : 0
 				y: Math.round(root._yOfKm(root._topFlat.ys[index]) - height / 2)
 				color: root.topColor
 			}
@@ -301,10 +310,17 @@ Item {
 					model: root.hasVisible ? root._baseFlat[threshold.series].xs.length : 0
 
 					Rectangle {
+						readonly property real at: root._baseFlat[threshold.series].xs[index]
+						readonly property int hour: new Date(at).getHours()
+
+						opacity: hour % root._stride === 0 ? 1 : 0
+						visible: opacity > 0
+						Behavior on opacity { NumberAnimation { duration: 200 } }
+
 						width: root._dot
 						height: root._dot
 						radius: root._dot / 2
-						x: Math.round(root._xOf(root._baseFlat[threshold.series].xs[index]) - width / 2)
+						x: visible ? Math.round(root._xOf(at) - width / 2) : 0
 						y: Math.round(root._yOfKm(root._baseFlat[threshold.series].ys[index]) - height / 2)
 						color: root.bases[threshold.series].color
 					}

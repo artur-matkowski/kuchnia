@@ -44,9 +44,7 @@ still taken over the window, so an empty window draws `brak danych` and not an e
 ## Two siblings generalize one line into several
 
 `OverlayChart` draws several lines through one shared axis; `DualAxisChart` adds a second,
-independent axis and a spike series. Both stand beside `LineChart`, which stays single-series
-and untouched — re-verifying its hardened logic against a shape none of its four callers need
-was worse than one small file per shape.
+independent axis and a spike series. Both stand beside `LineChart`, which stays single-series.
 
 Both flatten every series into the same `{xs, ys}` pairs `LineChart`'s `_flat` already uses,
 once per series-list change, and both bracket every series with the same binary search — the
@@ -60,15 +58,11 @@ an axis with nothing on it hides its own labels rather than printing a `0` that 
 **Only the left axis draws horizontal gridlines.** Two grids at two unrelated pixel heights
 read as noise rather than as two axes; the right axis is its own gutter and labels only.
 
-The spike series is still a `Repeater` bound to a count, never to the series' own point list.
-The count is data-dependent — how many samples fall in the window — but it is still a count,
-and each delegate still works out its own position from `index`: the rule above is about a
-`Repeater`'s `model` never being a list whose *elements* move, not about the count being fixed.
 **Declared before the lines, the spikes paint beneath them**; after, they hide the rain line.
 
 ## The cloud chart is dots on a bent axis
 
-`CloudBaseChart` shares the window, the bands and the day grid with the two above. Three things
+`CloudBaseChart` shares the window, the bands and the day grid with the two above. Two things
 about it do not show from outside.
 
 **Both vertical axes go through `_curve`, which puts `mid` at exactly half height**; on a linear
@@ -80,10 +74,18 @@ anywhere else on a bent scale names the wrong height.
 clear sky, so counting dots would print `brak danych` over a sunny forecast. Past the last hour
 `hours` holds, a dimmed band says the sky there is unknown - [rest](docs/rest.md) builds it.
 
-**The dot Repeaters count the whole series, not the window.** A `Repeater` handed a new count
-rebuilds every delegate, and the in-window count changes on nearly every frame of a span change;
-counted whole, the delegates only move. The bases are drawn laxest first and the tops beneath
-them, so where two dots meet, the higher coverage shows.
+The bases are drawn laxest first and the tops beneath them, so where two dots meet, the higher
+coverage shows.
+
+## Marks thin out as the window widens
+
+A spike or cloud dot is kept **while its local hour divides by `_stride`**, the finest step of
+`Theme.sampleStride` leaving `Theme.sampleGap` between two. Steps nest and key on the hour, so
+marks only drop, never shift. Lines are never thinned: a thinned line changes shape mid-span.
+
+**Mark Repeaters count the whole series** - the in-window count is the rebuild above, every frame
+of a span change - **and gate `x` on `visible`**, so a hidden mark stops following the window.
+Any other delegate binding that reads the window or a per-frame `var` costs every mark, silently.
 
 ## The chart's window is what the forecast spans animate
 

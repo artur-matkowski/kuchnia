@@ -39,8 +39,7 @@ Item {
 	readonly property real xHigh:
 		root.window.y > root.window.x ? root.window.y : (hasData ? _dataXMax() : 0)
 
-	// The same bracket a line series plots from is what the spike series below counts from -
-	// there is no spike-specific window logic.
+	// One bracket per series, which both ranges and every line are taken over.
 	readonly property var _windows: _flat.map(f => _bracket(f.xs))
 
 	readonly property var leftRange: _rangeFor("left", _left)
@@ -57,6 +56,10 @@ Item {
 
 	readonly property int _spikeIndex: _firstIndexOfKind("spike")
 	readonly property var _spikeRange: _spikeIndex >= 0 ? _rangeForIndex(_spikeIndex) : { count: 0, low: 0, high: 0 }
+	// Reals, so a spike reads its scale without depending on a range object rebuilt every frame.
+	readonly property real _spikeLow: _spikeRange.low
+	readonly property real _spikeSpan: Math.max(1e-6, _spikeRange.high - _spikeRange.low)
+	readonly property int _stride: Theme.sampleStride(plot.width * 3600000 / Math.max(1, xHigh - xLow))
 
 	function _kindOf(entry) { return entry.kind !== undefined ? entry.kind : "line" }
 	function _axisOf(entry) { return entry.axis !== undefined ? entry.axis : "left" }
@@ -350,27 +353,28 @@ Item {
 			}
 		}
 
-		// The one spike series, as a Repeater bound to a COUNT - the size of the same bracket a
-		// line series would plot from - and not to the series' live point list: each delegate
-		// works out its own x/height from `index` via a flat-array lookup, so the model only
-		// ever changes in size, never in the identity of what it holds. Declared before the
-		// lines so they are drawn over the spikes. See docs/charts.md.
+		// The spike series, counted whole and thinned by `_stride`; declared before the lines so
+		// they are drawn over it. See docs/charts.md.
 		Repeater {
 			model: root.hasVisible && root._spikeIndex >= 0
-				? root._windows[root._spikeIndex].last - root._windows[root._spikeIndex].first
+				? root._flat[root._spikeIndex].xs.length
 				: 0
 
 			Rectangle {
-				readonly property int i: root._windows[root._spikeIndex].first + index
-				readonly property real at: root._flat[root._spikeIndex].xs[i]
-				readonly property real value: root._flat[root._spikeIndex].ys[i]
-				readonly property real xSpan: Math.max(1, root.xHigh - root.xLow)
-				readonly property real ySpan:
-					Math.max(1e-6, root._spikeRange.high - root._spikeRange.low)
+				readonly property real at: root._flat[root._spikeIndex].xs[index]
+				readonly property real value: root._flat[root._spikeIndex].ys[index]
+				readonly property int hour: new Date(at).getHours()
+
+				opacity: hour % root._stride === 0 ? 1 : 0
+				visible: opacity > 0
+				Behavior on opacity { NumberAnimation { duration: 200 } }
 
 				width: 4
-				x: Math.round((at - root.xLow) / xSpan * plot.width - width / 2)
-				height: Math.max(1, Math.round((value - root._spikeRange.low) / ySpan * plot.height))
+				// Gated on `visible`, so a thinned-out spike stops following the window.
+				x: visible
+					? Math.round((at - root.xLow) / Math.max(1, root.xHigh - root.xLow) * plot.width - width / 2)
+					: 0
+				height: Math.max(1, Math.round((value - root._spikeLow) / root._spikeSpan * plot.height))
 				y: plot.height - height
 				color: root.series[root._spikeIndex].stroke
 			}

@@ -63,4 +63,15 @@ QtObject {
 	// heading does not scale with the reading. See docs/scene.md.
 	readonly property int readingRow:
 		Math.round(fontLabel * 1.2 + fontHero * 1.2 + gap * 3)
+
+	// The closest two forecast marks may stand, and the hour steps they thin to. Each step
+	// divides the next, so thinning only ever takes marks away - see docs/charts.md.
+	readonly property int sampleGap: 20
+
+	function sampleStride(hourPx) {
+		for (const hours of [1, 3, 6, 12, 24])
+			if (hours * hourPx >= sampleGap)
+				return hours
+		return 24
+	}
 }
