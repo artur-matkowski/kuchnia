@@ -25,14 +25,16 @@ Context {
 	// leave for the weather context exactly as they leave for the cameras.
 	readonly property string away: "cameras,weather-72h,weather-7d,settings,map"
 
-	// Everything inside the margin, in two columns. They are divided differently - the left one
-	// is a stack of four, the right one is the gate over the radio - which is why they are cut
-	// out first and subdivided separately rather than being one grid.
+	// Everything inside the margin, in two columns, the right one 30% of the screen. They are
+	// divided differently - the left one is a stack of four, the right one is the gate over the
+	// radio - which is why they are cut out first and subdivided separately rather than being
+	// one grid.
 	readonly property rect content: Qt.rect(Theme.gap, Theme.gap,
 	                                        width - Theme.gap * 2, height - Theme.gap * 2)
 
-	readonly property rect leftCol:  Cells.box(screen.content, [-1, -1], [-1], 0, 0)
-	readonly property rect rightCol: Cells.box(screen.content, [-1, -1], [-1], 1, 0)
+	readonly property var columns: [-1, Math.round(screen.width * 0.3)]
+	readonly property rect leftCol:  Cells.box(screen.content, screen.columns, [-1], 0, 0)
+	readonly property rect rightCol: Cells.box(screen.content, screen.columns, [-1], 1, 0)
 
 	// The left column: the reading, the forecast, the precipitation and the tank. Row 0 is
 	// Theme.readingRow because the weather screen opens with the same height - the temperature
