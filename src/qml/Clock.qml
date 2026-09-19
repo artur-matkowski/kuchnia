@@ -16,7 +16,7 @@ Column {
 	}
 
 	Text {
-		text: Qt.formatDateTime(root.now, "HH:mm:ss")
+		text: Qt.formatDateTime(root.now, "HH:mm")
 		color: Theme.text
 		font.pixelSize: Theme.fontHero
 		font.bold: true
