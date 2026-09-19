@@ -13,6 +13,7 @@ Card {
 	property alias fixedLow: chart.fixedLow
 	property alias fixedHigh: chart.fixedHigh
 	property alias minimumSpan: chart.minimumSpan
+	property alias rightGutter: chart.rightGutter
 
 	// The current value of whatever the chart forecasts, already formatted by the caller.
 	// Empty draws nothing at all, which is what a caller passes when the panel is not live -

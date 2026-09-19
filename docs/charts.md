@@ -106,20 +106,21 @@ whichever forecast screen is not showing, and the carousel's copies. `visible` i
 effective visibility, so the `Binding` releases when the card's `SceneElement` fades out and
 is back on the frame opacity first rises, before the card has been drawn.
 
-**The vertical range follows the window, not the series.** A day scaled against a week's
-extremes is a line that barely moves. Because the range is recomputed as the window animates,
-it eases with it rather than stepping when the transition lands.
+**The vertical range follows the window, not the series** - a day scaled against a week's
+extremes barely moves - so it eases with the window rather than stepping when a span lands.
 
 The day/night bands come from `Weather.daylight` and are mapped through the same window as
 the line, so the two cannot disagree. A query that did not ask for the daily block yields no
 bands and no warning, exactly as [rest](docs/rest.md) describes for every other field.
 
-**The range labels are `Theme.fontBody`, and three expressions have to say so.** They are the
-chart's range and not a caption, so they are read at body size; `_gutter` is that size times a
-character count, and the axis strip's height is that size plus a rule. Move the labels alone and
-the widest of them runs out of the gutter, so the line starts under its own axis. Raising the
-size is also how a chart is made to give room back: the plot is whatever the gutter and the
-strip leave.
+**`ForecastCard` sets `rightGutter` because `PrecipitationCard` stands below it** on both
+screens and in the carousel: an empty strip as wide as the humidity axis. Without it the
+temperature plot is wider, and its days drift off the rain chart's with nothing saying so.
+
+**The range labels are `Theme.fontBody`, and three expressions have to say so.** They are read
+at body size; `Theme.chartGutter` is that size times a character count, and the axis strip's
+height is that size plus a rule. Move the labels alone and the widest runs out of the gutter,
+so the line starts under its own axis. Raising the size is also how a chart gives room back.
 
 The axis label format follows the width of the window. Fixed at `HH:mm`, a week reads as a
 day; fixed at the weekday, a week reads as the same weekday twice.

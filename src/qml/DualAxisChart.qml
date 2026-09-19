@@ -27,8 +27,8 @@ Item {
 	readonly property bool hasRightAxis:
 		root._right !== null && root.series.some(e => _axisOf(e) === "right")
 
-	readonly property real _leftGutter: Theme.fontBody * 3.2
-	readonly property real _rightGutter: hasRightAxis ? Theme.fontBody * 3.2 : 0
+	readonly property real _leftGutter: Theme.chartGutter
+	readonly property real _rightGutter: hasRightAxis ? Theme.chartGutter : 0
 
 	readonly property var _flat: _flattenAll()
 

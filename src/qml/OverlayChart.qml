@@ -31,7 +31,7 @@ Item {
 	property real fixedLow: NaN
 	property real fixedHigh: NaN
 
-	readonly property real _gutter: Theme.fontBody * 3.2
+	readonly property real _gutter: Theme.chartGutter
 
 	// One {xs, ys} per series[i], rebuilt only when `series` itself re-evaluates - on
 	// Weather.forecastChanged, once per REST poll, never per frame. See docs/scene.md.

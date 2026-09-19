@@ -15,4 +15,6 @@ ChartCard {
 	unit: "°"
 	decimals: 0
 	minimumSpan: 5
+	// PrecipitationCard stands below this on both screens; its humidity axis is this gutter.
+	rightGutter: true
 }

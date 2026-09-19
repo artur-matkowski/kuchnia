@@ -49,7 +49,11 @@ Item {
 	// Wide enough for the widest label the range can produce, so the line never starts under
 	// its own axis. The 3.2 is a character count and not a size, so it holds as the labels grow -
 	// but it has to be the size the labels are actually drawn at. See docs/charts.md.
-	readonly property real _gutter: Theme.fontBody * 3.2
+	readonly property real _gutter: Theme.chartGutter
+
+	// An empty right gutter as wide as a DualAxisChart's, so this plot's days line up with one
+	// stacked below it. See docs/charts.md.
+	property bool rightGutter: false
 
 	// The series as two flat arrays of plain numbers, refilled only when the series itself
 	// changes. `series.points` is a QVariantList of QPointF, and reading an element through it
@@ -328,7 +332,8 @@ Item {
 	Item {
 		id: plot
 		anchors { left: parent.left; leftMargin: root._gutter + Theme.gap
-		          right: parent.right; top: parent.top; bottom: axis.top }
+		          right: parent.right; rightMargin: root.rightGutter ? Theme.chartGutter + Theme.gap : 0
+		          top: parent.top; bottom: axis.top }
 		clip: true
 
 		Repeater {
@@ -409,6 +414,7 @@ Item {
 		}
 		Text {
 			anchors.right: parent.right
+			anchors.rightMargin: root.rightGutter ? Theme.chartGutter + Theme.gap : 0
 			text: root.hasVisible ? root._time(root.xHigh) : ""
 			color: Theme.textDim
 			font.pixelSize: Theme.fontBody

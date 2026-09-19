@@ -58,6 +58,9 @@ QtObject {
 	readonly property int fontReading: 62   // a number that is the point of its panel
 	readonly property int fontHero:    90   // the two numbers read from across the room
 
+	// A chart's value-axis gutter: fontBody times a character count - docs/charts.md.
+	readonly property real chartGutter: fontBody * 3.2
+
 	// The height of a row carrying one big reading instead of a chart: a Card's heading, its
 	// margins and one fontHero line at a 1.2 line height. Not a multiple of fontHero alone - the
 	// heading does not scale with the reading. See docs/scene.md.
