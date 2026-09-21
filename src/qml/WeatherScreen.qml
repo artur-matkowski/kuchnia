@@ -33,9 +33,10 @@ Context {
 	// Row 0, divided. A cell handed back in as the bounds of a finer grid, which is what Cells
 	// is built to allow: the three readings share the top row and each keeps the row's height.
 	//
-	// Seven bands spanned 3/2/2 and not three equal ones: the temperature card carries a hero
-	// number, a sky word and a humidity line side by side and is the only one of the three that
-	// runs out of width. Nothing warns when it does - the sky word simply elides.
+	// Seven bands spanned 3/2/2: the temperature card carries a hero number and, on the
+	// compact screen, the wall clock; the other two are narrower, text-only readings. The
+	// split is historical (the card once carried sky words and a humidity line that ran out
+	// of width) and still works once the card shrinks.
 	function reading(column, span) {
 		return Cells.box(screen.cell(0), [-1, -1, -1, -1, -1, -1, -1], [-1], column, 0, span)
 	}
