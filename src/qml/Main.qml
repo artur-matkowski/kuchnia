@@ -106,16 +106,16 @@ Window {
 		MapScreen {}
 		SettingsScreen { id: settings }
 
-		// The three weather cards, which belong to both of the screens above and therefore to
-		// neither: they migrate between them rather than being drawn twice. Handing them both
-		// sets of slots is the one piece of wiring this file does - a card cannot ask a screen
-		// it is not inside where its box is.
+		// The three weather cards and the clock, which belong to both of the screens above and
+		// therefore to neither: they migrate between them rather than being drawn twice.
+		// Handing them both sets of slots is the one piece of wiring this file does - a card
+		// cannot ask a screen it is not inside where its box is.
 		WeatherLayer {
 			compactBoxes: compact.weatherBoxes
 			weatherBoxes: weather.weatherBoxes
 		}
 
-		// And the second set of the same three, for the one moment both screens are on screen
+		// And the second set of the same four, for the one moment both screens are on screen
 		// at once - the carousel, where the layer above stands in the compact miniature and
 		// these stand in the weather one.
 		CarouselWeather {

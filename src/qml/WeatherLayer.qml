@@ -1,7 +1,7 @@
 import QtQuick
 import Kuchnia
 
-// The three weather cards, each on two screens at once.
+// The three weather cards and the clock, each on two screens at once.
 //
 // They belong to neither screen, and that is the whole design. The compact screen stacks them
 // down its left column and the weather screen spreads them over its reading row and two of its
@@ -10,8 +10,9 @@ import Kuchnia
 // the two screens ask for. A reading the eye is already following is carried across rather than
 // interrupted.
 //
-// Both screens name their boxes `temperature`, `temperatureChart` and `precipitation`. Nothing
-// checks that they do: a screen that spells one differently is a card that stays where it was.
+// Both screens name their boxes `temperature`, `temperatureChart`, `precipitation` and `clock`.
+// Nothing checks that they do: a screen that spells one differently is a card that stays where
+// it was.
 CardFrame {
 	id: layer
 
@@ -313,6 +314,99 @@ CardFrame {
 			// compact miniature is where they stand, and both screens they belong to are cards
 			// of their own, so a step between the carousel and either of them is a migration
 			// between two layouts and not just a change of pose - hence `focused`.
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				PropertyAnimation {
+					properties: "box,scale,opacity,offsetX,offsetY"
+					duration: layer.focused ? 540 : 0
+					easing.type: Easing.InOutCubic
+				}
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				SequentialAnimation {
+					PauseAnimation { duration: layer.focused ? 0 : 500 }
+					PropertyAnimation {
+						properties: "box,scale,opacity,offsetX,offsetY"
+						duration: layer.focused ? 520 : 0
+						easing.type: Easing.InOutCubic
+					}
+				}
+			}
+		]
+	}
+
+	SceneElement {
+		id: clock
+
+		box: layer.compactBoxes.clock
+
+		ClockCard { anchors.fill: parent }
+
+		states: [
+			State {
+				name: "cameras"
+				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
+			},
+			State { name: "compact-72h" },
+			State {
+				name: "weather-72h"
+				PropertyChanges { target: clock; box: layer.weatherBoxes.clock }
+			},
+			State {
+				name: "weather-7d"
+				PropertyChanges { target: clock; box: layer.weatherBoxes.clock }
+			},
+			State {
+				name: "settings"
+				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "map"
+				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "carousel"
+				PropertyChanges {
+					target: clock
+					box: Carousel.anchorCard === "weather"
+						? layer.weatherBoxes.clock : layer.compactBoxes.clock
+				}
+			}
+		]
+
+		transitions: [
+			Transition {
+				from: layer.compact; to: layer.weather
+				SequentialAnimation {
+					PauseAnimation { duration: 180 }
+					PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.InOutCubic }
+				}
+			},
+			Transition {
+				from: layer.weather; to: layer.compact
+				SequentialAnimation {
+					PauseAnimation { duration: 180 }
+					PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.InOutCubic }
+				}
+			},
+			Transition {
+				from: layer.offIds; to: layer.compact + "," + layer.weather
+				SequentialAnimation {
+					PauseAnimation { duration: 380 }
+					ParallelAnimation {
+						PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.OutCubic }
+						NumberAnimation { properties: "offsetX,opacity"; duration: 520; easing.type: Easing.OutCubic }
+					}
+				}
+			},
+			Transition {
+				from: layer.compact + "," + layer.weather; to: layer.offIds
+				ParallelAnimation {
+					PropertyAnimation { properties: "box"; duration: 340; easing.type: Easing.InCubic }
+					NumberAnimation { properties: "offsetX,opacity"; duration: 340; easing.type: Easing.InCubic }
+				}
+			},
 			Transition {
 				from: Nav.elsewhere; to: "carousel"
 				PropertyAnimation {

@@ -36,11 +36,17 @@ Context {
 	readonly property rect leftCol:  Cells.box(screen.content, screen.columns, [-1], 0, 0)
 	readonly property rect rightCol: Cells.box(screen.content, screen.columns, [-1], 1, 0)
 
-	// The left column: the reading, the forecast, the precipitation and the tank. Row 0 is
-	// Theme.readingRow because the weather screen opens with the same height - the temperature
-	// card crossing between the two screens must move, not resize.
+	// The left column: row 0 is split between the temperature and the clock, then the forecast,
+	// the precipitation and the tank. Row 0 is Theme.readingRow because the weather screen
+	// opens its own column with the same height - a card crossing between the two must move, not
+	// resize.
 	function leftCell(row) {
 		return Cells.box(screen.leftCol, [-1], [Theme.readingRow, -1, -1, -1], 0, row)
+	}
+
+	// Row 0 of the left column, divided. The temperature and the clock each take half.
+	function leftTop(column) {
+		return Cells.box(screen.leftCell(0), [-1, -1], [-1], column, 0)
 	}
 
 	// What the gate needs and no more, at a 1.2 line height. A literal here is a band that stops
@@ -63,9 +69,10 @@ Context {
 	// names are the whole contract and nothing checks them - a misspelt one is a card that
 	// never arrives, with no warning anywhere.
 	readonly property var weatherBoxes: ({
-		temperature: screen.leftCell(0),
+		temperature: screen.leftTop(0),
 		temperatureChart: screen.leftCell(1),
-		precipitation: screen.leftCell(2)
+		precipitation: screen.leftCell(2),
+		clock: screen.leftTop(1)
 	})
 
 	SceneElement {

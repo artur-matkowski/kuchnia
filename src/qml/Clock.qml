@@ -21,10 +21,4 @@ Column {
 		font.pixelSize: Theme.fontHero
 		font.bold: true
 	}
-
-	Text {
-		text: Qt.formatDateTime(root.now, "dddd, d MMMM yyyy")
-		color: Theme.textDim
-		font.pixelSize: Theme.fontBody
-	}
 }

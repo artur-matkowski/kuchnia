@@ -1,11 +1,12 @@
 import QtQuick
 import Kuchnia
 
-// The second set of the three weather cards, and it exists for one reason: in the carousel the
-// compact miniature and the weather miniature are on screen at the same time, and both of them
-// show a temperature, a forecast and the precipitation. WeatherLayer's three cards can only be
-// in one of the two - they are one instance each, which is the whole point of that file - so
-// these three stand in the weather miniature while those three stand in the compact one.
+// The second set of the three weather cards and the clock, and it exists for one reason: in
+// the carousel the compact miniature and the weather miniature are on screen at the same time,
+// and both of them show a temperature, a forecast, the precipitation and the clock. WeatherLayer's
+// cards can only be in one of the two - they are one instance each, which is the whole point
+// of that file - so these four stand in the weather miniature while those four stand in the
+// compact one.
 //
 // They are instantiated at startup and not built when the carousel is asked for. Three charts
 // constructed in the frame an animation starts in is three cards arriving late into a miniature
@@ -169,6 +170,41 @@ CardFrame {
 					PauseAnimation { duration: extra.focused ? 0 : 500 }
 					PropertyAnimation { properties: "opacity"; duration: 0 }
 				}
+			}
+		]
+	}
+
+	SceneElement {
+		id: clock
+
+		box: extra.card === "weather"
+			? extra.weatherBoxes.clock : extra.compactBoxes.clock
+
+		opacity: 0
+
+		ClockCard { anchors.fill: parent }
+
+		states: [
+			State { name: "cameras" },
+			State { name: "compact-72h" },
+			State { name: "weather-72h" },
+			State { name: "weather-7d" },
+			State { name: "settings" },
+			State { name: "map" },
+			State {
+				name: "carousel"
+				PropertyChanges { target: clock; opacity: 1 }
+			}
+		]
+
+		transitions: [
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				NumberAnimation { properties: "opacity"; duration: 540; easing.type: Easing.InOutCubic }
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				NumberAnimation { properties: "opacity"; duration: 520; easing.type: Easing.InOutCubic }
 			}
 		]
 	}
