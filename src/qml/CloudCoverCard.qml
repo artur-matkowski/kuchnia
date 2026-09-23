@@ -44,6 +44,7 @@ Card {
 			id: chart
 			Layout.fillWidth: true
 			Layout.fillHeight: true
+			rightGutter: true
 			bands: Weather.daylight
 			fixedLow: 0
 			fixedHigh: 100

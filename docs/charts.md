@@ -116,6 +116,8 @@ bands and no warning, exactly as [rest](docs/rest.md) describes for every other 
 **`ForecastCard` sets `rightGutter` because `PrecipitationCard` stands below it** on both
 screens and in the carousel: an empty strip as wide as the humidity axis. Without it the
 temperature plot is wider, and its days drift off the rain chart's with nothing saying so.
+The same applies to `CloudCoverCard`: its plot must not run to the card's right edge while
+the chart beneath it reserves the gutter, so it sets `rightGutter` too.
 
 **The range labels are `Theme.fontBody`, and three expressions have to say so.** They are read
 at body size; `Theme.chartGutter` is that size times a character count, and the axis strip's

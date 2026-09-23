@@ -33,6 +33,10 @@ Item {
 
 	readonly property real _gutter: Theme.chartGutter
 
+	// An empty right gutter as wide as a DualAxisChart's, so this plot's days line up with one
+	// stacked below it. See docs/charts.md.
+	property bool rightGutter: false
+
 	// One {xs, ys} per series[i], rebuilt only when `series` itself re-evaluates - on
 	// Weather.forecastChanged, once per REST poll, never per frame. See docs/scene.md.
 	readonly property var _flat: _flattenAll()
@@ -283,7 +287,8 @@ Item {
 	Item {
 		id: plot
 		anchors { left: parent.left; leftMargin: root._gutter + Theme.gap
-		          right: parent.right; top: parent.top; bottom: axis.top }
+		          right: parent.right; rightMargin: root.rightGutter ? Theme.chartGutter + Theme.gap : 0
+		          top: parent.top; bottom: axis.top }
 		clip: true
 
 		Repeater {
@@ -364,6 +369,7 @@ Item {
 		}
 		Text {
 			anchors.right: parent.right
+			anchors.rightMargin: root.rightGutter ? Theme.chartGutter + Theme.gap : 0
 			text: root.hasVisible ? root._time(root.xHigh) : ""
 			color: Theme.textDim
 			font.pixelSize: Theme.fontBody
