@@ -41,6 +41,103 @@ CardFrame {
 	// Above both contexts, which own z 0 and 1. A card in flight belongs to neither screen.
 	baseZ: 2
 
+	// The clock is declared first so it sits behind the temperature during the migration
+	// between the compact and the weather screen: the temperature moves out of its compact
+	// box before the clock does, and the two cross. Later declaration draws on top, so the
+	// reading stays in front while it slides past the clock.
+	SceneElement {
+		id: clock
+
+		box: layer.compactBoxes.clock
+
+		ClockCard { anchors.fill: parent }
+
+		states: [
+			State {
+				name: "cameras"
+				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
+			},
+			State { name: "compact-72h" },
+			State {
+				name: "weather-72h"
+				PropertyChanges { target: clock; box: layer.weatherBoxes.clock }
+			},
+			State {
+				name: "weather-7d"
+				PropertyChanges { target: clock; box: layer.weatherBoxes.clock }
+			},
+			State {
+				name: "settings"
+				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "map"
+				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
+			},
+			State {
+				name: "carousel"
+				PropertyChanges {
+					target: clock
+					box: Carousel.anchorCard === "weather"
+						? layer.weatherBoxes.clock : layer.compactBoxes.clock
+				}
+			}
+		]
+
+		transitions: [
+			Transition {
+				from: layer.compact; to: layer.weather
+				SequentialAnimation {
+					PauseAnimation { duration: 180 }
+					PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.InOutCubic }
+				}
+			},
+			Transition {
+				from: layer.weather; to: layer.compact
+				SequentialAnimation {
+					PauseAnimation { duration: 180 }
+					PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.InOutCubic }
+				}
+			},
+			Transition {
+				from: layer.offIds; to: layer.compact + "," + layer.weather
+				SequentialAnimation {
+					PauseAnimation { duration: 380 }
+					ParallelAnimation {
+						PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.OutCubic }
+						NumberAnimation { properties: "offsetX,opacity"; duration: 520; easing.type: Easing.OutCubic }
+					}
+				}
+			},
+			Transition {
+				from: layer.compact + "," + layer.weather; to: layer.offIds
+				ParallelAnimation {
+					PropertyAnimation { properties: "box"; duration: 340; easing.type: Easing.InCubic }
+					NumberAnimation { properties: "offsetX,opacity"; duration: 340; easing.type: Easing.InCubic }
+				}
+			},
+			Transition {
+				from: Nav.elsewhere; to: "carousel"
+				PropertyAnimation {
+					properties: "box,scale,opacity,offsetX,offsetY"
+					duration: layer.focused ? 540 : 0
+					easing.type: Easing.InOutCubic
+				}
+			},
+			Transition {
+				from: "carousel"; to: Nav.elsewhere
+				SequentialAnimation {
+					PauseAnimation { duration: layer.focused ? 0 : 500 }
+					PropertyAnimation {
+						properties: "box,scale,opacity,offsetX,offsetY"
+						duration: layer.focused ? 520 : 0
+						easing.type: Easing.InOutCubic
+					}
+				}
+			}
+		]
+	}
+
 	SceneElement {
 		id: temperature
 
@@ -336,96 +433,4 @@ CardFrame {
 		]
 	}
 
-	SceneElement {
-		id: clock
-
-		box: layer.compactBoxes.clock
-
-		ClockCard { anchors.fill: parent }
-
-		states: [
-			State {
-				name: "cameras"
-				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
-			},
-			State { name: "compact-72h" },
-			State {
-				name: "weather-72h"
-				PropertyChanges { target: clock; box: layer.weatherBoxes.clock }
-			},
-			State {
-				name: "weather-7d"
-				PropertyChanges { target: clock; box: layer.weatherBoxes.clock }
-			},
-			State {
-				name: "settings"
-				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
-			},
-			State {
-				name: "map"
-				PropertyChanges { target: clock; offsetX: -1400; opacity: 0 }
-			},
-			State {
-				name: "carousel"
-				PropertyChanges {
-					target: clock
-					box: Carousel.anchorCard === "weather"
-						? layer.weatherBoxes.clock : layer.compactBoxes.clock
-				}
-			}
-		]
-
-		transitions: [
-			Transition {
-				from: layer.compact; to: layer.weather
-				SequentialAnimation {
-					PauseAnimation { duration: 180 }
-					PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.InOutCubic }
-				}
-			},
-			Transition {
-				from: layer.weather; to: layer.compact
-				SequentialAnimation {
-					PauseAnimation { duration: 180 }
-					PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.InOutCubic }
-				}
-			},
-			Transition {
-				from: layer.offIds; to: layer.compact + "," + layer.weather
-				SequentialAnimation {
-					PauseAnimation { duration: 380 }
-					ParallelAnimation {
-						PropertyAnimation { properties: "box"; duration: 520; easing.type: Easing.OutCubic }
-						NumberAnimation { properties: "offsetX,opacity"; duration: 520; easing.type: Easing.OutCubic }
-					}
-				}
-			},
-			Transition {
-				from: layer.compact + "," + layer.weather; to: layer.offIds
-				ParallelAnimation {
-					PropertyAnimation { properties: "box"; duration: 340; easing.type: Easing.InCubic }
-					NumberAnimation { properties: "offsetX,opacity"; duration: 340; easing.type: Easing.InCubic }
-				}
-			},
-			Transition {
-				from: Nav.elsewhere; to: "carousel"
-				PropertyAnimation {
-					properties: "box,scale,opacity,offsetX,offsetY"
-					duration: layer.focused ? 540 : 0
-					easing.type: Easing.InOutCubic
-				}
-			},
-			Transition {
-				from: "carousel"; to: Nav.elsewhere
-				SequentialAnimation {
-					PauseAnimation { duration: layer.focused ? 0 : 500 }
-					PropertyAnimation {
-						properties: "box,scale,opacity,offsetX,offsetY"
-						duration: layer.focused ? 520 : 0
-						easing.type: Easing.InOutCubic
-					}
-				}
-			}
-		]
-	}
 }

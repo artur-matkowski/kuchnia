@@ -33,10 +33,10 @@ Context {
 	// Row 0, divided. A cell handed back in as the bounds of a finer grid, which is what Cells
 	// is built to allow: the three readings share the top row and each keeps the row's height.
 	//
-	// Thirteen bands spanned 3/4/4/2: temperature takes three, wind and conditions each take
-	// four, and the clock keeps two. The clock carries only the time, so it needs less width
-	// than the readings that have numbers and labels side by side; the temperature card gave
-	// up its old width to make room once it lost the sky word and humidity line.
+	// Thirteen bands spanned 2/3/4/4: the clock takes two, temperature three, and wind and
+	// conditions each take four. The clock carries only the time, so it needs less width than
+	// the readings that have numbers and labels side by side; the temperature card gave up its
+	// old width to make room once it lost the sky word and humidity line.
 	function reading(column, span) {
 		return Cells.box(screen.cell(0),
 		                 [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -47,15 +47,15 @@ Context {
 	// whole contract: nothing checks that a screen offers the boxes the layer looks for, and a
 	// misspelt one is a card that never arrives.
 	readonly property var weatherBoxes: ({
-		temperature: screen.reading(0, 3),
+		clock: screen.reading(0, 2),
+		temperature: screen.reading(2, 3),
 		temperatureChart: screen.cell(1),
-		precipitation: screen.cell(4),
-		clock: screen.reading(11, 2)
+		precipitation: screen.cell(4)
 	})
 
 	SceneElement {
 		id: wind
-		box: screen.reading(3, 4)
+		box: screen.reading(5, 4)
 
 		WindCard { anchors.fill: parent }
 
@@ -96,7 +96,7 @@ Context {
 
 	SceneElement {
 		id: conditions
-		box: screen.reading(7, 4)
+		box: screen.reading(9, 4)
 
 		ConditionsCard { anchors.fill: parent }
 

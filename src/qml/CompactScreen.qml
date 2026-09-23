@@ -69,10 +69,10 @@ Context {
 	// names are the whole contract and nothing checks them - a misspelt one is a card that
 	// never arrives, with no warning anywhere.
 	readonly property var weatherBoxes: ({
-		temperature: screen.leftTop(0),
+		temperature: screen.leftTop(1),
 		temperatureChart: screen.leftCell(1),
 		precipitation: screen.leftCell(2),
-		clock: screen.leftTop(1)
+		clock: screen.leftTop(0)
 	})
 
 	SceneElement {
